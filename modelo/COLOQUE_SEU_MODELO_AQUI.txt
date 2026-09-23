@@ -1,0 +1,7 @@
+Arquivos exportados do Blender que o site usa:
+
+  personagem.glb     -> a personagem (malha + rig)
+  bolha-cabeca.glb   -> a bolha com a cabecinha (o site pinta cada bolha de uma cor)
+  textura.png        -> textura da personagem (fundo preto)
+
+Pra trocar a bolha, exporte por cima de bolha-cabeca.glb.

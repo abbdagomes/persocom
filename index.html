@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfólio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- fonte do site: Geist Mono (monoespaçada; hierarquia por peso, tamanho e maiúsculas espaçadas) -->
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+  <!-- fontes das letras do logo -->
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Codystar&family=Crimson+Text&family=DM+Serif+Display&family=Major+Mono+Display&family=Monoton&family=Pinyon+Script&family=Rampart+One&family=Rubik+Mono+One&family=Silkscreen&family=Special+Elite&family=Syne+Mono&family=UnifrakturMaguntia&family=VT323&display=block" rel="stylesheet">
+  <!-- símbolos do logo (aparecem iguais em qualquer aparelho) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&family=Noto+Sans+Math&family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js: a biblioteca que desenha o 3D no navegador -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Aqui o 3D é desenhado (personagem, chão, bolhas) -->
+  <canvas id="cena"></canvas>
+
+  <!-- tela de carregamento (pixels que somem aos poucos) — ver carregamento.js -->
+  <canvas id="carregando"></canvas>
+  <div id="aviso" hidden></div>
+
+  <!-- TOPO: logo modular (a cabeça + letras que trocam ao passar o mouse) -->
+  <header class="topo">
+    <!-- as versões das letras ficam no logo.js -->
+    <a class="logo" id="logo" href="#" aria-label="Persocom">
+      <div class="logo-cabeca">
+        <img class="cabeca-base" src="logo/asset-11.svg" alt="">
+        <div class="cabeca-variante"></div>
+        <svg class="cabeca-rosto" viewBox="0 0 203 223" aria-hidden="true"></svg>
+      </div>
+    </a>
+  </header>
+
+  <!-- BOTÕES LATERAIS: troque os ícones/links depois -->
+  <nav class="botoes-laterais">
+    <a class="bola" href="#" title="Sobre mim">✦</a>
+    <a class="bola" href="#" title="Contato">✉</a>
+    <a class="bola" href="#" title="Instagram">◎</a>
+    <a class="bola" href="#" title="Currículo">☰</a>
+  </nav>
+
+  <!-- CATEGORIAS (embaixo) e a GALERIA que aparece quando a câmera vira.
+       O conteúdo fica no projetos.js (listas CATEGORIAS e PROJETOS) -->
+  <nav class="categorias" id="categorias" aria-label="Categorias"></nav>
+  <section class="galeria" id="galeria" aria-live="polite"></section>
+
+  <script type="module" src="projetos.js"></script>
+  <script type="module" src="main.js"></script>
+  <script type="module" src="logo.js"></script>
+  <script type="module" src="cursor.js"></script>
+</body>
+</html>

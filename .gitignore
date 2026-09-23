@@ -1,0 +1,18 @@
+# ---- o que NÃO vai pro GitHub (só fica no seu computador) ----
+# arquivos do Blender e backups (pesadíssimos)
+*.blend
+*.blend1
+# cópias soltas na raiz da pasta (os originais pesados; o site usa os da pasta modelo/)
+/personagem.glb
+/bolha cabeça.glb
+/textura.png
+/textura nova.png
+/textura2.png
+/uv corpo.png
+# ferramentas, fontes e anotações internas
+.claude/
+CONTEXTO-PROJETO.md
+LEIA-ME.md
+# lixo do Windows
+Thumbs.db
+desktop.ini
