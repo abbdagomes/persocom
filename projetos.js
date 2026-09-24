@@ -116,7 +116,7 @@ const PROJETOS = [
       + 'maiores pólos da vanguarda underground paulistana, atraindo mais de 500 pessoas por edição ao fundir música de clube '
       + 'desconstruída, artes visuais, moda e estética da internet.',
     capa: 'projetos/shader-glsl/capa.webp',
-    video: 'projetos/shader-glsl/instalacao.mp4',
+    video: 'projetos/shader-glsl/instalacao.mp4?v=2',   // 480 px, 1,8 MB
     link: '',
     etiquetas: ['touchdesigner', 'glsl', 'mediapipe', 'interativo', 'lovecore 6'],
     imagens: [
@@ -507,7 +507,8 @@ function abrirDetalhe(id, projetoId) {
     if (m.cenario) return `<div class="cenario" data-cenario></div>`;
     if (m.modelo3d) return `<div class="modelo3d" data-modelo3d></div>`;
     if (m.mosaico) return `<div class="mosaico" data-mosaico></div>`;
-    if (m.video) return `<video class="${classe}" src="${escapar(m.video)}" autoplay muted loop playsinline controls></video>`;
+    // vídeos "planos": sem botões nem barra por cima (pedido da Ana) — tocam sozinhos, sem som, em loop
+    if (m.video) return `<video class="${classe}" src="${escapar(m.video)}" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback></video>`;
     return `<img class="${classe}" src="${escapar(m.src)}" alt="${escapar(m.legenda || p.titulo)}" loading="lazy">`;
   };
 

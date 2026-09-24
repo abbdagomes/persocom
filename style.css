@@ -992,3 +992,9 @@ body.mosaico-tela-cheia { overflow: hidden; }
   }
   .tela-cheia .mosaico-aviso { font-size: 15px; top: 96px; }
 }
+/* botão de trocar câmera (frontal ↔ traseira): à direita do disparador, como no app de câmera do celular */
+.tela-cheia .mosaico-redondo.mosaico-virar { position: absolute; z-index: 2; left: calc(50% + 62px); bottom: 36px; }
+.mosaico-virar svg { width: 26px; height: 26px; color: #7d848d; }
+/* vídeos sem nenhum controle por cima (nem o botão de play grande do iPhone quando o vídeo carrega) */
+video::-webkit-media-controls, video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }

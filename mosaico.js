@@ -100,6 +100,11 @@ const FRAG_DESENHO = /* glsl */`
 const ICONE_FOTO = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10H4z"/><circle cx="12" cy="13.2" r="3.4"/></svg>`;
 
+// ícone do botão de virar a câmera (frontal ↔ traseira): câmera com duas setinhas girando
+const ICONE_VIRAR = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10H4z"/><path d="M9.2 12.2a3 3 0 0 1 5.2-1.4l.6.7"/><path d="M15 10v1.6h-1.6"/>
+  <path d="M14.8 14.6a3 3 0 0 1-5.2 1.4l-.6-.7"/><path d="M9 17v-1.6h1.6"/></svg>`;
+
 // salva a foto: no celular abre o "compartilhar" (dá pra salvar na galeria); no computador baixa o .png
 async function salvarFoto(blob) {
   const nome = `mosaico-persocom-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
@@ -133,6 +138,7 @@ export function montarMosaico(raiz, cfg) {
       <label class="mosaico-tamanho"><span>quadrados</span><input type="range" min="0" max="1" step="0.001" value="${CONFIG_MOSAICO.tamanhoInicial}"></label>
       <button type="button" class="mosaico-redondo mosaico-foto" data-foto title="tirar foto do mosaico" aria-label="tirar foto do mosaico" hidden>${ICONE_FOTO}</button>
       <button type="button" class="pilula mosaico-sair" data-sair hidden>✕ sair da câmera</button>
+      <button type="button" class="mosaico-redondo mosaico-virar" data-virar title="trocar câmera (frontal / traseira)" aria-label="trocar entre câmera frontal e traseira" hidden>${ICONE_VIRAR}</button>
       <div class="mosaico-flash" aria-hidden="true"></div>
     </div>`;
   const palco = raiz.querySelector('.mosaico-palco');
@@ -146,6 +152,7 @@ export function montarMosaico(raiz, cfg) {
   const flash = raiz.querySelector('.mosaico-flash');
   const botaoFoto = raiz.querySelector('[data-foto]');
   const botaoSair = raiz.querySelector('[data-sair]');
+  const botaoVirar = raiz.querySelector('[data-virar]');
 
   const renderer = new THREE.WebGLRenderer({ canvas: tela, antialias: false });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -256,7 +263,7 @@ export function montarMosaico(raiz, cfg) {
     document.body.classList.remove('mosaico-tela-cheia');
     raiz.appendChild(palco);
     caixaCamera.hidden = false;
-    botaoFoto.hidden = true; botaoSair.hidden = true;
+    botaoFoto.hidden = true; botaoSair.hidden = true; botaoVirar.hidden = true;
   }
   // Esc sai da câmera (e não deixa o Esc do site fechar o projeto junto)
   const aoTeclar = (e) => {
@@ -268,6 +275,43 @@ export function montarMosaico(raiz, cfg) {
   let stream = null, maos = null, ultimoTempo = -1, pontos = null;
   botaoCamera.addEventListener('click', ligarCamera);
   botaoSair.addEventListener('click', desligarCamera);
+  botaoVirar.addEventListener('click', virarCamera);
+  // frontal = 'user' (espelhada, como selfie) · traseira = 'environment' (sem espelhar)
+  let lado = 'user';
+  const abrirCamera = (qual) => navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: qual }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false,
+  });
+  function usarStream(novo) {
+    stream = novo;
+    video.srcObject = stream;
+    // descobre de que lado a câmera ficou de verdade (no computador, "traseira" pode cair na mesma webcam)
+    const real = stream.getVideoTracks()[0]?.getSettings?.().facingMode;
+    uEscolha.uEspelho.value = (real || lado) === 'environment' ? 0 : 1;
+  }
+  // o botão de virar só aparece se o aparelho tiver mais de uma câmera (celular)
+  async function mostrarVirarSeTiverDuas() {
+    try {
+      const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+      botaoVirar.hidden = !(telaCheia && cams.length > 1);
+    } catch { botaoVirar.hidden = true; }
+  }
+  async function virarCamera() {
+    if (!stream) return;
+    botaoVirar.disabled = true;
+    const antes = lado;
+    lado = lado === 'user' ? 'environment' : 'user';
+    stream.getTracks().forEach((t) => t.stop());
+    try {
+      usarStream(await abrirCamera(lado));
+      await video.play();
+    } catch {
+      lado = antes;                                     // não deu: volta pra câmera de antes
+      try { usarStream(await abrirCamera(lado)); await video.play(); } catch { desligarCamera(); }
+      mostrarAviso('não deu pra trocar de câmera', 3000);
+    }
+    pontos = null;
+    botaoVirar.disabled = false;
+  }
   // a mesma tela de pixels do carregamento do site, cobrindo o quadro enquanto a câmera e o rastreio da mão carregam
   let pixels = null;
   function cobrirComPixels() {
@@ -288,13 +332,14 @@ export function montarMosaico(raiz, cfg) {
     cobrirComPixels();
     pixels.progresso(0.08);
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
-      if (!vivo || !telaCheia) { stream.getTracks().forEach((t) => t.stop()); stream = null; return; }
+      lado = 'user';
+      const novo = await abrirCamera(lado);
+      if (!vivo || !telaCheia) { novo.getTracks().forEach((t) => t.stop()); return; }
+      usarStream(novo);
+      mostrarVirarSeTiverDuas();
       pixels?.progresso(0.35);
-      video.srcObject = stream;
       await video.play();
       uEscolha.uFonte.value = texCamera;
-      uEscolha.uEspelho.value = 1;
       pixels?.progresso(0.45);
       if (!maos) {
         const { FilesetResolver, HandLandmarker } = await import(`${CONFIG_MOSAICO.mediapipe}/vision_bundle.mjs`);
@@ -359,7 +404,8 @@ export function montarMosaico(raiz, cfg) {
     ctxMao.clearRect(0, 0, W, H);
     if (!pontos) return;
     const esc = uEscolha.uEscala.value;
-    const tela = (p) => [((1 - p.x) - 0.5) / esc.x * W + W / 2, (p.y - 0.5) / esc.y * H + H / 2];
+    const espelho = uEscolha.uEspelho.value > 0.5;
+    const tela = (p) => [((espelho ? 1 - p.x : p.x) - 0.5) / esc.x * W + W / 2, (p.y - 0.5) / esc.y * H + H / 2];
     const [a, b] = pontos.map(tela);
     ctxMao.strokeStyle = 'rgba(255,255,255,.9)'; ctxMao.lineWidth = 2;
     ctxMao.beginPath(); ctxMao.moveTo(a[0], a[1]); ctxMao.lineTo(b[0], b[1]); ctxMao.stroke();
