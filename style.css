@@ -607,7 +607,11 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   .categorias { gap: 8px; bottom: 12px; }
   .card-categoria { padding: 6px; border-radius: 18px; }
   .card-categoria .thumb { height: 52px; border-radius: 12px; }
-  .card-categoria h3 { font-size: 13px; gap: 4px; }
+  /* no celular o nome pode quebrar em 2 linhas ("Design / gráfico") em vez de ser cortado com "…" */
+  .card-categoria h3 { font-size: clamp(11px, 3.4vw, 13px); letter-spacing: -.05em; gap: 3px; align-items: flex-start; white-space: normal; line-height: 1.15; overflow: visible; }
+  .card-categoria h3 [data-texto] { min-width: 0; }   /* quebra só entre palavras */
+  .card-categoria h3 { margin-left: 1px; margin-right: 1px; }
+  .card-categoria .seta-dir { flex: none; width: 14px; height: 14px; font-size: 11px; }
   .card-categoria p { display: none; }
 }
 
