@@ -1150,6 +1150,13 @@ addEventListener('virar', (e) => {
   // quando começa a voltar, some com a bolinha do cursor que ficou "presa" na bolha
   document.body.classList.remove('cursor-clicavel');
 });
+// abriu o site direto numa galeria (link com #3d/... ou refresh): a câmera já começa virada, sem animação
+if (document.body.classList.contains('em-galeria')) {
+  const d = DIRECOES[document.body.dataset.direcao] || DIRECOES.frente;
+  virada.yaw = virada.alvoYaw = d.yaw;
+  virada.pitch = virada.alvoPitch = d.pitch;
+  virada.galeria = true;
+}
 
 function aplicarVirada(dt) {
   virada.yaw = THREE.MathUtils.damp(virada.yaw, virada.alvoYaw, VELOCIDADE_VIRADA, dt);

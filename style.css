@@ -234,6 +234,9 @@ body.em-galeria[data-direcao="direita"] .categorias { transform: translateX(-120
 body.em-galeria[data-direcao="esquerda"] .categorias { transform: translateX(20%); }
 body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 140%); }
 
+/* abrindo o site direto numa galeria (refresh / link com #): tudo já no lugar, sem animar */
+body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after { transition: none !important; }
+
 /* ---------- galeria: a "parede" de cada categoria ---------- */
 .galeria {
   position: fixed;
@@ -319,27 +322,13 @@ body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 14
   white-space: nowrap;
 }
 .pilula:hover { transform: scale(1.06); }
+/* botão de voltar pra home: só a casinha, redondo */
+.pilula.casa { width: 42px; height: 42px; padding: 0; justify-content: center; flex: none; }
 .pilula.ver-projeto {
   color: #fff;
   background:
     linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,0) 55%),
     linear-gradient(var(--c1), color-mix(in srgb, var(--c1) 70%, #000));
-}
-
-.filtros { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
-.filtro {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 999px;
-  font: 700 12px 'Geist Mono', monospace;
-  color: #6b7280;
-  background: rgba(255,255,255,.7);
-  box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.06);
-}
-.filtro.ativo {
-  color: #1f2937;
-  background: linear-gradient(rgba(255,255,255,.8), rgba(255,255,255,0) 60%), var(--c2);
-  box-shadow: inset 0 0 0 1.5px var(--c1), 0 2px 6px rgba(0,0,0,.08);
 }
 
 /* os quadradinhos dos projetos */
@@ -349,7 +338,7 @@ body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 14
   gap: 22px 18px;
   padding: 8px 4px 30px;
 }
-.grade[hidden], .filtros[hidden] { display: none; }
+.grade[hidden] { display: none; }
 /* entram um depois do outro (só uma vez; o hover continua "inflando" normal) */
 .quadradinho {
   flex: none;
@@ -365,6 +354,55 @@ body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 14
 .quadradinho .thumb { -webkit-box-reflect: below 6px linear-gradient(transparent 72%, rgba(255,255,255,.28)); }
 @keyframes aparece { from { opacity: 0; transform: translateY(14px) scale(.9); } }
 .vazio { color: #9aa0a8; }
+
+/* projeto em destaque (os "grandes"): card duplo, com a miniatura mais larga */
+.quadradinho.destaque { grid-column: span 2; }
+.quadradinho.destaque .thumb { aspect-ratio: 2 / 1; } /* 2 colunas de largura → mesma altura dos quadrados */
+
+/* ---------- MURAL da Ilustração: colunas, cada desenho no seu formato ---------- */
+.grade.mural { display: block; columns: 4 200px; column-gap: 18px; }
+.grade.mural[hidden] { display: none; }
+.grade.mural > .card { width: 100%; margin: 0 0 20px; break-inside: avoid; }
+.grade.mural .thumb { -webkit-box-reflect: none; }
+.quadradinho.desenho { border: 0; font: inherit; text-align: left; cursor: pointer; }
+.quadradinho.desenho .thumb { height: auto; aspect-ratio: 1; }
+.quadradinho.desenho .thumb img { position: static; display: block; height: auto; }
+.quadradinho.desenho .thumb:has(img) { aspect-ratio: auto !important; }
+.desenho-exemplo {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font: 700 15px 'Geist Mono', monospace; letter-spacing: -.03em; color: rgba(255,255,255,.95);
+}
+/* os projetos que entram no mural (ex.: Emoji Lab) ganham uma etiqueta "projeto" */
+.quadradinho.no-mural::after {
+  content: 'projeto ›';
+  position: absolute; top: 16px; left: 16px;
+  padding: 3px 9px; border-radius: 999px;
+  font: 700 10px 'Geist Mono', monospace; letter-spacing: .06em; color: #1f2937;
+  background: rgba(255,255,255,.88); box-shadow: inset 0 0 0 1px var(--c1, #f7a8cf);
+}
+
+/* desenho aberto em tamanho grande */
+.mural-zoom {
+  position: fixed; inset: 0; z-index: 20;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+  padding: 60px 24px 30px;
+  background: rgba(246, 247, 250, .82);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  animation: zoom-entra .25s ease-out;
+}
+.mural-zoom[hidden] { display: none; }
+@keyframes zoom-entra { from { opacity: 0; } }
+.zoom-quadro { margin: 0; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.zoom-midia { display: flex; justify-content: center; max-width: 100%; max-height: calc(100% - 30px); }
+.zoom-midia img {
+  max-width: 100%; max-height: calc(100vh - 130px); object-fit: contain;
+  border-radius: 18px; box-shadow: 0 20px 50px rgba(60,70,90,.18);
+}
+.zoom-midia .midia-vazia { width: min(60vw, 520px); height: auto; max-height: calc(100vh - 130px); border-radius: 18px; }
+.zoom-quadro figcaption { margin-top: 10px; font-size: 12px; color: #6b7280; min-height: 1em; }
+.zoom-seta { width: 46px; height: 46px; padding: 0; justify-content: center; font-size: 22px; }
+.zoom-fechar { position: absolute; top: 16px; right: 16px; width: 42px; height: 42px; padding: 0; justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .mural-zoom { animation: none; } }
 
 /* ---------- detalhe do projeto ---------- */
 .detalhe[hidden] { display: none; }
@@ -444,6 +482,12 @@ body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 14
   .painel-rolagem { padding: 16px 14px 22px; }
   .painel-topo { flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
   .grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
+  .grade.mural { columns: 2; column-gap: 12px; }
+  .grade.mural > .card { margin-bottom: 14px; }
+  .mural-zoom { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto; padding: 70px 12px 20px; gap: 10px; }
+  .zoom-quadro { grid-column: 1 / -1; grid-row: 1; }
+  .zoom-midia .midia-vazia { width: 80vw; }
+  .zoom-seta { grid-row: 2; justify-self: center; }
   .quadradinho h3 { font-size: 13px; }
   .detalhe-corpo { grid-template-columns: 1fr; }
   .detalhe-imagens { gap: 12px; margin-top: 22px; }
@@ -824,4 +868,127 @@ body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 14
   .modelo-luz { left: 56px; bottom: 10px; }
   .modelo-luz-disco { width: 64px; height: 64px; }
   .modelo-dica { top: 92px; }
+}
+
+/* ---------- mosaico de fotos ao vivo (Shader GLSL do TouchDesigner — mosaico.js) ---------- */
+.mosaico-palco {
+  position: relative;
+  height: clamp(420px, 58vw, 620px);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(60,70,90,.12), 0 0 0 1px rgba(255,255,255,.9);
+}
+.mosaico-tela, .mosaico-mao { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.mosaico-mao { pointer-events: none; }
+.mosaico-conjuntos { z-index: 2; }
+.mosaico-camera {
+  position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: min(92%, 380px); text-align: center;
+}
+.mosaico-camera[hidden] { display: none; }
+.mosaico-camera .pilula { font-size: 14px; padding: 11px 22px; }
+.mosaico-camera span, .mosaico-aviso {
+  padding: 5px 12px; border-radius: 999px;
+  font: 500 10px/1.5 'Geist Mono', monospace; letter-spacing: .06em; color: #4b5563;
+  background: rgba(255,255,255,.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(60,70,90,.12);
+}
+.mosaico-camera span { border-radius: 14px; }
+.mosaico-aviso { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); z-index: 2; white-space: nowrap; max-width: 92%; overflow: hidden; text-overflow: ellipsis; }
+.mosaico-aviso[hidden] { display: none; }
+.mosaico-tamanho {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 2;
+  display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-radius: 999px;
+  font: 500 10px 'Geist Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: #6b7280;
+  background: rgba(255,255,255,.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 16px rgba(60,70,90,.12), inset 0 0 0 1px rgba(255,255,255,.9);
+}
+.mosaico-tamanho input { width: min(40vw, 200px); accent-color: var(--c1, #94d3ec); }
+/* botão de tirar foto do mosaico + o "flash" */
+.mosaico-redondo.mosaico-foto { position: absolute; right: 18px; bottom: 16px; z-index: 2; }
+.mosaico-foto svg { width: 26px; height: 26px; color: #7d848d; }
+.mosaico-flash { position: absolute; inset: 0; z-index: 3; background: #fff; opacity: 0; pointer-events: none; }
+.mosaico-flash.piscando { animation: mosaico-flash .45s ease-out; }
+@keyframes mosaico-flash { from { opacity: .9; } to { opacity: 0; } }
+@media (max-width: 720px) {
+  /* no celular a barrinha vai da esquerda até antes do botão da foto */
+  .mosaico-tamanho { left: 14px; right: 80px; transform: none; }
+  .mosaico-tamanho input { width: auto; flex: 1; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .mosaico-flash.piscando { animation: none; } }
+/* botões redondos estilo menu do Wii: esfera branca perolada, brilho em cima, anel azul-céu; ícones cinza */
+.mosaico-bolhas { position: absolute; left: 20px; top: 20px; z-index: 2; display: flex; gap: 14px; }
+.mosaico-redondo {
+  position: relative; width: 56px; height: 56px; padding: 0; border: none; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 32%, #ffffff 0%, #f6f8fa 42%, #e3e7ec 78%, #cfd5dc 100%);
+  box-shadow:
+    0 0 0 2.5px #fff, 0 0 0 5px #9fdcf6,              /* aro branco + anel azul-céu */
+    0 6px 14px rgba(40, 90, 130, .22),
+    inset 0 -6px 10px rgba(90, 100, 115, .14), inset 0 2px 3px #fff;
+  transition: transform .25s cubic-bezier(.34,1.6,.64,1), box-shadow .2s;
+}
+/* reflexo de vidro em cima (meia-lua branca) */
+.mosaico-redondo::before {
+  content: ''; position: absolute; left: 18%; right: 18%; top: 5%; height: 32%;
+  border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+  background: linear-gradient(rgba(255,255,255,.8), rgba(255,255,255,0));
+  pointer-events: none; z-index: 1;
+}
+.mosaico-redondo img, .mosaico-redondo svg { width: 40px; height: 40px; pointer-events: none; color: #8a9099; }
+.mosaico-redondo:hover, .mosaico-redondo:focus-visible { transform: scale(1.08); }
+.mosaico-redondo:active { transform: scale(.95); }
+.mosaico-bolha { opacity: .8; }
+.mosaico-bolha.ativo, .mosaico-bolha:hover { opacity: 1; }
+.mosaico-bolha.ativo {
+  box-shadow: 0 0 0 2.5px #fff, 0 0 0 5.5px #34b6ee, 0 0 16px rgba(52, 182, 238, .55),
+    0 6px 14px rgba(40, 90, 130, .22), inset 0 -6px 10px rgba(90, 100, 115, .14), inset 0 2px 3px #fff;
+}
+/* o nome ("anime shader" / "emoji shader") aparece embaixo ao passar o mouse */
+.mosaico-bolha::after {
+  content: attr(data-nome);
+  position: absolute; top: calc(100% + 12px); left: 0; transform: translateY(-4px);   /* alinhado à esquerda: não corta na borda */
+  padding: 4px 10px; border-radius: 999px; white-space: nowrap; pointer-events: none;
+  font: 700 10px 'Geist Mono', monospace; letter-spacing: .06em; color: #1f2937;
+  background: rgba(255,255,255,.94); box-shadow: 0 4px 12px rgba(60,70,90,.14), inset 0 0 0 1.5px #9fdcf6;
+  opacity: 0; transition: opacity .2s, transform .2s;
+}
+.mosaico-bolha:hover::after, .mosaico-bolha:focus-visible::after { opacity: 1; transform: none; }
+@media (max-width: 720px) {
+  .mosaico-redondo { width: 48px; height: 48px; }
+  .mosaico-redondo img, .mosaico-redondo svg { width: 30px; height: 30px; }
+}
+
+
+/* ---------- MODO CÂMERA: mosaico em tela cheia (mosaico.js move o palco pro <body>) ---------- */
+.mosaico-palco.tela-cheia {
+  position: fixed; inset: 0; z-index: 50;
+  height: auto; border-radius: 0; box-shadow: none;
+  animation: mosaico-abre .35s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes mosaico-abre { from { opacity: 0; transform: scale(.94); } }
+body.mosaico-tela-cheia { overflow: hidden; }
+.mosaico-redondo[hidden], .mosaico-sair[hidden] { display: none; }
+.mosaico-sair { position: absolute; right: 18px; top: 20px; z-index: 3; }
+/* na tela cheia o botão da foto vira o "disparador" grande, embaixo no meio (como no app de câmera) */
+.tela-cheia .mosaico-redondo.mosaico-foto { width: 76px; height: 76px; left: 50%; right: auto; bottom: 26px; margin-left: -38px; }
+.tela-cheia .mosaico-foto svg { width: 34px; height: 34px; }
+.tela-cheia .mosaico-tamanho { bottom: 118px; }
+.tela-cheia .mosaico-bolhas { top: 20px; left: 20px; }
+@media (max-width: 720px) {
+  .tela-cheia .mosaico-tamanho { left: 50%; right: auto; transform: translateX(-50%); width: min(80vw, 300px); }
+}
+@media (prefers-reduced-motion: reduce) { .mosaico-palco.tela-cheia { animation: none; } }
+/* os pixels do carregamento cobrindo o quadro da câmera (o "sair da câmera" fica por cima) */
+.mosaico-carregando { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+/* o aviso ("✋ mostre a mão e faça pinça"…) bem mais visível; no modo câmera, maior ainda */
+.mosaico-aviso { font-size: 13px; padding: 8px 16px; letter-spacing: .03em; }
+.tela-cheia .mosaico-aviso { top: 110px; font-size: 17px; padding: 12px 24px; box-shadow: 0 8px 24px rgba(60,70,90,.2); }
+@media (max-width: 720px) {
+  .mosaico-aviso, .tela-cheia .mosaico-aviso {
+    white-space: normal; text-align: center; width: max-content; max-width: 86%; border-radius: 16px;
+  }
+  .tela-cheia .mosaico-aviso { font-size: 15px; top: 96px; }
 }
