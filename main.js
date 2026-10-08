@@ -9,7 +9,7 @@ import { carregamento } from './carregamento.js';
 // =====================================================================
 const CONFIG = {
   // Caminho do seu personagem exportado do Blender (.glb)
-  modelo: 'modelo/personagem.glb?v=2',
+  modelo: 'modelo/personagem.glb?v=4',
 
   // Nome do osso da cabeça. Com Rigify exportando "só ossos de deformação"
   // o osso da cabeça é o DEF-spine.006. Se não achar, olhe o console (F12):
@@ -21,6 +21,14 @@ const CONFIG = {
   // Quadro da animação usado como pose parada (quando o mouse está longe).
   // Veja na linha do tempo do Blender qual quadro tem a pose que você quer.
   quadroParado: 0,
+  // A animação do Blender tem duas partes: a "normal" (toca quando o mouse chega perto) e o GIRO
+  // (toca quando a pessoa troca a textura dela com uma foto — ver transformacao.js)
+  animacaoAte: 163,          // último quadro da animação normal
+  giro: {
+    de: 170, ate: 222,       // quadros do giro (no 222 o corpo já voltou pra frente)
+    duracao: 1.3,            // segundos (o giro original tem ~2,2 s; aqui toca bem mais rápido — pedido da Ana)
+    trocaEm: 0.52,           // em que ponto do giro (0 a 1) a textura troca — no auge da névoa de glitter
+  },
 
   // Usa só as malhas presas no rig (ignora chão, bolhas e outros objetos que vierem juntos na exportação)
   somenteMalhasDoRig: true,
@@ -262,6 +270,10 @@ const personagem = {
   mixer: null,
   acao: null,
   acaoParada: null,
+  acaoGiro: null,
+  girando: null,           // { aoTrocar, aoTerminar, trocou } enquanto gira
+  pesoGiro: 0,
+  materiaisToon: [],       // materiais que usam a textura (os que trocam pela foto)
   animando: false,
   pesoOlhar: 1,
   yaw: 0,
@@ -351,14 +363,27 @@ function montarPersonagem(obj, animacoes) {
     // Junta todas as animações numa só: a do rig (corpo) + a das shape keys (rosto).
     // Se CONFIG.animacao tiver um nome, usa só aquela.
     const escolhida = CONFIG.animacao && THREE.AnimationClip.findByName(animacoes, CONFIG.animacao);
-    const clip = escolhida || new THREE.AnimationClip('tudo', -1, animacoes.flatMap((a) => a.tracks));
+    const tudo = escolhida || new THREE.AnimationClip('tudo', -1, animacoes.flatMap((a) => a.tracks));
+    const fps = 24;
+    // a animação normal vai só até o quadro CONFIG.animacaoAte (depois disso, no Blender, vem o giro)
+    const clip = tudo.duration * fps > CONFIG.animacaoAte + 2
+      ? THREE.AnimationUtils.subclip(tudo, 'acao', 0, CONFIG.animacaoAte, fps) : tudo;
     personagem.mixer = new THREE.AnimationMixer(obj);
     personagem.acao = personagem.mixer.clipAction(clip);
     personagem.acao.setLoop(THREE.LoopRepeat);
     personagem.acao.setEffectiveWeight(0).play();
 
+    // o giro (só existe se o .glb tiver os quadros dele)
+    if (tudo.duration * fps >= CONFIG.giro.ate) {
+      const clipGiro = THREE.AnimationUtils.subclip(tudo, 'giro', CONFIG.giro.de, CONFIG.giro.ate, fps);
+      personagem.acaoGiro = personagem.mixer.clipAction(clipGiro);
+      personagem.acaoGiro.setLoop(THREE.LoopOnce, 1);
+      personagem.acaoGiro.clampWhenFinished = true;
+      personagem.acaoGiro.setDuration(CONFIG.giro.duracao);
+      personagem.acaoGiro.setEffectiveWeight(0);
+    }
+
     // pose parada = um quadro da animação (em vez da T-pose do rig)
-    const fps = 24;
     const quadro = CONFIG.quadroParado;
     const clipParado = THREE.AnimationUtils.subclip(clip, 'parado', quadro, quadro + 1, fps);
     personagem.acaoParada = personagem.mixer.clipAction(clipParado);
@@ -419,14 +444,130 @@ function carregarTextura(caminho) {
   return cacheTexturas[caminho];
 }
 
+// ---------- FOTO "VESTIDA" NELA (troca de visual — ver transformacao.js e a seção do GIRO) ----------
+// uModo: 0 = textura dela · 1 = foto espalhada na folha de UV (quando não acha rosto) · 2 = foto PROJETADA:
+// o rosto da pessoa encaixado na cabeça (olhos nos olhos dela), cabelo atrás, e a roupa no vestido/braços/pernas.
+// Medidas da personagem no Blender (pose de descanso, Z pra cima, frente = +Y):
+const MEDIDAS_PERSONAGEM = {
+  olhoX: 0.448,        // olhos em x = ±0,448 (centro das malhas dos olhos)
+  olhoZ: 0.42,         // altura do centro dos olhos
+  narizZ: 0.14,        // ponta do nariz
+  bocaZ: -0.24,        // meio da boca
+  queixoZ: -0.74,      // queixo / começo do pescoço (abaixo disso é o corpo)
+  pesZ: -7.62,         // sola dos pés
+  barraZ: -5.15,       // barra do vestido (daqui pra baixo: pernas)
+  sapatoZ: -6.2,       // daqui pra baixo: os sapatos (continuam os dela)
+  maoX: 3.9,           // daqui pra fora (na pose de descanso os braços ficam abertos, ao longo de x): mãos
+  bracoY: -1.08, bracoProf: -0.145,   // eixo do braço (altura e profundidade), pra "enrolar" a manga em volta
+  ombroX: 1.3,         // daqui pra fora são os braços (ficam "dobrados" pra dentro da roupa, viram as mangas)
+  // o "globo" do olho dela (a parte que recebe o olho da pessoa): oval centrado em x ±0,45, altura 0,358
+  globoX: 0.4505, globoZ: 0.358, globoMeiaLarg: 0.22, globoMeiaAlt: 0.346,
+};
+const UNI_FOTO = {
+  uFoto: { value: null },
+  uModo: { value: 0 },
+  uCabeca: { value: new THREE.Vector4() },        // meio dos olhos na foto (px), escala k (px por unidade), metade da dist. dos olhos (px)
+  uTamFoto: { value: new THREE.Vector2(1, 1) },   // largura/altura da foto (px)
+  uGiroRosto: { value: new THREE.Vector2(1, 0) }, // cos/sen da inclinação do rosto na foto
+  uRoupa: { value: new THREE.Vector4() },         // modo 2: retângulo da ROUPA na foto (px: x0, y0, x1, y1) — vazio = cor lisa
+  uCorRoupa: { value: new THREE.Color() },        // modo 2: a cor que mais aparece na roupa (pernas, e o vestido se não tiver roupa na foto)
+  uOlhoE: { value: new THREE.Vector4(0, 0.02, 0.16, 0.235) },   // pedaços da textura que continuam os dela: os olhos
+  uOlhoD: { value: new THREE.Vector4(0.85, 0.02, 1, 0.235) },
+};
+const f3 = (x) => x.toFixed(3);
+const GLSL_FOTO = /* glsl */`
+  uniform sampler2D uFoto;
+  uniform float uModo;
+  uniform vec4 uCabeca, uRoupa, uOlhoE, uOlhoD;
+  uniform vec2 uGiroRosto, uTamFoto;
+  uniform vec3 uCorRoupa;
+  varying vec3 vPosRep;
+  varying vec3 vNorRep;
+  bool dentro(vec2 u, vec4 r) { return u.x > r.x && u.x < r.z && u.y > r.y && u.y < r.w; }
+  // passou da borda da foto? "espelha" de volta (sem as listras de esticar o último pixel)
+  vec2 espelha(vec2 u) { return 1.0 - abs(1.0 - mod(u, 2.0)); }
+  vec2 gira(vec2 d) { return vec2(d.x * uGiroRosto.x - d.y * uGiroRosto.y, d.x * uGiroRosto.y + d.y * uGiroRosto.x); }
+  vec3 corDaFoto(vec2 uvTextura, vec3 original) {
+    bool globo = dentro(uvTextura, uOlhoE) || dentro(uvTextura, uOlhoD);
+    if (globo && uModo < 1.5) return original;                     // sem rosto achado: os olhos continuam os dela
+    vec3 foto;
+    if (globo) {
+      // o OLHO DA PESSOA vira o olho dela: recorte em volta do olho da foto, esticado pra preencher o oval
+      float meio = uCabeca.w;                                       // metade da distância entre os olhos NA FOTO (px)
+      float lado = vPosRep.x > 0.0 ? -1.0 : 1.0;                    // o olho +x dela = o olho da esquerda na foto
+      vec2 centro = uCabeca.xy + gira(vec2(lado * meio, 0.0));
+      vec2 l = vec2(-(vPosRep.x - (-lado) * ${f3(MEDIDAS_PERSONAGEM.globoX)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaLarg)},
+                    -(vPosRep.y - ${f3(MEDIDAS_PERSONAGEM.globoZ)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaAlt)});
+      vec2 d = gira(l * vec2(meio * 0.62, meio * 0.42));              // tamanho do recorte: olho + pálpebra + cílios
+      foto = texture2D(uFoto, espelha((centro + d) / uTamFoto)).rgb;
+    } else if (uModo < 1.5) {
+      foto = texture2D(uFoto, uvTextura).rgb;
+    } else {
+      // posição na pose de descanso, em medidas do Blender (o .glb troca: z do Blender = y, frente = -z)
+      float bx = vPosRep.x, bz = vPosRep.y;
+      float frente = -normalize(vNorRep).z;
+      if (bz > ${f3(MEDIDAS_PERSONAGEM.queixoZ)}) {
+        // cabeça: x da foto cresce pra direita de quem olha (= -x dela); y da foto cresce pra baixo (= -z)
+        float dy = -(bz - ${f3(MEDIDAS_PERSONAGEM.olhoZ)});
+        float atras = smoothstep(0.15, -0.35, frente);          // atrás da cabeça: cabelo (alto da cabeça na foto)
+        dy = mix(dy, -1.15, atras);
+        float k = uCabeca.z;
+        vec2 d = gira(vec2(-bx, dy) * k);                         // em pixels da foto (mesma proporção nos dois eixos)
+        foto = texture2D(uFoto, espelha((uCabeca.xy + d) / uTamFoto)).rgb;
+        // em volta do globo (pálpebras, que fecham quando ela pisca): cor da pele da pessoa (pega logo abaixo do olho),
+        // senão a pálpebra fechada mostraria o olho da foto de novo
+        // (só do tamanho do globo, com borda suave — fora dele continua a foto normal)
+        vec2 e = vec2((abs(bx) - ${f3(MEDIDAS_PERSONAGEM.globoX)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaLarg)},
+                      (bz - ${f3(MEDIDAS_PERSONAGEM.globoZ)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaAlt)});
+        float palpebra = (1.0 - smoothstep(0.7, 1.0, length(e))) * (1.0 - atras);
+        float meioOlho = uCabeca.w;
+        vec2 pele = uCabeca.xy + gira(vec2((bx > 0.0 ? -1.0 : 1.0) * meioOlho, meioOlho * 0.7));
+        foto = mix(foto, texture2D(uFoto, espelha(pele / uTamFoto)).rgb, palpebra);
+      } else {
+        // CORPO com a roupa da foto "planificada": o pedaço de roupa abaixo do queixo é enrolado em volta dela
+        // como um tubo (frente = roupa, costas = a mesma roupa espelhada, lados sem esticar)
+        float zp = vPosRep.z;
+        bool temRoupa = uRoupa.z - uRoupa.x > 2.0;
+        if (bz < ${f3(MEDIDAS_PERSONAGEM.sapatoZ)}) {
+          return original;                                          // sapatos: os dela
+        } else if (bz < ${f3(MEDIDAS_PERSONAGEM.barraZ)}) {
+          foto = uCorRoupa * 0.8;                                   // pernas: a cor da roupa, um tom mais escuro (meia/calça)
+        } else if (abs(bx) > ${f3(MEDIDAS_PERSONAGEM.maoX)}) {
+          // mãos: cor da pele da pessoa (pega logo abaixo do olho na foto)
+          foto = texture2D(uFoto, espelha((uCabeca.xy + gira(vec2(-uCabeca.w, uCabeca.w * 0.7))) / uTamFoto)).rgb;
+        } else if (abs(bx) > ${f3(MEDIDAS_PERSONAGEM.ombroX)} && bz > -4.2) {
+          // braços (ao longo de x): mangas = a borda da roupa, enrolada em volta do braço
+          float ang = atan(bz - ${f3(MEDIDAS_PERSONAGEM.bracoY)}, zp - ${f3(MEDIDAS_PERSONAGEM.bracoProf)}) / 3.14159;
+          float ao = (abs(bx) - ${f3(MEDIDAS_PERSONAGEM.ombroX)}) / (${f3(MEDIDAS_PERSONAGEM.maoX)} - ${f3(MEDIDAS_PERSONAGEM.ombroX)});
+          vec2 uvM = vec2((bx > 0.0 ? 0.08 : 0.92) + ang * 0.06, ao * 0.55);
+          foto = temRoupa ? texture2D(uFoto, mix(uRoupa.xy, uRoupa.zw, uvM) / uTamFoto).rgb : uCorRoupa;
+        } else {
+          // vestido: ângulo em volta do corpo (0 = frente) → largura da roupa; altura (pescoço → barra) → altura da roupa
+          float th = atan(bx, -zp);
+          float t = abs(th) > 1.5708 ? sign(th) * (3.14159 - abs(th)) : th;   // costas = frente espelhada
+          vec2 uvR = vec2(0.5 - t / 3.14159, (${f3(MEDIDAS_PERSONAGEM.queixoZ)} - bz) / (${f3(MEDIDAS_PERSONAGEM.queixoZ)} - ${f3(MEDIDAS_PERSONAGEM.barraZ)}));
+          foto = temRoupa ? texture2D(uFoto, mix(uRoupa.xy, uRoupa.zw, uvR) / uTamFoto).rgb : uCorRoupa;
+        }
+      }
+    }
+    // mantém os brilhos dela (só os pontos MAIS claros da textura original — o braço dela é claro e não conta)
+    float l = dot(original, vec3(0.2126, 0.7152, 0.0722));
+    return mix(foto, vec3(1.0), smoothstep(0.86, 0.99, l) * 0.6);
+  }`;
+
 function criarMaterialToon(textura) {
   const mat = new THREE.MeshStandardMaterial({ map: textura, roughness: 1, metalness: 0 });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uSombra = { value: CONFIG.toonSombra };
     shader.uniforms.uSuave = { value: CONFIG.toonSuavidade };
     shader.uniforms.uBorda = { value: CONFIG.toonBrilhoBorda };
+    Object.assign(shader.uniforms, UNI_FOTO);
+    shader.vertexShader = shader.vertexShader
+      .replace('void main() {', 'varying vec3 vPosRep;\nvarying vec3 vNorRep;\nvoid main() {')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPosRep = position;\nvNorRep = normal;')
     shader.fragmentShader = shader.fragmentShader
-      .replace('void main() {', 'uniform float uSombra, uSuave, uBorda;\nvoid main() {')
+      .replace('void main() {', 'uniform float uSombra, uSuave, uBorda;\n' + GLSL_FOTO + '\nvoid main() {')
+      .replace('#include <map_fragment>', '#include <map_fragment>\nif (uModo > 0.5) diffuseColor.rgb = corDaFoto(vMapUv, diffuseColor.rgb);')
       .replace(
         '#include <opaque_fragment>',
         `
@@ -490,6 +631,7 @@ function aplicarToon(obj) {
     novo.side = m.side;
     novo.name = m.name;
     o.material = novo;
+    personagem.materiaisToon.push(novo);
   });
 }
 
@@ -620,10 +762,17 @@ function atualizarPersonagem(dt) {
     }
     p.pesoAnim = THREE.MathUtils.damp(p.pesoAnim, p.animando ? 1 : 0, 5, dt);
     p.acao.paused = !p.animando && p.pesoAnim < 0.02;
-    p.acao.setEffectiveWeight(p.pesoAnim);
-    p.acaoParada.setEffectiveWeight(1 - p.pesoAnim);
+    // o giro (troca de textura) manda em tudo enquanto acontece
+    if (p.acaoGiro) {
+      p.pesoGiro = THREE.MathUtils.damp(p.pesoGiro, p.girando ? 1 : 0, p.girando ? 18 : 7, dt);
+      if (!p.girando && p.pesoGiro < 0.01) { p.pesoGiro = 0; if (p.acaoGiro.isScheduled()) p.acaoGiro.stop(); }
+      p.acaoGiro.setEffectiveWeight(p.pesoGiro);
+    }
+    p.acao.setEffectiveWeight(p.pesoAnim * (1 - p.pesoGiro));
+    p.acaoParada.setEffectiveWeight((1 - p.pesoAnim) * (1 - p.pesoGiro));
   }
   if (p.mixer) p.mixer.update(dt);
+  atualizarGiro(dt);
   // guarda os valores "limpos" da animação deste quadro
   if (p.cabeca) p.cabecaRepouso.copy(p.cabeca.quaternion);
   for (const alvo of p.piscaAlvos) alvo.base = alvo.malha.morphTargetInfluences[alvo.indice];
@@ -634,7 +783,7 @@ function atualizarPersonagem(dt) {
   }
 
   // olha o mouse (e respira) na mesma medida em que NÃO está animando
-  p.pesoOlhar = p.acao ? 1 - p.pesoAnim : 1;
+  p.pesoOlhar = (p.acao ? 1 - p.pesoAnim : 1) * (1 - p.pesoGiro);
   piscar(dt);
   respirar(dt);
 
@@ -1124,6 +1273,262 @@ function tocarPop() {
   osc.connect(vol).connect(audio.destination);
   osc.start(agora);
   osc.stop(agora + 0.12);
+}
+
+// =====================================================================
+//  GIRO + TROCA DE TEXTURA: a pessoa manda uma foto (transformacao.js) → a personagem dá o giro numa
+//  névoa de glitter e, quando volta pra pose, está com a foto de "textura".
+//  transformacao.js chama: window.transformarPersonagem(textura) → Promise (resolve quando termina o giro)
+// =====================================================================
+const CONFIG_GLITTER = {
+  quantidade: 650,          // partículas girando em volta dela (bem pequenas, viram uma "névoa")
+  cores: ['#ffffff', '#ffffff', '#f6f4ff', '#f2f7ff'],   // brancas (com um tiquinho de perolado)
+  tamanhoPx: 5,             // tamanho de cada partícula (pixels)
+  nevoa: 0.8,               // opacidade máxima da névoa perolada (no auge ela esconde a troca de textura)
+};
+
+// estrelinha de 4 pontas com brilho, pra cada partícula
+function texturaBrilho() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d');
+  // halo cinza-perolado bem leve por fora (senão a partícula branca some no fundo branco do site)
+  const halo = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  halo.addColorStop(0, 'rgba(255,255,255,1)');
+  halo.addColorStop(0.35, 'rgba(255,255,255,0.9)');
+  halo.addColorStop(0.55, 'rgba(170,178,200,0.22)');
+  halo.addColorStop(1, 'rgba(150,158,180,0)');
+  g.fillStyle = halo; g.fillRect(0, 0, 64, 64);
+  g.fillStyle = '#fff';
+  g.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const r = i % 2 ? 4 : 30, a = (i / 8) * Math.PI * 2;
+    g.lineTo(32 + Math.cos(a) * r, 32 + Math.sin(a) * r);
+  }
+  g.closePath(); g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// estrelinha de 5 pontas (opção do window.mudarGlitter — ex.: estrelinhas vermelhas)
+function texturaEstrela() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff';
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 ? 12 : 30, a = -Math.PI / 2 + (i / 10) * Math.PI * 2;
+    g.lineTo(32 + Math.cos(a) * r, 34 + Math.sin(a) * r);
+  }
+  g.closePath(); g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// névoa perolada (rosa/lilás bem clarinho, some nas bordas)
+function texturaNevoa() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const r = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  r.addColorStop(0, 'rgba(255,255,255,0.95)');
+  r.addColorStop(0.35, 'rgba(255,232,246,0.85)');
+  r.addColorStop(0.62, 'rgba(226,214,255,0.45)');
+  r.addColorStop(1, 'rgba(220,240,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+const efeitoGiro = (() => {
+  const n = CONFIG_GLITTER.quantidade, H = CONFIG.alturaPersonagem;
+  const pos = new Float32Array(n * 3), cor = new Float32Array(n * 3);
+  const dados = [];
+  const c = new THREE.Color();
+  for (let i = 0; i < n; i++) {
+    dados.push({
+      ang: Math.random() * Math.PI * 2,
+      raio: H * (0.1 + Math.random() * 0.24),
+      alt: Math.random() * H * 1.05,
+      vel: 4 + Math.random() * 6,             // giro (rad/s) — rápido, acompanhando ela
+      sobe: H * (0.05 + Math.random() * 0.25), // sobe devagar enquanto gira
+    });
+    c.set(CONFIG_GLITTER.cores[i % CONFIG_GLITTER.cores.length]);
+    cor.set([c.r, c.g, c.b], i * 3);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(cor, 3));
+  const mat = new THREE.PointsMaterial({
+    size: CONFIG_GLITTER.tamanhoPx, sizeAttenuation: false, map: texturaBrilho(), vertexColors: true,
+    transparent: true, opacity: 0, depthWrite: false,
+  });
+  const pontos = new THREE.Points(geo, mat);
+  pontos.frustumCulled = false;
+  pontos.visible = false;
+  pontos.renderOrder = 5;
+  scene.add(pontos);
+  const nevoa = new THREE.Sprite(new THREE.SpriteMaterial({ map: texturaNevoa(), transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+  nevoa.scale.set(H * 1.0, H * 1.3, 1);
+  nevoa.visible = false;
+  nevoa.renderOrder = 6;
+  scene.add(nevoa);
+  return { pontos, nevoa, dados, pos, brilho: 0, tempo: 0 };
+})();
+
+// muda o glitter do giro na hora (sem recarregar): window.mudarGlitter({ cores: ['#e0262b'], forma: 'estrela', tamanhoPx: 9 })
+// forma: 'estrela' (5 pontas) ou 'brilho' (o padrão, estrelinha de 4 pontas com halo)
+window.mudarGlitter = ({ cores, forma, tamanhoPx } = {}) => {
+  const e = efeitoGiro, c = new THREE.Color();
+  if (cores?.length) {
+    const cor = e.pontos.geometry.attributes.color;
+    for (let i = 0; i < cor.count; i++) { c.set(cores[i % cores.length]); cor.setXYZ(i, c.r, c.g, c.b); }
+    cor.needsUpdate = true;
+  }
+  if (forma) { e.pontos.material.map = forma === 'estrela' ? texturaEstrela() : texturaBrilho(); e.pontos.material.needsUpdate = true; }
+  if (tamanhoPx) CONFIG_GLITTER.tamanhoPx = tamanhoPx;
+};
+
+// prepara a foto: rosto achado → projeta (rosto na cabeça, roupa no corpo); sem rosto → espalha na folha de UV
+// foto = <canvas> com a foto (proporção original) · rosto = { olhos: [{x,y},{x,y}], nariz, boca } em pixels da foto, ou null
+function prepararFoto(foto, rosto) {
+  const t = new THREE.CanvasTexture(foto);
+  t.flipY = false;                       // uv (0,0) = canto de cima da foto
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  if (!rosto) return { textura: t, modo: 1 };
+  const W = foto.width, H = foto.height, M = MEDIDAS_PERSONAGEM;
+  const [a, b] = [...rosto.olhos].sort((p, q) => p.x - q.x);       // olho da esquerda e da direita (na foto)
+  const meio = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const dist = Math.hypot(b.x - a.x, b.y - a.y);
+  const ang = Math.atan2(b.y - a.y, b.x - a.x);
+  // nariz e boca da pessoa: quantos px abaixo da linha dos olhos (na direção do rosto, mesmo se estiver inclinado)
+  const baixo = { x: -Math.sin(ang), y: Math.cos(ang) };
+  const abaixo = (pt, padrao) => (pt ? Math.max(4, (pt.x - meio.x) * baixo.x + (pt.y - meio.y) * baixo.y) : padrao);
+  const nariz = abaixo(rosto.nariz, dist * 0.55);
+  const boca = Math.max(nariz + 4, abaixo(rosto.boca, dist * 0.95));
+  const queixo = boca + (boca - nariz) * 1.6;                       // a ponta do queixo fica um pouco abaixo da boca
+  // UMA escala só (não distorce nariz e boca): escolhida pra boca da pessoa cair na boca dela; o rosto todo
+  // fica dentro da cabeça dela. Os olhos da foto vão pros olhos dela à parte (recorte de cada olho).
+  const k = boca / (M.olhoZ - M.bocaZ);                             // pixels da foto por unidade do modelo
+  // cor da roupa: a que mais aparece abaixo do queixo (numa faixa da largura dos ombros); se a foto quase não tem
+  // nada abaixo do rosto, a que mais aparece no resto da foto, fora do rosto
+  const ombros = dist * 2.4;
+  const yRoupa = meio.y + boca + (boca - nariz) * 1.2;               // logo abaixo do queixo de verdade
+  const rostoCaixa = { x0: meio.x - dist * 1.3, x1: meio.x + dist * 1.3, y0: meio.y - dist * 1.6, y1: meio.y + queixo + dist * 0.2 };
+  // retângulo da roupa: largura dos ombros, na proporção do corpo dela "desenrolado" (não estica);
+  // se a foto tem pouco abaixo do rosto, fica um pedaço menor (mesma proporção); quase nada → cor lisa
+  const proporcao = (Math.PI * 1.2) / (M.queixoZ - M.barraZ);       // largura / altura da roupa planificada
+  let larg = dist * 4.0, alt = larg / proporcao;
+  const sobra = H - yRoupa;
+  if (sobra < alt) { alt = sobra; larg = alt * proporcao; }
+  const x0 = Math.min(Math.max(0, meio.x - larg / 2), Math.max(0, W - larg));
+  const roupa = alt > dist * 0.25 ? [x0, yRoupa, Math.min(W, x0 + larg), yRoupa + alt] : [0, 0, 0, 0];
+  const corRoupa = (H - yRoupa > dist * 0.25 && corPredominante(foto, meio.x - ombros, yRoupa, meio.x + ombros, H))
+    || corPredominante(foto, 0, 0, W, H, rostoCaixa) || new THREE.Color(0.5, 0.5, 0.5);
+  return {
+    textura: t, modo: 2,
+    cabeca: [meio.x, meio.y, k, dist / 2],
+    corRoupa, roupa,
+    tam: [W, H],
+    giro: [Math.cos(ang), Math.sin(ang)],
+  };
+}
+// a cor que mais aparece num pedaço da foto (agrupa cores parecidas e tira a média do grupo maior)
+function corPredominante(foto, x0, y0, x1, y1, fora = null) {
+  const W = foto.width, H = foto.height;
+  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0));
+  x1 = Math.min(W, Math.ceil(x1)); y1 = Math.min(H, Math.ceil(y1));
+  if (x1 - x0 < 4 || y1 - y0 < 4) return null;
+  const px = foto.getContext('2d').getImageData(x0, y0, x1 - x0, y1 - y0).data;
+  const grupos = new Map();
+  const passo = Math.max(1, Math.floor(Math.sqrt(((x1 - x0) * (y1 - y0)) / 40000)));   // no máx. ~40 mil amostras
+  for (let y = 0; y < y1 - y0; y += passo) {
+    for (let x = 0; x < x1 - x0; x += passo) {
+      if (fora && x + x0 > fora.x0 && x + x0 < fora.x1 && y + y0 > fora.y0 && y + y0 < fora.y1) continue;
+      const i = (y * (x1 - x0) + x) * 4;
+      const r = px[i], g = px[i + 1], b = px[i + 2];
+      const chave = (r >> 4) << 8 | (g >> 4) << 4 | (b >> 4);              // 16 tons por canal
+      const gr = grupos.get(chave) || [0, 0, 0, 0];
+      gr[0] += r; gr[1] += g; gr[2] += b; gr[3]++;
+      grupos.set(chave, gr);
+    }
+  }
+  let maior = null;
+  for (const gr of grupos.values()) if (!maior || gr[3] > maior[3]) maior = gr;
+  return maior ? new THREE.Color().setRGB(maior[0] / maior[3] / 255, maior[1] / maior[3] / 255, maior[2] / maior[3] / 255, THREE.SRGBColorSpace) : null;
+}
+
+function vestirFoto(f) {
+  if (!f) { UNI_FOTO.uModo.value = 0; return; }                    // volta pra textura dela
+  UNI_FOTO.uFoto.value?.dispose?.();
+  UNI_FOTO.uFoto.value = f.textura;
+  UNI_FOTO.uModo.value = f.modo;
+  if (f.modo === 2) {
+    UNI_FOTO.uCabeca.value.set(...f.cabeca);
+    UNI_FOTO.uTamFoto.value.set(...f.tam);
+    UNI_FOTO.uCorRoupa.value.copy(f.corRoupa);
+    UNI_FOTO.uRoupa.value.set(...f.roupa);
+    UNI_FOTO.uGiroRosto.value.set(...f.giro);
+  }
+}
+
+// gira, "veste" a foto no meio (no auge da névoa) e resolve quando ela volta pra pose
+// foto = <canvas> (a foto da pessoa) · rosto = olhos achados na foto (ou null) · foto null = volta ao normal
+window.transformarPersonagem = (foto, rosto = null) => new Promise((ok) => {
+  const p = personagem;
+  const nova = foto ? prepararFoto(foto, rosto) : null;
+  if (!p.acaoGiro) { vestirFoto(nova); ok(); return; }   // modelo sem giro: só troca
+  if (p.girando) { ok(); return; }
+  p.girando = { trocou: false, aoTrocar: () => vestirFoto(nova), aoTerminar: ok };
+  p.acaoGiro.reset();
+  p.acaoGiro.setEffectiveWeight(p.pesoGiro);
+  p.acaoGiro.play();
+  efeitoGiro.tempo = 0;
+});
+
+// onde fica a cabeça dela na tela (o balão de fala do transformacao.js se posiciona por aqui)
+window.posicaoCabecaNaTela = () => {
+  if (!personagem.raiz || virada.galeria) return null;
+  _v.copy(personagem.pontoCabeca).project(camera);
+  return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight };
+};
+
+const _centroGiro = new THREE.Vector3(0, 0, 0);
+function atualizarGiro(dt) {
+  const p = personagem, g = p.girando, e = efeitoGiro;
+  let alvo = 0, nevoa = 0;
+  if (g) {
+    const prog = Math.min(1, p.acaoGiro.time / p.acaoGiro.getClip().duration);
+    alvo = Math.sin(Math.PI * Math.min(1, prog * 1.08));                    // glitter: sobe e desce
+    nevoa = Math.pow(Math.max(0, Math.sin(Math.PI * prog)), 2.2) * CONFIG_GLITTER.nevoa;
+    if (!g.trocou && prog >= CONFIG.giro.trocaEm) { g.trocou = true; g.aoTrocar(); }
+    if (prog >= 1) { p.girando = null; g.aoTerminar(); }
+  }
+  e.brilho = THREE.MathUtils.damp(e.brilho, alvo, g ? 10 : 4, dt);
+  const ligado = e.brilho > 0.005;
+  e.pontos.visible = ligado;
+  e.nevoa.visible = nevoa > 0.005;
+  if (!ligado) return;
+  e.tempo += dt;
+  // ela fica centrada no meio da cena com os pés no chão (normalizarTamanho): o glitter gira em volta do eixo x=z=0, do chão pra cima
+  const centro = _centroGiro, H = CONFIG.alturaPersonagem;
+  for (let i = 0; i < e.dados.length; i++) {
+    const d = e.dados[i];
+    d.ang -= d.vel * dt * (0.35 + e.brilho);                             // mesmo sentido do giro dela
+    const r = d.raio * (0.55 + 0.75 * e.brilho);
+    const y = (d.alt + d.sobe * e.tempo) % (H * 1.1);
+    e.pos[i * 3] = centro.x + Math.cos(d.ang) * r;
+    e.pos[i * 3 + 1] = centro.y + y;
+    e.pos[i * 3 + 2] = centro.z + Math.sin(d.ang) * r;
+  }
+  e.pontos.geometry.attributes.position.needsUpdate = true;
+  e.pontos.material.opacity = Math.min(1, e.brilho * 1.3);
+  e.pontos.material.size = CONFIG_GLITTER.tamanhoPx * renderer.getPixelRatio() * (0.7 + 0.5 * e.brilho);
+  e.nevoa.material.opacity = nevoa;
+  e.nevoa.position.set(centro.x, centro.y + H * 0.52, centro.z);
 }
 
 // =====================================================================

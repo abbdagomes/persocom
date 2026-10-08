@@ -187,7 +187,8 @@ html, body {
   background:
     radial-gradient(circle at 30% 28%, #fff 0 18%, transparent 19%),
     radial-gradient(circle at 50% 50%, #ffffff 0%, #eef1f5 70%, #d8dde4 100%);
-  box-shadow: 0 6px 14px rgba(0,0,0,.08), inset 0 -3px 6px rgba(0,0,0,.06);
+  /* contorno sutil estilo menu do Wii: aro branco + linha cinza clarinha (pra não sumir no fundo branco) */
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #c9cfd8, 0 6px 14px rgba(0,0,0,.08), inset 0 -3px 6px rgba(0,0,0,.06);
   transition: transform .2s;
 }
 .bola:hover { transform: scale(1.12); }
@@ -317,7 +318,7 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   background:
     linear-gradient(rgba(255,255,255,.95), rgba(255,255,255,0) 55%),
     linear-gradient(#f4f6f9, #dfe4ea);
-  box-shadow: 0 3px 8px rgba(60,70,90,.12), inset 0 -2px 3px rgba(150,158,170,.25), 0 0 0 1px rgba(255,255,255,.9);
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #cdd3db, 0 3px 8px rgba(60,70,90,.12), inset 0 -2px 3px rgba(150,158,170,.25);
   transition: transform .25s cubic-bezier(.34, 1.6, .64, 1);
   white-space: nowrap;
 }
@@ -1002,3 +1003,63 @@ body.mosaico-tela-cheia { overflow: hidden; }
 /* vídeos sem nenhum controle por cima (nem o botão de play grande do iPhone quando o vídeo carrega) */
 video::-webkit-media-controls, video::-webkit-media-controls-start-playback-button,
 video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
+
+/* ---------- TROCA DE VISUAL COM FOTO (transformacao.js) ---------- */
+/* botão de customizar (ícone da Ana, redondo como os do lado): logo acima dos cards, no meio;
+   o nome "customize persocom" só aparece passando o mouse */
+.botao-foto {
+  position: fixed; left: 50%; z-index: 3;
+  width: 62px; height: 62px;               /* um pouco maior que as bolas do lado (pedido da Ana) */
+  margin-left: -31px;                      /* metade da bola (centraliza sem usar transform, que fica pro hover) */
+  border: none; padding: 0; cursor: pointer;
+  color: #4b5563;
+  transition: transform .25s cubic-bezier(.34, 1.6, .64, 1), opacity .4s;
+}
+.botao-foto svg { width: auto; height: 42px; display: block; }
+.botao-foto:disabled { opacity: .5; cursor: default; transform: none; }
+.botao-foto::after {
+  content: attr(data-dica);
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translate(-50%, 4px);
+  padding: 5px 12px; border-radius: 999px; white-space: nowrap; pointer-events: none;
+  font: 700 11px 'Geist Mono', monospace; letter-spacing: .04em; color: #1f2937;
+  background: rgba(255,255,255,.95); box-shadow: 0 4px 12px rgba(60,70,90,.14);
+  opacity: 0; transition: opacity .2s, transform .2s;
+}
+.botao-foto:hover::after, .botao-foto:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 600px) { .botao-foto { width: 50px; height: 50px; margin-left: -25px; } .botao-foto svg { height: 34px; } }
+body.em-galeria .botao-foto { opacity: 0; pointer-events: none; }
+
+/* balão de fala cinza clarinho, preso na cabeça dela */
+.balao-fala {
+  position: fixed; left: 0; top: 0; z-index: 6;
+  width: min(270px, calc(100vw - 24px));
+  padding: 14px 16px 12px;
+  border-radius: 20px;
+  background: #eef0f3;
+  color: #374151;
+  box-shadow: 0 10px 28px rgba(60, 70, 90, .16), inset 0 1px 0 rgba(255,255,255,.9);
+  font: 500 13px/1.45 'Geist Mono', monospace;
+  animation: balao-entra .28s cubic-bezier(.34, 1.5, .64, 1);
+  --c1: #62b8e0;            /* cor do botão "confirmar" (na home não tem a cor da categoria) */
+}
+.balao-fala[hidden] { display: none; }
+@keyframes balao-entra { from { opacity: 0; scale: .85; } }
+.balao-texto { margin: 0 22px 10px 0; }
+.balao-fechar {
+  position: absolute; right: 8px; top: 8px; width: 26px; height: 26px; border: none; border-radius: 50%;
+  background: rgba(255,255,255,.7); color: #6b7280; cursor: pointer; font: 700 11px 'Geist Mono', monospace;
+}
+.balao-fechar[hidden] { display: none; }
+.balao-escolher, .balao-botoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.balao-escolher[hidden], .balao-previa[hidden], .balao-nota[hidden], .balao-link[hidden] { display: none; }
+.balao-pilula { font-size: 12px; padding: 7px 14px; cursor: pointer; }
+.balao-link { border: none; background: none; padding: 0; cursor: pointer; font: 500 11px 'Geist Mono', monospace; color: #6b7280; text-decoration: underline; text-underline-offset: 3px; }
+.balao-previa { display: flex; align-items: center; gap: 12px; }
+.balao-previa img { width: 64px; height: 64px; object-fit: cover; border-radius: 14px; box-shadow: 0 4px 10px rgba(60,70,90,.15); flex: none; }
+.balao-botoes { flex-direction: column; align-items: flex-start; }
+.balao-nota { margin: 10px 0 0; font-size: 10px; color: #9aa0a8; letter-spacing: .02em; }
+/* o "rabinho" do balão apontando pra ela */
+.balao-rabinho { position: absolute; width: 16px; height: 16px; background: #eef0f3; border-radius: 3px; transform: rotate(45deg); }
+.balao-fala[data-lado="esquerda"] .balao-rabinho { left: -6px; margin-top: -8px; }
+.balao-fala[data-lado="baixo"] .balao-rabinho { bottom: -6px; margin-left: -8px; }
+@media (prefers-reduced-motion: reduce) { .balao-fala { animation: none; } }
