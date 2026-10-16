@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Filtro mosaico · Ana Beatriz</title>
+  <meta name="description" content="Shader GLSL de mosaico de fotos ao vivo com a câmera — controle o tamanho dos quadrados fazendo pinça com a mão.">
+
+  <!-- Só o FILTRO da câmera (o Shader GLSL do portfólio), sem o resto do site — pra mostrar em feira/aula.
+       Usa o mesmo código do portfólio (../mosaico.js) e as mesmas cartelas de fotos. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Silkscreen&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* cor dos botões (no portfólio vem da categoria; aqui é o azul do 3D) */
+    body { --c1: #62b8e0; }
+    /* o filtro ocupa a tela toda desde o começo */
+    #filtro .mosaico-palco {
+      position: fixed; inset: 0; height: auto; border-radius: 0; box-shadow: none;
+    }
+    /* créditos (somem quando a câmera liga) */
+    .creditos {
+      position: fixed; right: 18px; top: 20px; z-index: 3;
+      padding: 7px 14px; border-radius: 999px;
+      font: 500 10px/1.4 'Geist Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #4b5563;
+      background: rgba(255,255,255,.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #cdd3db, 0 4px 12px rgba(60,70,90,.12);
+      text-align: right;
+    }
+    .creditos b { font-weight: 700; color: #1f2937; }
+    body.mosaico-tela-cheia .creditos { display: none; }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="filtro"></div>
+  <p class="creditos"><b>filtro mosaico</b><br>shader glsl · ana beatriz</p>
+
+  <script type="module">
+    import { montarMosaico } from '../mosaico.js';
+    const pasta = '../projetos/shader-glsl/';
+    montarMosaico(document.getElementById('filtro'), {
+      conjuntos: [
+        { nome: 'anime shader', icone: pasta + 'icone-anime.webp', atlas: pasta + 'garotas.webp', dados: pasta + 'garotas.json' },
+        { nome: 'emoji shader', icone: pasta + 'icone-emoji.webp', atlas: pasta + 'emojis.webp', dados: pasta + 'emojis.json' },
+      ],
+      cameraAoAbrir: true,      // a câmera já abre ligada
+    });
+  </script>
+</body>
+</html>

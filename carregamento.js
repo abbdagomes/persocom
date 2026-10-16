@@ -116,5 +116,8 @@ export function criarCarregamento(tela, opcoes = {}) {
   };
 }
 
-// a tela de carregamento do site (cobre tudo quando a página abre)
-export const carregamento = criarCarregamento(document.getElementById('carregando'));
+// a tela de carregamento do site (cobre tudo quando a página abre). Páginas sem ela (ex.: filtro/, só o filtro
+// da câmera) usam só o criarCarregamento — aqui fica um "carregamento" vazio pra nada quebrar
+const telaDoSite = document.getElementById('carregando');
+export const carregamento = telaDoSite ? criarCarregamento(telaDoSite)
+  : { progresso() {}, pronto() {}, cancelar() {}, get revelado() { return 1; }, get ativo() { return false; } };

@@ -494,6 +494,9 @@ export function montarMosaico(raiz, cfg) {
   io.observe(palco);
   medir();
   raf = requestAnimationFrame(quadro);
+  // cfg.cameraAoAbrir: já liga a câmera assim que monta (a página só do filtro, pra feira) — o navegador pede
+  // permissão na hora; se a pessoa negar, fica na animação com o botão "ligar câmera"
+  if (cfg.cameraAoAbrir) ligarCamera();
 
   return {
     destruir() {
