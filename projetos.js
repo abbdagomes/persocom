@@ -1,37 +1,21 @@
 // =====================================================================
-//  CATEGORIAS E PROJETOS
-//  Na home: 3 cards de categoria. Clicando, a câmera vira (3D → direita,
-//  Ilustração → esquerda, Design → cima) e aparece a "parede" com os projetos.
-//  Clicando num projeto, abre o detalhe dele.
+//  PROJETOS
+//  Tudo junto numa grade só, logo abaixo dela na home (descendo a página).
+//  Os botões "tudo · 3D · design · ilustração" filtram a grade.
+//  Clicando num projeto, a página dele abre num painel por cima da cena.
 //
-//  PRA EDITAR O CONTEÚDO: mexa só nas listas CATEGORIAS e PROJETOS abaixo.
+//  PRA EDITAR O CONTEÚDO: mexa só nas listas CATEGORIAS, DESENHOS e PROJETOS abaixo.
 // =====================================================================
 
 const CATEGORIAS = {
-  ilustracao: {
-    nome: 'Ilustração',
-    direcao: 'esquerda',       // pra onde a câmera vira
-    frase: 'mural de desenhos e experimentos',
-    cores: ['#f7a8cf', '#ffe3f0'],
-    mural: true,               // em vez da grade de quadradinhos, mostra o mural (projetos dessa categoria + DESENHOS)
-  },
-  design: {
-    nome: 'Design gráfico',
-    direcao: 'cima',
-    frase: 'identidade, tipografia, editorial e web',
-    cores: ['#8fe0a0', '#e4f9dc'],
-  },
-  '3d': {
-    nome: '3D',
-    direcao: 'direita',
-    frase: 'personagens, impressão 3D, shaders e animação',
-    cores: ['#94d3ec', '#e0f4fb'],
-  },
+  '3d': { nome: '3D', cores: ['#94d3ec', '#e0f4fb'] },
+  design: { nome: 'design', cores: ['#8fe0a0', '#e4f9dc'] },
+  ilustracao: { nome: 'ilustração', cores: ['#f7a8cf', '#ffe3f0'] },
 };
 
-// ---------- MURAL de desenhos (parede da Ilustração) ----------
+// ---------- DESENHOS (entram na grade como quadradinhos da ilustração) ----------
 // cada desenho: { src: 'projetos/ilustracao/nome.webp', titulo: 'nome do desenho', ano: '2025' }
-// cada um aparece no formato dele; clicando, abre grande (com setas pra passar).
+// na grade aparece recortado em quadrado; clicando, abre grande e inteiro (com setas pra passar).
 // Enquanto não tem imagem: { exemplo: 'texto', proporcao: '3 / 4' } mostra um quadro em degradê daquele formato.
 const DESENHOS = [
   { exemplo: 'desenho 1', proporcao: '3 / 4' },
@@ -45,10 +29,10 @@ const DESENHOS = [
 ];
 
 // Cada projeto:
-//   id          → nome curto sem espaço (vira o link: seusite.com/#3d/game-jam)
+//   id          → nome curto sem espaço (vira o link: seusite.com/#game-jam)
 //   categoria   → '3d' | 'ilustracao' | 'design'
 //   titulo, resumo, texto → nome, frase curta (no quadradinho) e texto do detalhe
-//   destaque    → true = card duplo e primeiro da parede (os projetos "grandes" da tabela do Miro)
+//   destaque    → true = card duplo, e vem primeiro da categoria (os projetos "grandes" da tabela do Miro)
 //   capa        → imagem do quadradinho (ex: 'projetos/game-jam/capa.jpg'). Vazio = degradê
 //   video       → vídeo curtinho (turntable 360, animação...). Toca no hover e no detalhe
 //   imagens     → as imagens que aparecem rolando pra baixo no detalhe, em ordem:
@@ -135,7 +119,7 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'game-jam', categoria: '3d', titulo: 'Tony Matrimony', resumo: 'personagens 3D · GMTK Game Jam 2026',
+    id: 'game-jam', categoria: '3d', destaque: true, titulo: 'Tony Matrimony', resumo: 'personagens 3D · GMTK Game Jam 2026',
     texto: 'Durante a GMTK Game Jam 2026, uma das maiores maratonas globais de desenvolvimento de jogos independentes, '
       + 'com mais de 10.000 projetos submetidos, assumi a produção completa de 8 personagens 3D em apenas 4 dias para o jogo '
       + 'Tony Matrimony. O curto prazo do evento exigiu a estruturação de um pipeline extremamente ágil, focado em blocagem '
@@ -243,7 +227,7 @@ const PROJETOS = [
     imagens: [],
   },
 
-  // ---------------- ILUSTRAÇÃO (aparecem no mural, antes dos DESENHOS) ----------------
+  // ---------------- ILUSTRAÇÃO (na grade, antes dos DESENHOS) ----------------
   {
     id: 'emoji-lab', categoria: 'ilustracao', titulo: 'Emoji Lab', resumo: 'colagem digital · vetor + 3D',
     texto: 'Projeto autoral de experimentação visual focado em desconstruir a silhueta clássica dos emojis. O processo combina '
@@ -256,17 +240,17 @@ const PROJETOS = [
   },
 ];
 
+
 const CONFIG_GALERIA = {
   simbolos: '#$%&@01/*?+=<>[]{}', // símbolos do título embaralhando
   velocidadeEmbaralho: 40,
-  atrasoParede: 250,               // ms depois que a câmera começa a virar pra parede aparecer
+  nevoaMaxima: 0.5,                // quanto a cena fica enevoada atrás dos projetos (0 = nada, 1 = some)
+  ordemCategorias: ['3d', 'design', 'ilustracao'],  // a grade alterna as categorias nessa ordem
 };
-
-// setas de cada direção (aparecem nos cards das categorias)
-const SETAS = { direita: '›', esquerda: '‹', cima: '⌃', baixo: '⌄' };
 
 const semMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const rolarSuave = semMovimento ? 'auto' : 'smooth';
 
 // ---------- título embaralhando feito código ----------
 function embaralharTitulo(el) {
@@ -320,81 +304,130 @@ function ligarCard(card, aoClicar) {
 }
 
 // =====================================================================
-//  HOME: os 3 cards de categoria (na mesma direção pra onde a câmera vira)
+//  A GRADE: todos os projetos juntos, embaixo dela
+//  Ordem: as categorias se alternam (3D, design, ilustração, 3D...), e dentro de cada uma os destaques
+//  vêm primeiro — assim quase toda linha tem um card grande e a grade fica misturada.
+//  Os DESENHOS entram depois dos projetos de ilustração.
 // =====================================================================
-const barra = document.getElementById('categorias');
-['ilustracao', 'design', '3d'].forEach((id) => {
-  const c = CATEGORIAS[id];
-  // a miniatura do card é a do primeiro projeto da categoria que já tem capa ou vídeo
-  const primeiro = PROJETOS.find((p) => p.categoria === id && (p.capa || p.video)) || {};
-  const card = document.createElement('a');
-  card.className = `card card-categoria vai-${c.direcao}`;
-  card.href = `#${id}`;
-  card.draggable = false;
-  card.innerHTML = `
-    ${miniatura({ capa: primeiro.capa, video: primeiro.video }, c.cores)}
-    <h3><span class="seta-dir">${SETAS[c.direcao]}</span><span data-texto="${escapar(c.nome)}">${escapar(c.nome)}</span></h3>
-    <p>${escapar(c.frase)}</p>`;
-  ligarCard(card, () => { location.hash = id; });
-  barra.appendChild(card);
-});
+const grade = document.getElementById('grade');
+const filtros = document.getElementById('filtros');
 
-// =====================================================================
-//  GALERIA (a "parede" de cada categoria) + DETALHE do projeto
-// =====================================================================
-const galeria = document.getElementById('galeria');
-// ícone de casinha do botão que volta pra home (desenhado com linhas, pega a cor do botão)
-const ICONE_CASA = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/></svg>`;
-let categoriaAberta = null;
-
-function montarGrade(id) {
-  const c = CATEGORIAS[id];
-  // os projetos em destaque (card duplo) vêm primeiro
-  const lista = PROJETOS.filter((p) => p.categoria === id).sort((a, b) => !!b.destaque - !!a.destaque);
-  const grade = galeria.querySelector('.grade');
-  grade.innerHTML = '';
-  grade.classList.toggle('mural', !!c.mural);
-  lista.forEach((p, i) => {
-    const q = document.createElement('a');
-    q.className = `card quadradinho${p.destaque ? ' destaque' : ''}${c.mural ? ' no-mural' : ''}`;
-    q.href = `#${id}/${p.id}`;
-    q.draggable = false;
-    q.style.setProperty('--i', i);
-    q.innerHTML = `
-      ${miniatura(p, c.cores)}
-      <h3 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h3>
-      <p>${escapar(p.resumo)}</p>`;
-    ligarCard(q, () => { location.hash = `${id}/${p.id}`; });
-    grade.appendChild(q);
-  });
-  if (c.mural) montarMural(grade, c, lista.length);
-  if (!lista.length && !c.mural) grade.innerHTML = '<p class="vazio">nenhum projeto aqui ainda ✦</p>';
-  // no próximo quadro, os quadradinhos entram (um depois do outro)
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    grade.querySelectorAll('.quadradinho').forEach((q) => q.classList.add('visivel'));
-  }));
+function itensDaGrade() {
+  const filas = {};
+  for (const id of CONFIG_GALERIA.ordemCategorias) {
+    filas[id] = PROJETOS.filter((p) => p.categoria === id).sort((a, b) => !!b.destaque - !!a.destaque)
+      .map((p) => ({ projeto: p, categoria: id }));
+  }
+  filas.ilustracao.push(...DESENHOS.map((d, i) => ({ desenho: d, indice: i, categoria: 'ilustracao' })));
+  const itens = [];
+  while (Object.values(filas).some((f) => f.length)) {
+    for (const id of CONFIG_GALERIA.ordemCategorias) if (filas[id].length) itens.push(filas[id].shift());
+  }
+  return itens;
 }
 
-// ---------- MURAL: os desenhos em colunas, cada um no seu formato ----------
-function montarMural(grade, c, inicio) {
-  DESENHOS.forEach((d, i) => {
-    const q = document.createElement('button');
+// etiqueta com a categoria, no cantinho da miniatura
+const etiquetaCategoria = (id) => `<span class="tag-categoria" style="--c1:${CATEGORIAS[id].cores[0]}">${escapar(CATEGORIAS[id].nome)}</span>`;
+
+itensDaGrade().forEach((item) => {
+  const c = CATEGORIAS[item.categoria];
+  let q;
+  if (item.projeto) {
+    const p = item.projeto;
+    q = document.createElement('a');
+    q.className = `card quadradinho${p.destaque ? ' destaque' : ''}`;
+    q.href = `#${p.id}`;
+    q.innerHTML = `
+      ${miniatura(p, c.cores)}
+      ${etiquetaCategoria(item.categoria)}
+      <h3 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h3>
+      <p>${escapar(p.resumo)}</p>`;
+    ligarCard(q, () => { abertoPeloSite = true; location.hash = p.id; });
+  } else {
+    // desenho: quadradinho recortado; clicando abre grande, inteiro
+    const d = item.desenho;
+    const titulo = d.titulo || d.exemplo || 'desenho';
+    q = document.createElement('button');
     q.type = 'button';
     q.className = 'card quadradinho desenho';
-    q.style.setProperty('--i', inicio + i);
     q.innerHTML = `
-      <div class="thumb" style="--c1:${c.cores[0]}; --c2:${c.cores[1]}${d.proporcao ? `; aspect-ratio:${d.proporcao}` : ''}">
+      <div class="thumb" style="--c1:${c.cores[0]}; --c2:${c.cores[1]}">
         ${d.src ? `<img src="${escapar(d.src)}" alt="${escapar(d.titulo || '')}" loading="lazy" draggable="false">` : `<span class="desenho-exemplo">${escapar(d.exemplo || '')}</span>`}
         <span class="thumb-brilho"></span>
       </div>
-      ${d.titulo ? `<h3>${escapar(d.titulo)}</h3>` : ''}`;
-    q.addEventListener('click', () => abrirZoom(i));
-    grade.appendChild(q);
-  });
-}
+      ${etiquetaCategoria(item.categoria)}
+      <h3 data-texto="${escapar(titulo)}">${escapar(titulo)}</h3>
+      <p>${escapar(['desenho', d.ano].filter(Boolean).join(' · '))}</p>`;
+    ligarCard(q, () => abrirZoom(item.indice));
+  }
+  q.draggable = false;
+  q.dataset.categoria = item.categoria;
+  grade.appendChild(q);
+});
 
-// desenho aberto em tamanho grande, por cima de tudo (setas / ← → passam, Esc ou clicar fora fecha)
+// os quadradinhos entram (um depois do outro) quando aparecem na tela
+const observador = new IntersectionObserver((entradas) => {
+  let ordem = 0;
+  for (const e of entradas) {
+    if (!e.isIntersecting) continue;
+    e.target.style.setProperty('--i', ordem++);
+    e.target.classList.add('visivel');
+    observador.unobserve(e.target);
+  }
+}, { rootMargin: '0px 0px -30px 0px' });
+grade.querySelectorAll('.quadradinho').forEach((q) => observador.observe(q));
+
+// ---------- filtros: tudo · 3D · design · ilustração ----------
+filtros.innerHTML = [['', 'tudo'], ...CONFIG_GALERIA.ordemCategorias.map((id) => [id, CATEGORIAS[id].nome])]
+  .map(([id, nome]) => `<button type="button" class="pilula filtro${id ? '' : ' ativo'}" data-filtro="${id}"`
+    + `${id ? ` style="--c1:${CATEGORIAS[id].cores[0]}"` : ''} aria-pressed="${!id}">${escapar(nome)}</button>`).join('');
+function filtrar(id) {
+  filtros.querySelectorAll('.filtro').forEach((b) => {
+    const ativo = b.dataset.filtro === id;
+    b.classList.toggle('ativo', ativo);
+    b.setAttribute('aria-pressed', ativo);
+  });
+  let ordem = 0;
+  grade.querySelectorAll('.quadradinho').forEach((q) => {
+    const mostra = !id || q.dataset.categoria === id;
+    q.hidden = !mostra;
+    if (!mostra) return;
+    // entram de novo, um depois do outro
+    observador.unobserve(q);
+    q.classList.remove('visivel');
+    q.style.setProperty('--i', Math.min(ordem++, 12));
+  });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    grade.querySelectorAll('.quadradinho:not([hidden])').forEach((q) => q.classList.add('visivel'));
+  }));
+}
+filtros.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-filtro]');
+  if (b) filtrar(b.dataset.filtro);
+});
+
+// =====================================================================
+//  ROLAGEM: a cena fica parada atrás, cada vez mais enevoada
+//  (e ela olha pra baixo — isso fica no main.js)
+// =====================================================================
+const secaoProjetos = document.getElementById('projetos');
+const veu = document.getElementById('veu');
+function aoRolar() {
+  const r = Math.min(1, scrollY / (innerHeight * 0.6));
+  veu.style.opacity = (r * CONFIG_GALERIA.nevoaMaxima).toFixed(3);
+  veu.style.visibility = r > 0 ? 'visible' : 'hidden';
+  document.body.classList.toggle('rolou', scrollY > 30);
+}
+addEventListener('scroll', aoRolar, { passive: true });
+addEventListener('resize', aoRolar);
+aoRolar();
+const irPraGrade = () => scrollTo({ top: secaoProjetos.offsetTop + 30, behavior: rolarSuave });
+document.querySelectorAll('[data-descer]').forEach((b) => b.addEventListener('click', irPraGrade));
+document.querySelector('[data-subir]')?.addEventListener('click', () => scrollTo({ top: 0, behavior: rolarSuave }));
+
+// =====================================================================
+//  DESENHO aberto em tamanho grande, por cima de tudo (setas / ← → passam, Esc ou clicar fora fecha)
+// =====================================================================
 const zoom = document.createElement('div');
 zoom.className = 'mural-zoom';
 zoom.hidden = true;
@@ -428,43 +461,18 @@ zoom.addEventListener('click', (e) => {
   else if (e.target === zoom || e.target.closest('[data-zoom-fechar]')) fecharZoom();
 });
 
-function abrirCategoria(id) {
-  const c = CATEGORIAS[id];
-  if (categoriaAberta !== id) {
-    categoriaAberta = id;
-    galeria.className = `galeria vem-${c.direcao}`;
-    galeria.style.setProperty('--c1', c.cores[0]);
-    galeria.style.setProperty('--c2', c.cores[1]);
-    galeria.innerHTML = `
-      <div class="painel"><div class="painel-rolagem">
-        <header class="painel-topo">
-          <button class="pilula voltar casa" data-voltar title="voltar pra home" aria-label="voltar pra home">${ICONE_CASA}</button>
-          <div class="painel-titulo">
-            <h2 data-texto="${escapar(c.nome)}">${escapar(c.nome)}</h2>
-            <p>${escapar(c.frase)}</p>
-          </div>
-        </header>
-        <div class="grade"></div>
-        <article class="detalhe" hidden></article>
-      </div></div>`;
-    montarGrade(id);
+// =====================================================================
+//  PÁGINA DO PROJETO: um painel por cima da cena (a grade continua no mesmo lugar, embaixo)
+// =====================================================================
+const galeria = document.getElementById('galeria');
+galeria.innerHTML = `<div class="painel"><div class="painel-rolagem"><article class="detalhe"></article></div></div>`;
+const painel = galeria.querySelector('.painel-rolagem');
+const det = galeria.querySelector('.detalhe');
+let projetoAberto = null;
+let abertoPeloSite = false;   // true = abriu clicando na grade (aí fechar = voltar no histórico)
 
-    galeria.querySelector('[data-voltar]').addEventListener('click', voltar);
-
-    // a câmera vira e, logo depois, a parede entra
-    dispatchEvent(new CustomEvent('virar', { detail: c.direcao }));
-    document.body.classList.add('em-galeria');
-    document.body.dataset.direcao = c.direcao;
-    const abrirParede = () => {
-      galeria.classList.add('aberta');
-      embaralharTitulo(galeria.querySelector('.painel-titulo h2'));
-    };
-    // abrindo direto pelo link / refresh: a parede já aparece, sem esperar a câmera
-    if (document.body.classList.contains('sem-transicao')) abrirParede();
-    else setTimeout(abrirParede, semMovimento ? 0 : CONFIG_GALERIA.atrasoParede);
-  }
-  fecharDetalhe();
-}
+// clicar fora do painel fecha
+galeria.addEventListener('click', (e) => { if (e.target === galeria) fecharPeloBotao(); });
 
 let vitrineAtual = null;   // a vitrine 3D aberta (se tiver), pra desligar ao sair
 let cenarioAtual = null;   // o cenário 3D do jogo (se tiver)
@@ -477,12 +485,16 @@ function desligarVitrine() {
   mosaicoAtual?.destruir(); mosaicoAtual = null;
 }
 
-function abrirDetalhe(id, projetoId) {
-  const p = PROJETOS.find((x) => x.id === projetoId && x.categoria === id);
-  if (!p) return;
+function abrirProjeto(projetoId) {
+  const p = PROJETOS.find((x) => x.id === projetoId);
+  if (!p) return false;
+  if (projetoAberto === projetoId) return true;
+  projetoAberto = projetoId;
+  fecharZoom();
   desligarVitrine();
-  const c = CATEGORIAS[id];
-  const det = galeria.querySelector('.detalhe');
+  const c = CATEGORIAS[p.categoria];
+  galeria.style.setProperty('--c1', c.cores[0]);
+  galeria.style.setProperty('--c2', c.cores[1]);
 
   // cada item da lista "imagens" pode ser só o caminho ('...jpg') ou um objeto:
   //   { src: '...jpg', legenda: 'texto embaixo', meia: true }   (meia = fica lado a lado com outra)
@@ -520,12 +532,16 @@ function abrirDetalhe(id, projetoId) {
     </figure>`).join('');
 
   det.innerHTML = `
-    <button class="pilula voltar-grade" data-voltar-grade>‹ todos os projetos</button>
+    <div class="detalhe-barra">
+      <button class="pilula voltar-grade" data-fechar-projeto>‹ todos os projetos</button>
+      <button class="pilula fechar-projeto" data-fechar-projeto aria-label="fechar">✕</button>
+    </div>
     <div class="detalhe-corpo">
       <div class="detalhe-midia">${midiaHTML(destaque)}</div>
       <div class="detalhe-info">
         <h2 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h2>
         <div class="etiquetas">
+          <span class="etiqueta forte">${escapar(c.nome)}</span>
           ${(p.etiquetas || []).map((e) => `<span class="etiqueta">${escapar(e)}</span>`).join('')}
         </div>
         <p class="detalhe-texto">${escapar(p.texto)}</p>
@@ -534,122 +550,101 @@ function abrirDetalhe(id, projetoId) {
       </div>
     </div>
     ${lista.length ? `<div class="detalhe-imagens">${imagensHTML}</div>` : ''}
-    <div class="detalhe-fim">
+    <div class="detalhe-fim"${lista.length ? '' : ' hidden'}>
       <button class="pilula" data-topo>⌃ voltar pro topo</button>
-      <button class="pilula" data-voltar-grade>‹ todos os projetos</button>
+      <button class="pilula" data-fechar-projeto>‹ todos os projetos</button>
     </div>`;
 
-  const lugarVitrine = det.querySelector('[data-vitrine]');
-  if (lugarVitrine) {
-    const cfgVitrine = lista.find((m) => m.vitrine).vitrine;
-    import('./vitrine.js').then(({ montarVitrine }) => {
-      if (!lugarVitrine.isConnected) return;          // já saiu do projeto enquanto carregava
-      vitrineAtual = montarVitrine(lugarVitrine, cfgVitrine);
+  // os visualizadores 3D / câmera só carregam quando o projeto abre
+  const montar = (seletor, chave, arquivo, funcao, guardar) => {
+    const lugar = det.querySelector(seletor);
+    if (!lugar) return;
+    const cfg = lista.find((m) => m[chave])[chave];
+    import(arquivo).then((modulo) => {
+      if (!lugar.isConnected) return;          // já saiu do projeto enquanto carregava
+      guardar(modulo[funcao](lugar, cfg));
     });
-  }
+  };
+  montar('[data-vitrine]', 'vitrine', './vitrine.js', 'montarVitrine', (v) => { vitrineAtual = v; });
+  montar('[data-cenario]', 'cenario', './cenario.js', 'montarCenario', (v) => { cenarioAtual = v; });
+  montar('[data-modelo3d]', 'modelo3d', './modelo3d.js', 'montarModelo3d', (v) => { modeloAtual = v; });
+  montar('[data-mosaico]', 'mosaico', './mosaico.js', 'montarMosaico', (v) => { mosaicoAtual = v; });
 
-  const lugarCenario = det.querySelector('[data-cenario]');
-  if (lugarCenario) {
-    const cfgCenario = lista.find((m) => m.cenario).cenario;
-    import('./cenario.js').then(({ montarCenario }) => {
-      if (!lugarCenario.isConnected) return;
-      cenarioAtual = montarCenario(lugarCenario, cfgCenario);
-    });
-  }
-
-  const lugarModelo = det.querySelector('[data-modelo3d]');
-  if (lugarModelo) {
-    const cfgModelo = lista.find((m) => m.modelo3d).modelo3d;
-    import('./modelo3d.js').then(({ montarModelo3d }) => {
-      if (!lugarModelo.isConnected) return;
-      modeloAtual = montarModelo3d(lugarModelo, cfgModelo);
-    });
-  }
-
-  const lugarMosaico = det.querySelector('[data-mosaico]');
-  if (lugarMosaico) {
-    const cfgMosaico = lista.find((m) => m.mosaico).mosaico;
-    import('./mosaico.js').then(({ montarMosaico }) => {
-      if (!lugarMosaico.isConnected) return;
-      mosaicoAtual = montarMosaico(lugarMosaico, cfgMosaico);
-    });
-  }
-
-  const painel = galeria.querySelector('.painel-rolagem');
-  det.querySelectorAll('[data-voltar-grade]').forEach((b) => b.addEventListener('click', () => { location.hash = id; }));
+  det.querySelectorAll('[data-fechar-projeto]').forEach((b) => b.addEventListener('click', fecharPeloBotao));
   det.querySelector('[data-rolar]')?.addEventListener('click', () => {
-    const alvo = det.querySelector('.detalhe-imagens');
-    painel.scrollTo({ top: alvo.offsetTop - 20, behavior: semMovimento ? 'auto' : 'smooth' });
+    painel.scrollTo({ top: det.querySelector('.detalhe-imagens').offsetTop - 20, behavior: rolarSuave });
   });
-  det.querySelector('[data-topo]').addEventListener('click', () => painel.scrollTo({ top: 0, behavior: semMovimento ? 'auto' : 'smooth' }));
-  // o botão "voltar pro topo" só aparece se tiver rolagem
-  det.querySelector('.detalhe-fim').hidden = !lista.length;
+  det.querySelector('[data-topo]').addEventListener('click', () => painel.scrollTo({ top: 0, behavior: rolarSuave }));
 
-  galeria.querySelector('.grade').hidden = true;
-  det.hidden = false;
-  galeria.querySelector('.painel-rolagem').scrollTop = 0;
+  painel.scrollTop = 0;
+  galeria.classList.add('aberta');
+  galeria.setAttribute('aria-hidden', 'false');
+  // a página de trás para de rolar enquanto o projeto está aberto (e fica no mesmo lugar)
+  document.documentElement.classList.add('travado');
+  document.body.classList.add('projeto-aberto');
   embaralharTitulo(det.querySelector('h2'));
+  return true;
 }
 
-function fecharDetalhe() {
-  const det = galeria.querySelector('.detalhe');
-  if (!det || det.hidden) return;
-  det.hidden = true;
+function fecharProjeto() {
+  if (!projetoAberto) return;
+  projetoAberto = null;
+  galeria.classList.remove('aberta');
+  galeria.setAttribute('aria-hidden', 'true');
   det.querySelectorAll('video').forEach((v) => v.pause());
   desligarVitrine();
-  galeria.querySelector('.grade').hidden = false;
+  document.documentElement.classList.remove('travado');
+  document.body.classList.remove('projeto-aberto');
 }
 
-function fecharCategoria() {
-  if (!categoriaAberta) return;
-  categoriaAberta = null;
-  fecharZoom();
-  galeria.classList.remove('aberta');
-  galeria.querySelectorAll('video').forEach((v) => v.pause());
-  desligarVitrine();
-  document.body.classList.remove('em-galeria');
-  dispatchEvent(new CustomEvent('virar', { detail: 'frente' }));
-}
-
-function voltar() {
-  history.pushState('', '', location.pathname + location.search); // tira o #...
-  seguirEndereco();
-}
-
-// ---------- o endereço (#3d, #3d/game-jam...) decide o que aparece ----------
-function seguirEndereco() {
-  const [cat, proj] = location.hash.replace('#', '').split('/');
-  if (CATEGORIAS[cat]) {
-    abrirCategoria(cat);
-    if (proj) abrirDetalhe(cat, proj);
+// botão de fechar / Esc / clicar fora: se abriu pela grade, volta no histórico (assim o "voltar" do
+// navegador faz a mesma coisa); se chegou direto pelo link, só tira o #projeto do endereço
+function fecharPeloBotao() {
+  if (abertoPeloSite) {
+    abertoPeloSite = false;
+    history.back();
   } else {
-    fecharCategoria();
+    history.pushState('', '', location.pathname + location.search);
+    seguirEndereco();
+  }
+}
+
+// ---------- o endereço (#game-jam...) decide o que aparece ----------
+// links antigos continuam valendo: #3d/game-jam abre o projeto e #3d desce pra grade filtrada
+function seguirEndereco() {
+  const partes = location.hash.replace('#', '').split('/').filter(Boolean);
+  const projeto = partes.find((x) => PROJETOS.some((p) => p.id === x));
+  if (projeto) { abrirProjeto(projeto); return; }
+  fecharProjeto();
+  abertoPeloSite = false;
+  if (CATEGORIAS[partes[0]]) {
+    history.replaceState('', '', location.pathname + location.search);
+    filtrar(partes[0]);
+    irPraGrade();
   }
 }
 addEventListener('hashchange', seguirEndereco);
-// se alguém abrir o site já com #3d/... no link (ou der refresh numa página de projeto),
+// se alguém abrir o site já com #projeto no link (ou der refresh numa página de projeto),
 // abre direto nela, sem animação: assim os pixels do carregamento revelam a página certa, não a home.
-// (a câmera do main.js também já começa virada, olhando o body.em-galeria)
 if (location.hash) {
   document.body.classList.add('sem-transicao');
   seguirEndereco();
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('sem-transicao')));
 }
 
-// Esc: fecha o desenho aberto → sai do detalhe → sai da galeria (← → passam os desenhos)
+// Esc: fecha o desenho aberto → fecha o projeto (← → passam os desenhos)
 addEventListener('keydown', (e) => {
   if (!zoom.hidden) {
     if (e.key === 'Escape') fecharZoom();
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') abrirZoom(zoomAtual + (e.key === 'ArrowLeft' ? -1 : 1));
     return;
   }
-  if (e.key !== 'Escape' || !categoriaAberta) return;
-  const det = galeria.querySelector('.detalhe');
-  if (det && !det.hidden) location.hash = categoriaAberta;
-  else voltar();
+  if (e.key === 'Escape' && projetoAberto) fecharPeloBotao();
 });
 
-// clicar no logo volta pra home
-document.getElementById('logo')?.addEventListener('click', () => {
-  if (categoriaAberta) voltar();
+// clicar no logo volta pro começo da home
+document.getElementById('logo')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (projetoAberto) fecharPeloBotao();
+  scrollTo({ top: 0, behavior: rolarSuave });
 });

@@ -151,7 +151,6 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 camera.position.set(0, 0, 20); // olhando reto pra frente
 
 const _proj = new THREE.Vector3();
-const baseChao = new THREE.Quaternion(); // pra onde a câmera do chão olha "de frente" (antes de virar)
 function enquadrarCamera() {
   const aspecto = innerWidth / innerHeight;
   cameraChao.aspect = aspecto;
@@ -161,8 +160,7 @@ function enquadrarCamera() {
   cameraChao.lookAt(0, 0.75, 0);
   cameraChao.updateProjectionMatrix();
   cameraChao.updateMatrixWorld();
-  baseChao.copy(cameraChao.quaternion);
-  // a ortográfica fica na mesma distância, pra quando as duas virarem juntas tudo "andar" igual
+  // a ortográfica fica na mesma distância da de perspectiva
   camera.position.set(0, 0, distancia);
 
   // calibra a ortográfica: os pés (y=0) e o topo da cabeça ficam no mesmo lugar
@@ -747,8 +745,8 @@ function atualizarPersonagem(dt) {
   const distancia = Math.hypot(mouse.x - telaX, mouse.y - telaY);
   // margem: entra perto de "distanciaPerto" e só sai 40% mais longe (evita ficar liga/desliga)
   const limite = p.animando ? CONFIG.distanciaPerto * 1.4 : CONFIG.distanciaPerto;
-  // (numa galeria ela não está na tela, então não anima)
-  const perto = !virada.galeria && mouse.dentro && distancia < limite;
+  // (descendo pros projetos ou com um projeto aberto, não anima)
+  const perto = rolagem.valor < 0.3 && !rolagem.projetoAberto && mouse.dentro && distancia < limite;
 
   // perto → toca a animação | longe → para e volta a olhar o mouse
   // mistura suave entre a pose parada e a animação (sem saltos, mesmo se o mouse entra e sai rápido)
@@ -795,10 +793,10 @@ function atualizarPersonagem(dt) {
   const dy = THREE.MathUtils.clamp((telaY - mouse.y) / (innerHeight * 0.5), -1, 1);
   let alvoYaw = mouse.dentro ? dx * CONFIG.giroMaxHorizontal : 0;
   let alvoPitch = mouse.dentro ? -dy * CONFIG.giroMaxVertical : 0;
-  // quando a câmera vira pra uma galeria, ela olha pro mesmo lado
-  if (virada.galeria) {
-    alvoYaw = Math.sign(-virada.alvoYaw) * CONFIG.giroMaxHorizontal;
-    alvoPitch = virada.alvoPitch > 0 ? -CONFIG.giroMaxVertical : 0;
+  // descendo pros projetos, ela olha pra baixo (pra grade)
+  if (rolagem.valor > 0) {
+    alvoYaw *= 1 - rolagem.valor * 0.7;
+    alvoPitch = THREE.MathUtils.lerp(alvoPitch, CONFIG.giroMaxVertical, rolagem.valor);
   }
   p.yaw = THREE.MathUtils.damp(p.yaw, alvoYaw, 7, dt);
   p.pitch = THREE.MathUtils.damp(p.pitch, alvoPitch, 7, dt);
@@ -1491,7 +1489,7 @@ window.transformarPersonagem = (foto, rosto = null) => new Promise((ok) => {
 
 // onde fica a cabeça dela na tela (o balão de fala do transformacao.js se posiciona por aqui)
 window.posicaoCabecaNaTela = () => {
-  if (!personagem.raiz || virada.galeria) return null;
+  if (!personagem.raiz || rolagem.valor > 0.5) return null;
   _v.copy(personagem.pontoCabeca).project(camera);
   return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight };
 };
@@ -1532,45 +1530,13 @@ function atualizarGiro(dt) {
 }
 
 // =====================================================================
-//  CÂMERA VIRANDO PRAS GALERIAS (3D → direita, Ilustração → esquerda, Design → cima)
-//  Quem pede a virada é o projetos.js, com: dispatchEvent(new CustomEvent('virar', { detail: 'direita' }))
+//  ROLAGEM: a cena fica parada atrás; descendo pros projetos, ela olha pra baixo
+//  (o véu que deixa a cena enevoada fica no projetos.js)
 // =====================================================================
-const DIRECOES = {
-  frente: { yaw: 0, pitch: 0 },
-  direita: { yaw: -90, pitch: 0 },
-  esquerda: { yaw: 90, pitch: 0 },
-  cima: { yaw: 0, pitch: 62 },
-};
-const VELOCIDADE_VIRADA = 3.2; // maior = vira mais rápido
-
-const virada = { yaw: 0, pitch: 0, alvoYaw: 0, alvoPitch: 0, galeria: false };
-const _qVirada = new THREE.Quaternion();
-const _eVirada = new THREE.Euler(0, 0, 0, 'YXZ');
-
-addEventListener('virar', (e) => {
-  const d = DIRECOES[e.detail] || DIRECOES.frente;
-  virada.alvoYaw = d.yaw;
-  virada.alvoPitch = d.pitch;
-  virada.galeria = e.detail !== 'frente';
-  // quando começa a voltar, some com a bolinha do cursor que ficou "presa" na bolha
-  document.body.classList.remove('cursor-clicavel');
-});
-// abriu o site direto numa galeria (link com #3d/... ou refresh): a câmera já começa virada, sem animação
-if (document.body.classList.contains('em-galeria')) {
-  const d = DIRECOES[document.body.dataset.direcao] || DIRECOES.frente;
-  virada.yaw = virada.alvoYaw = d.yaw;
-  virada.pitch = virada.alvoPitch = d.pitch;
-  virada.galeria = true;
-}
-
-function aplicarVirada(dt) {
-  virada.yaw = THREE.MathUtils.damp(virada.yaw, virada.alvoYaw, VELOCIDADE_VIRADA, dt);
-  virada.pitch = THREE.MathUtils.damp(virada.pitch, virada.alvoPitch, VELOCIDADE_VIRADA, dt);
-  _eVirada.set(THREE.MathUtils.degToRad(virada.pitch), THREE.MathUtils.degToRad(virada.yaw), 0);
-  _qVirada.setFromEuler(_eVirada);
-  // as duas câmeras giram "no lugar", como quem vira a cabeça
-  cameraChao.quaternion.copy(baseChao).multiply(_qVirada);
-  camera.quaternion.copy(_qVirada);
+const rolagem = { valor: 0, projetoAberto: false };   // valor: 0 = na home, 1 = já nos projetos
+function lerRolagem() {
+  rolagem.valor = THREE.MathUtils.clamp(scrollY / (innerHeight * 0.6), 0, 1);
+  rolagem.projetoAberto = document.body.classList.contains('projeto-aberto');
 }
 
 // =====================================================================
@@ -1609,12 +1575,12 @@ function atualizarPixelado() {
 const relogio = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   atualizarPixelado();
+  lerRolagem();
   const dt = Math.min(relogio.getDelta(), 0.05);
   const t = relogio.elapsedTime;
   materialChao.uniforms.uDeslocamento.value -= CONFIG.chaoVelocidade * dt;
   atualizarPersonagem(dt);
   atualizarBolhas(dt, t);
-  aplicarVirada(dt);
   // 1) chão em perspectiva  2) personagem e bolhas em ortográfica, por cima
   renderer.clear();
   renderer.render(scene, cameraChao);

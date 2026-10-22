@@ -1,9 +1,12 @@
 * { box-sizing: border-box; }
 
-html, body {
+/* a página rola (home → projetos); a barra de rolagem fica escondida pra não cortar a cena */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+/* com um projeto aberto, a página de trás fica parada no mesmo lugar */
+html.travado { overflow: hidden; }
+body {
   margin: 0;
-  height: 100%;
-  overflow: hidden;
   background: #ffffff;
   font-family: 'Geist Mono', ui-monospace, monospace;
   color: #333;
@@ -192,62 +195,102 @@ html, body {
   transition: transform .2s;
 }
 .bola:hover { transform: scale(1.12); }
-
-/* ---------- categorias (embaixo, na home) ---------- */
-.categorias {
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  width: min(720px, calc(100% - 32px));
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  transition: opacity .45s, transform .7s cubic-bezier(.5, 0, .2, 1);
+.botoes-laterais { z-index: 3; transition: opacity .35s; }
+/* descendo pros projetos, os botões do lado e o de customizar somem (o logo fica, menor) */
+body.rolou .botoes-laterais { opacity: 0; pointer-events: none; }
+.logo { transition: width .4s cubic-bezier(.2, .8, .2, 1), height .4s cubic-bezier(.2, .8, .2, 1); }
+body.rolou .logo { --escala: .5; }
+/* faixa branca atrás do logo: os projetos passam por baixo dela sem embolar com o logo */
+body::after {
+  content: ''; position: fixed; left: 0; right: 0; top: 0; height: 120px; z-index: 4; pointer-events: none;
+  background: linear-gradient(rgba(255,255,255,.96) 60%, rgba(255,255,255,0));
+  opacity: 0; transition: opacity .3s;
 }
-.categorias .card-categoria { flex: 1 1 0; min-width: 0; max-width: 220px; }
-.card-categoria h3 { display: flex; align-items: center; gap: 6px; font-size: 16px; }
-.card-categoria .seta-dir {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  font-size: 15px;
-  line-height: 1;
-  color: #6b7280;
-  background: radial-gradient(circle at 35% 30%, #fff 0 25%, #e8ebf0 70%, #d3d8df);
-  box-shadow: 0 1px 2px rgba(0,0,0,.12);
-  transition: transform .3s;
-}
-.card-categoria.vai-esquerda { order: 1; }
-.card-categoria.vai-cima { order: 2; }
-.card-categoria.vai-direita { order: 3; }
-.card-categoria.vai-esquerda:hover .seta-dir { transform: translateX(-3px); }
-.card-categoria.vai-direita:hover .seta-dir { transform: translateX(3px); }
-.card-categoria.vai-cima:hover .seta-dir { transform: translateY(-3px); }
-.card-categoria .thumb { height: 84px; }
+body.rolou::after { opacity: 1; }
 
-/* quando a câmera vira, a interface da home "fica pra trás" junto com a cena */
-body.em-galeria .categorias,
-body.em-galeria .botoes-laterais { opacity: 0; pointer-events: none; }
-body.em-galeria[data-direcao="direita"] .categorias { transform: translateX(-120%); }
-body.em-galeria[data-direcao="esquerda"] .categorias { transform: translateX(20%); }
-body.em-galeria[data-direcao="cima"] .categorias { transform: translate(-50%, 140%); }
+/* ---------- PROJETOS: embaixo dela, rolando a página ---------- */
+/* quanto da grade "espia" no pé da tela, na home */
+:root { --espiada: 200px; }
+/* véu branco por cima da cena: vai aparecendo conforme a pessoa desce (opacidade no projetos.js) */
+.veu {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  opacity: 0; visibility: hidden;
+}
+/* a página passa por cima da cena; o espaço da home deixa os cliques chegarem nela (bolhas) */
+.pagina { position: relative; z-index: 2; pointer-events: none; }
+.home-espaco { height: calc(100vh - var(--espiada)); height: calc(100svh - var(--espiada)); }
+.projetos {
+  position: relative;
+  min-height: 100vh;
+  padding: 64px 24px 40px;
+  /* o fade: começa transparente (a cena aparece) e vai ficando branquinho */
+  background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.72) 110px, rgba(255,255,255,.6) 260px, rgba(255,255,255,.6));
+}
+.projetos > * { pointer-events: auto; width: min(1100px, 100%); margin-inline: auto; }
+.projetos-topo {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 16px; padding: 0 4px;
+}
+.projetos-titulo {
+  display: flex; align-items: center; gap: 10px; margin: 0;
+  font-size: clamp(24px, 3.4vw, 34px); font-weight: 700; letter-spacing: -.05em; color: #1f2937;
+}
+/* setinha que quica: clicando desce pra grade */
+.seta-descer {
+  width: 34px; height: 34px; padding: 0; border: none; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center; font: 700 18px/1 'Geist Mono', monospace; color: #6b7280;
+  background:
+    radial-gradient(circle at 30% 28%, #fff 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 50%, #ffffff 0%, #eef1f5 70%, #d8dde4 100%);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #c9cfd8, 0 4px 10px rgba(0,0,0,.08);
+  animation: quica 1.6s ease-in-out infinite;
+}
+body.rolou .seta-descer { animation: none; }
+.filtros { display: flex; flex-wrap: wrap; gap: 10px; }
+.pilula.filtro { padding: 7px 15px; font-size: 12px; cursor: pointer; }
+.pilula.filtro.ativo {
+  color: #1f2937;
+  background:
+    linear-gradient(rgba(255,255,255,.7), rgba(255,255,255,0) 55%),
+    linear-gradient(color-mix(in srgb, var(--c1, #cfd5dd) 55%, #fff), color-mix(in srgb, var(--c1, #cfd5dd) 85%, #fff));
+}
+.projetos-fim { display: flex; justify-content: center; padding: 26px 0 10px; }
+/* a grade dos projetos: 4 colunas (cada linha = 1 card grande + 2 pequenos), 3 no tablet, 2 no celular */
+.projetos .grade { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: dense; }
+@media (max-width: 1000px) { .projetos .grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .projetos .grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* etiqueta da categoria, no canto da miniatura */
+.tag-categoria {
+  position: absolute; top: 15px; left: 15px;
+  padding: 3px 9px; border-radius: 999px; pointer-events: none;
+  font: 700 10px 'Geist Mono', monospace; letter-spacing: .06em; color: #1f2937;
+  background: rgba(255,255,255,.88); box-shadow: inset 0 0 0 1.5px var(--c1);
+}
 
 /* abrindo o site direto numa galeria (refresh / link com #): tudo já no lugar, sem animar */
 body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after { transition: none !important; }
 
-/* ---------- galeria: a "parede" de cada categoria ---------- */
+/* ---------- a página do projeto: painel por cima de tudo ---------- */
 .galeria {
   position: fixed;
   inset: 0;
-  z-index: 4;
+  z-index: 6;
   display: grid;
   place-items: center;
-  padding: 178px 24px 24px;
+  padding: 24px;
   pointer-events: none;
-  perspective: 1400px;
+  visibility: hidden;
+  background: rgba(246, 248, 251, 0);
+  transition: background .4s, visibility 0s .5s;
+}
+.galeria.aberta {
+  pointer-events: auto;
+  visibility: visible;
+  background: rgba(246, 248, 251, .55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background .4s;
 }
 .galeria .painel {
   position: relative;
@@ -260,15 +303,16 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   /* vidro perolado, estilo menu de console Y2K */
   background:
     radial-gradient(ellipse 70% 30% at 20% 0%, rgba(255,255,255,.95), transparent 70%),
-    linear-gradient(170deg, rgba(255,255,255,.82), rgba(236,240,246,.72));
+    linear-gradient(170deg, rgba(255,255,255,.9), rgba(236,240,246,.82));
   backdrop-filter: blur(14px) saturate(1.2);
   -webkit-backdrop-filter: blur(14px) saturate(1.2);
   box-shadow:
-    0 30px 60px rgba(60, 70, 90, .14),
+    0 30px 60px rgba(60, 70, 90, .16),
     inset 0 1px 0 rgba(255,255,255,.9),
     inset 0 -20px 40px color-mix(in srgb, var(--c1) 14%, transparent);
   opacity: 0;
-  transition: transform .8s cubic-bezier(.2, .8, .2, 1), opacity .5s;
+  transform: translateY(40px) scale(.96);
+  transition: transform .55s cubic-bezier(.2, .8, .2, 1), opacity .35s;
 }
 /* quem rola é o miolo: assim a borda brilhante fica parada e não vira uma linha no meio do conteúdo */
 .painel-rolagem {
@@ -276,6 +320,7 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   padding: 22px 26px 30px;
 }
@@ -293,16 +338,7 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   pointer-events: none;
   z-index: 1;
 }
-/* de onde a parede vem (acompanha a câmera virando) */
-.galeria.vem-direita .painel { transform: translateX(55vw) rotateY(-38deg); }
-.galeria.vem-esquerda .painel { transform: translateX(-55vw) rotateY(38deg); }
-.galeria.vem-cima .painel { transform: translateY(-65vh) rotateX(-32deg); }
-.galeria.aberta { pointer-events: auto; }
 .galeria.aberta .painel { transform: none; opacity: 1; }
-
-.painel-topo { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; }
-.painel-titulo h2 { margin: 0; font-size: clamp(26px, 4vw, 40px); font-weight: 700; letter-spacing: -.05em; }
-.painel-titulo p { margin: 0; color: #9aa0a8; font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
 
 /* botões em pílula brilhante */
 .pilula {
@@ -323,8 +359,6 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   white-space: nowrap;
 }
 .pilula:hover { transform: scale(1.06); }
-/* botão de voltar pra home: só a casinha, redondo */
-.pilula.casa { width: 42px; height: 42px; padding: 0; justify-content: center; flex: none; }
 .pilula.ver-projeto {
   color: #fff;
   background:
@@ -346,7 +380,7 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   opacity: 0;
   transform: translateY(14px) scale(.9);
   transition: opacity .4s ease, transform .5s cubic-bezier(.34, 1.4, .64, 1), box-shadow .3s;
-  transition-delay: calc(var(--i) * 60ms + .3s);
+  transition-delay: calc(var(--i, 0) * 60ms + 40ms);
 }
 .quadradinho.visivel { opacity: 1; transform: none; }
 .quadradinho.visivel:hover { transition-delay: 0s; transform: translateY(-6px) scale(1.05); }
@@ -360,26 +394,11 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
 .quadradinho.destaque { grid-column: span 2; }
 .quadradinho.destaque .thumb { aspect-ratio: 2 / 1; } /* 2 colunas de largura → mesma altura dos quadrados */
 
-/* ---------- MURAL da Ilustração: colunas, cada desenho no seu formato ---------- */
-.grade.mural { display: block; columns: 4 200px; column-gap: 18px; }
-.grade.mural[hidden] { display: none; }
-.grade.mural > .card { width: 100%; margin: 0 0 20px; break-inside: avoid; }
-.grade.mural .thumb { -webkit-box-reflect: none; }
+/* ---------- desenhos na grade: quadradinho recortado (abre inteiro no zoom) ---------- */
 .quadradinho.desenho { border: 0; font: inherit; text-align: left; cursor: pointer; }
-.quadradinho.desenho .thumb { height: auto; aspect-ratio: 1; }
-.quadradinho.desenho .thumb img { position: static; display: block; height: auto; }
-.quadradinho.desenho .thumb:has(img) { aspect-ratio: auto !important; }
 .desenho-exemplo {
   position: absolute; inset: 0; display: grid; place-items: center;
   font: 700 15px 'Geist Mono', monospace; letter-spacing: -.03em; color: rgba(255,255,255,.95);
-}
-/* os projetos que entram no mural (ex.: Emoji Lab) ganham uma etiqueta "projeto" */
-.quadradinho.no-mural::after {
-  content: 'projeto ›';
-  position: absolute; top: 16px; left: 16px;
-  padding: 3px 9px; border-radius: 999px;
-  font: 700 10px 'Geist Mono', monospace; letter-spacing: .06em; color: #1f2937;
-  background: rgba(255,255,255,.88); box-shadow: inset 0 0 0 1px var(--c1, #f7a8cf);
 }
 
 /* desenho aberto em tamanho grande */
@@ -408,7 +427,10 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
 /* ---------- detalhe do projeto ---------- */
 .detalhe[hidden] { display: none; }
 .detalhe { animation: aparece .45s cubic-bezier(.34, 1.4, .64, 1); }
-.voltar-grade { margin-bottom: 16px; }
+/* barra de cima do projeto: voltar pra grade + fechar */
+.detalhe-barra { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.pilula.fechar-projeto { width: 40px; height: 40px; padding: 0; justify-content: center; }
+.detalhe-barra .pilula { cursor: pointer; }
 .detalhe-corpo { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
 .detalhe-midia {
   border-radius: 20px;
@@ -478,13 +500,10 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
 @media (prefers-reduced-motion: reduce) { .pilula.rolar { animation: none; } }
 
 @media (max-width: 720px) {
-  .galeria { padding: 110px 10px 10px; }
+  .galeria { padding: 10px; }
   .galeria .painel { border-radius: 22px; }
   .painel-rolagem { padding: 16px 14px 22px; }
-  .painel-topo { flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
   .grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
-  .grade.mural { columns: 2; column-gap: 12px; }
-  .grade.mural > .card { margin-bottom: 14px; }
   .mural-zoom { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto; padding: 70px 12px 20px; gap: 10px; }
   .zoom-quadro { grid-column: 1 / -1; grid-row: 1; }
   .zoom-midia .midia-vazia { width: 80vw; }
@@ -605,15 +624,14 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
   .bola { width: 38px; height: 38px; font-size: 15px; }
   .topo { left: 12px; top: 12px; }
   .logo { --escala: .62; }
-  .categorias { gap: 8px; bottom: 12px; }
-  .card-categoria { padding: 6px; border-radius: 18px; }
-  .card-categoria .thumb { height: 52px; border-radius: 12px; }
-  /* no celular o nome pode quebrar em 2 linhas ("Design / gráfico") em vez de ser cortado com "…" */
-  .card-categoria h3 { font-size: clamp(11px, 3.4vw, 13px); letter-spacing: -.05em; gap: 3px; align-items: flex-start; white-space: normal; line-height: 1.15; overflow: visible; }
-  .card-categoria h3 [data-texto] { min-width: 0; }   /* quebra só entre palavras */
-  .card-categoria h3 { margin-left: 1px; margin-right: 1px; }
-  .card-categoria .seta-dir { flex: none; width: 14px; height: 14px; font-size: 11px; }
-  .card-categoria p { display: none; }
+  body.rolou .logo { --escala: .42; }
+  body::after { height: 92px; }
+  :root { --espiada: 170px; }
+  .projetos { padding: 54px 12px 30px; }
+  .projetos-topo { gap: 10px; }
+  .filtros { gap: 7px; }
+  .pilula.filtro { padding: 6px 11px; font-size: 11px; }
+  .tag-categoria { top: 12px; left: 12px; font-size: 9px; padding: 2px 7px; }
 }
 
 /* ---------- vitrine 3D dos personagens (vitrine.js) ---------- */
@@ -1005,7 +1023,7 @@ video::-webkit-media-controls, video::-webkit-media-controls-start-playback-butt
 video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
 
 /* ---------- TROCA DE VISUAL COM FOTO (transformacao.js) ---------- */
-/* botão de customizar (ícone da Ana, redondo como os do lado): logo acima dos cards, no meio;
+/* botão de customizar (ícone da Ana, redondo como os do lado): logo acima dos projetos, no meio;
    o nome "customize persocom" só aparece passando o mouse */
 .botao-foto {
   position: fixed; left: 50%; z-index: 3;
@@ -1027,7 +1045,7 @@ video::-webkit-media-controls-overlay-play-button { display: none !important; -w
 }
 .botao-foto:hover::after, .botao-foto:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
 @media (max-width: 600px) { .botao-foto { width: 50px; height: 50px; margin-left: -25px; } .botao-foto svg { height: 34px; } }
-body.em-galeria .botao-foto { opacity: 0; pointer-events: none; }
+body.rolou .botao-foto { opacity: 0; pointer-events: none; }
 
 /* balão de fala cinza clarinho, preso na cabeça dela */
 .balao-fala {

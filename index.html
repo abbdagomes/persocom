@@ -55,10 +55,29 @@
     <a class="bola" href="#" title="Currículo">☰</a>
   </nav>
 
-  <!-- CATEGORIAS (embaixo) e a GALERIA que aparece quando a câmera vira.
-       O conteúdo fica no projetos.js (listas CATEGORIAS e PROJETOS) -->
-  <nav class="categorias" id="categorias" aria-label="Categorias"></nav>
-  <section class="galeria" id="galeria" aria-live="polite"></section>
+  <!-- véu branco que deixa a cena enevoada conforme a pessoa desce pros projetos -->
+  <div class="veu" id="veu" aria-hidden="true"></div>
+
+  <!-- a página rola: primeiro a home (ela, só o espaço vazio por cima da cena), depois os PROJETOS todos juntos.
+       O conteúdo fica no projetos.js (listas CATEGORIAS, DESENHOS e PROJETOS) -->
+  <main class="pagina">
+    <div class="home-espaco" aria-hidden="true"></div>
+    <section class="projetos" id="projetos" aria-label="Projetos">
+      <header class="projetos-topo">
+        <h2 class="projetos-titulo">
+          <button class="seta-descer" type="button" data-descer aria-label="descer pros projetos">⌄</button>projetos
+        </h2>
+        <div class="filtros" id="filtros" role="group" aria-label="filtrar projetos"></div>
+      </header>
+      <div class="grade" id="grade"></div>
+      <footer class="projetos-fim">
+        <button class="pilula" type="button" data-subir>⌃ voltar pro começo</button>
+      </footer>
+    </section>
+  </main>
+
+  <!-- a página de cada projeto abre num painel por cima de tudo -->
+  <section class="galeria" id="galeria" aria-live="polite" aria-hidden="true"></section>
 
   <script type="module" src="projetos.js"></script>
   <script type="module" src="main.js"></script>

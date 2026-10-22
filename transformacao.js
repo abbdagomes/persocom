@@ -133,7 +133,7 @@ botao.addEventListener('click', () => {
 });
 balao.querySelector('[data-fechar]').addEventListener('click', () => { limparFoto(); fechar(); });
 balao.querySelector('[data-trocar]').addEventListener('click', () => entrada.click());
-addEventListener('keydown', (e) => { if (e.key === 'Escape' && !balao.hidden && !document.body.classList.contains('em-galeria')) { limparFoto(); fechar(); } });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && !balao.hidden && !document.body.classList.contains('projeto-aberto')) { limparFoto(); fechar(); } });
 
 // ---------- detector de rosto (carrega uma vez, na primeira foto) ----------
 let detector = null;
@@ -212,14 +212,15 @@ botaoOriginal.addEventListener('click', () => {
   transformar(null);
 });
 
-// o botão fica logo acima dos cards de categoria (que mudam de altura no celular)
-const cards = document.getElementById('categorias');
+// o botão fica logo acima do título "projetos" (que espia no pé da tela, na home)
+const topoProjetos = document.querySelector('.projetos-topo');
 function encaixarBotao() {
-  const topoCards = cards ? cards.getBoundingClientRect().top : innerHeight - 160;
-  botao.style.bottom = `${Math.max(16, innerHeight - topoCards + 14)}px`;
+  const topo = topoProjetos ? topoProjetos.getBoundingClientRect().top + scrollY : innerHeight - 160;
+  botao.style.bottom = `${Math.max(16, innerHeight - topo + 14)}px`;
 }
 addEventListener('resize', encaixarBotao);
-new ResizeObserver(encaixarBotao).observe(cards || document.body);
+new ResizeObserver(encaixarBotao).observe(document.body);
 encaixarBotao();
-// indo pra uma galeria, o balão some
-addEventListener('virar', () => fechar());
+// descendo pros projetos (ou abrindo um), o balão some
+addEventListener('scroll', () => { if (scrollY > 30 && !balao.hidden) fechar(); }, { passive: true });
+addEventListener('hashchange', () => fechar());
