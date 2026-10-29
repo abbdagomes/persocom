@@ -58,12 +58,17 @@ const ICONE_LIXEIRA = `<svg viewBox="0 0 24 24" width="24" height="24" fill="non
 const SOMBREADOR_UV = {
   vertexShader: /* glsl */`
     uniform vec2 uDesloca;          // empurra a malha uns pixels (pinta a "margem" das ilhas do UV, sem fresta nas emendas)
+    uniform vec3 uCentro;           // o traço cabe numa bola (centro + alcance): o que está longe nem é desenhado
+    uniform float uAlcance;
     varying vec3 vPos;
     varying vec3 vNor;
     void main() {
       vPos = position;              // posição na pose de descanso
       vNor = normal;
       gl_Position = vec4(uv * 2.0 - 1.0 + uDesloca, 0.0, 1.0);
+      // longe do traço: joga o vértice pra fora da textura (o triângulo some e a placa nem pinta os pixels dele).
+      // O alcance tem folga bem maior que qualquer triângulo, então nada perto do traço fica de fora.
+      if (distance(position, uCentro) > uAlcance) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     }`,
   fragmentShader: /* glsl */`
     #define MAX ${P.maxPontosPorDesenho}
@@ -109,6 +114,8 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
     ...SOMBREADOR_UV,
     uniforms: {
       uDesloca: { value: new THREE.Vector2() },
+      uCentro: { value: new THREE.Vector3() },
+      uAlcance: { value: 1e9 },
       uPontos: { value: Array.from({ length: P.maxPontosPorDesenho }, () => new THREE.Vector3()) },
       uNormais: { value: Array.from({ length: P.maxPontosPorDesenho }, () => new THREE.Vector3()) },
       uQuantos: { value: 0 },
@@ -131,6 +138,8 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
   const _corFundo = new THREE.Color();
   // margem em volta das ilhas do UV (em pixels da textura)
   const DESLOCAMENTOS = [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5], [0, 0]].map(([x, y]) => [x * 2 / T, y * 2 / T]);
+  const FOLGA = 1.2;                    // folga do alcance do pincel (nas medidas dela: ~9 de altura)
+  const _caixa = new THREE.Box3();
 
   function usarAlvo(acao) {
     const antes = renderer.getRenderTarget();
@@ -152,6 +161,10 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
     const u = materialUV.uniforms;
     pontos.forEach((pt, i) => { u.uPontos.value[i].copy(pt.p); u.uNormais.value[i].copy(pt.n); });
     u.uQuantos.value = pontos.length;
+    _caixa.makeEmpty();
+    pontos.forEach((pt) => _caixa.expandByPoint(pt.p));
+    _caixa.getCenter(u.uCentro.value);
+    u.uAlcance.value = _caixa.max.distanceTo(_caixa.min) / 2 + raio + FOLGA;
     u.uRaio.value = raio;
     u.uCor.value.copy(_cor.set(cor));
     usarAlvo(() => {
@@ -179,30 +192,26 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
   const CAMADA_PINTURA = 8;
   malhas.forEach((m) => m.layers.enable(CAMADA_PINTURA));
   const ehFloat = renderer.extensions.has('EXT_color_buffer_float');
-  const alvoToque = new THREE.WebGLRenderTarget(1, 1, { type: ehFloat ? THREE.FloatType : THREE.HalfFloatType });
-  const lido = ehFloat ? new Float32Array(4) : new Uint16Array(4);
-  const ler = (i) => (ehFloat ? lido[i] : THREE.DataUtils.fromHalfFloat(lido[i]));
-  const uniQual = { value: 0 };                              // 0 = posição, 1 = normal
+  // 2 pixels: o da esquerda guarda a posição e o da direita a normal (antes eram dois desenhos e duas leituras)
+  const alvoToque = new THREE.WebGLRenderTarget(2, 1, { type: ehFloat ? THREE.FloatType : THREE.HalfFloatType });
+  const novoLido = () => (ehFloat ? new Float32Array(8) : new Uint16Array(8));
+  const lido = novoLido();
+  const valor = (buf, i) => (ehFloat ? buf[i] : THREE.DataUtils.fromHalfFloat(buf[i]));
+  const gl = renderer.getContext();
+  const temLeituraSemTravar = !!renderer.readRenderTargetPixelsAsync && renderer.capabilities.isWebGL2;
   const materialToque = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   materialToque.toneMapped = false;
   materialToque.onBeforeCompile = (sh) => {
-    sh.uniforms.uQual = uniQual;
     sh.vertexShader = sh.vertexShader
       .replace('void main() {', 'varying vec3 vPosRep;\nvarying vec3 vNorRep;\nvoid main() {')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPosRep = position;\nvNorRep = normal;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('void main() {', 'uniform float uQual;\nvarying vec3 vPosRep;\nvarying vec3 vNorRep;\nvoid main() {')
-      .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor = vec4(uQual < 0.5 ? vPosRep : normalize(vNorRep), 1.0);');
+      .replace('void main() {', 'varying vec3 vPosRep;\nvarying vec3 vNorRep;\nvoid main() {')
+      .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor = vec4(gl_FragCoord.x < 1.0 ? vPosRep : normalize(vNorRep), 1.0);');
   };
   const cameraToque = camera.clone();
-  function lerPixel(cena) {
-    renderer.setRenderTarget(alvoToque);
-    renderer.setClearColor(0x000000, 0);
-    renderer.clear();
-    renderer.render(cena, cameraToque);
-    renderer.readRenderTargetPixels(alvoToque, 0, 0, 1, 1, lido);
-  }
-  function pontoSob(e, soSaber = false) {
+  // desenha os 2 pixels embaixo do dedo/mouse (só ela, com a "cor" = posição e normal na pose de descanso)
+  function desenharToque(e) {
     const cena = personagem.raiz.parent;
     cameraToque.copy(camera);
     cameraToque.layers.set(CAMADA_PINTURA);
@@ -211,29 +220,51 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
     const fracao = v ? v.width / v.fullWidth : 1;
     const x = Math.floor(e.clientX) * fracao + (v ? v.offsetX : 0);
     const y = Math.floor(e.clientY) * fracao + (v ? v.offsetY : 0);
-    cameraToque.setViewOffset(innerWidth, innerHeight, x, y, fracao, fracao);
-    const antesTarget = renderer.getRenderTarget(), antesOverride = cena.overrideMaterial, antesFundo = cena.background;
-    renderer.getClearColor(_corFundo);
-    const alfaAntes = renderer.getClearAlpha();
+    cameraToque.setViewOffset(innerWidth, innerHeight, x, y, fracao * 2, fracao);
+    const antesOverride = cena.overrideMaterial, antesFundo = cena.background;
     cena.overrideMaterial = materialToque;
     cena.background = null;
-    let ponto = null;
-    uniQual.value = 0;
-    lerPixel(cena);
-    if (ler(3) > 0.5) {
-      const p = new THREE.Vector3(ler(0), ler(1), ler(2));
-      if (soSaber) ponto = true;
-      else {
-        uniQual.value = 1;
-        lerPixel(cena);
-        ponto = { p, n: new THREE.Vector3(ler(0), ler(1), ler(2)).normalize() };
-      }
-    }
+    renderer.setRenderTarget(alvoToque);
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear();
+    renderer.render(cena, cameraToque);
     cena.overrideMaterial = antesOverride;
     cena.background = antesFundo;
-    renderer.setRenderTarget(antesTarget);
-    renderer.setClearColor(_corFundo, alfaAntes);
-    return ponto;
+  }
+  function guardarEstado() {
+    renderer.getClearColor(_corFundo);
+    return { alvo: renderer.getRenderTarget(), alfa: renderer.getClearAlpha() };
+  }
+  function voltarEstado(e) {
+    renderer.setRenderTarget(e.alvo);
+    renderer.setClearColor(_corFundo, e.alfa);
+  }
+  const pontoDe = (buf, soSaber) => {
+    if (valor(buf, 3) <= 0.5) return null;
+    if (soSaber) return true;
+    return {
+      p: new THREE.Vector3(valor(buf, 0), valor(buf, 1), valor(buf, 2)),
+      n: new THREE.Vector3(valor(buf, 4), valor(buf, 5), valor(buf, 6)).normalize(),
+    };
+  };
+  // na hora (o começo do traço e o círculo do lápis)
+  function pontoSob(e, soSaber = false) {
+    const estado = guardarEstado();
+    desenharToque(e);
+    if (temLeituraSemTravar) gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);   // pode ter uma leitura "sem travar" no meio
+    renderer.readRenderTargetPixels(alvoToque, 0, 0, 2, 1, lido);
+    voltarEstado(estado);
+    return pontoDe(lido, soSaber);
+  }
+  // sem travar: a placa de vídeo responde no quadro seguinte (no celular, esperar na hora deixava tudo lento)
+  function pontoSobDepois(e) {
+    if (!temLeituraSemTravar) return Promise.resolve(pontoSob(e));
+    const estado = guardarEstado();
+    desenharToque(e);
+    const buf = novoLido();
+    const promessa = renderer.readRenderTargetPixelsAsync(alvoToque, 0, 0, 2, 1, buf);
+    voltarEstado(estado);
+    return promessa.then(() => pontoDe(buf, false), () => null);
   }
 
   // =====================================================================
@@ -424,7 +455,7 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
     if (e.button > 0) return;
     const pt = pontoSob(e);
     if (pt) {
-      tracoAtual = { cor: corAtual, raio: raioAtual(), trechos: [[pt]] };
+      tracoAtual = { cor: corAtual, raio: raioAtual(), trechos: [[pt]], telaUltima: { x: e.clientX, y: e.clientY } };
       tracos.push(tracoAtual);
       desenhar([pt], tracoAtual.cor, tracoAtual.raio);
     } else {
@@ -458,24 +489,63 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
       return;
     }
     if (!tracoAtual) return;
-    // pega os pontos "no meio" do movimento também (o mouse rápido pula vários pixels)
-    const eventos = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-    for (const ev of (eventos.length ? eventos : [e])) {
-      const pt = pontoSob(ev);
-      const trecho = tracoAtual.trechos[tracoAtual.trechos.length - 1];
-      if (!pt) { if (trecho.length) tracoAtual.trechos.push([]); continue; }
-      const ultimo = trecho[trecho.length - 1];
-      if (ultimo) {
-        const dist = ultimo.p.distanceTo(pt.p);
-        if (dist < tracoAtual.raio * 0.2) continue;                      // nem mexeu
-        if (dist > 1.2) { tracoAtual.trechos.push([pt]); desenhar([pt], tracoAtual.cor, tracoAtual.raio); continue; }  // pulou de uma parte pra outra
-        desenhar([ultimo, pt], tracoAtual.cor, tracoAtual.raio);
-      } else {
-        desenhar([pt], tracoAtual.cor, tracoAtual.raio);
-      }
-      trecho.push(pt);
-    }
+    // o caminho do dedo/mouse fica guardado e é lido aos pouquinhos, sem travar (ver lerMovimentos)
+    const eventos = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of (eventos.length ? eventos : [e])) caminho.push({ x: ev.clientX, y: ev.clientY, traco: tracoAtual });
+    if (!lendo) lerMovimentos();
   });
+  // A cada rodada pega o caminho desde a última leitura e escolhe uns pontos ao longo dele (um a cada
+  // PASSO px da tela, no máximo MAX_LEITURAS): lê todos de uma vez, sem travar, e liga um no outro.
+  // Assim o dedo rápido não vira pontinhos soltos, e o celular não lê cada movimentinho (era isso que travava).
+  const PASSO = 7, MAX_LEITURAS = 5;
+  let caminho = [], lendo = false;
+  async function lerMovimentos() {
+    lendo = true;
+    while (caminho.length) {
+      const traco = caminho[0].traco;
+      const trecho = caminho.filter((c) => c.traco === traco);
+      caminho = caminho.filter((c) => c.traco !== traco);
+      const de = traco.telaUltima || trecho[0];
+      const pts = [de, ...trecho];
+      let total = 0;
+      for (let i = 1; i < pts.length; i++) total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+      const passo = Math.max(PASSO, total / MAX_LEITURAS);
+      const escolhidos = [];
+      let andou = 0, proximo = passo;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i], d = Math.hypot(b.x - a.x, b.y - a.y);
+        while (d > 0 && andou + d >= proximo) {
+          const t = (proximo - andou) / d;
+          escolhidos.push({ clientX: a.x + (b.x - a.x) * t, clientY: a.y + (b.y - a.y) * t });
+          proximo += passo;
+        }
+        andou += d;
+      }
+      const fim = pts[pts.length - 1];
+      if (!escolhidos.length || andou - (proximo - passo) > 1) escolhidos.push({ clientX: fim.x, clientY: fim.y });
+      traco.telaUltima = fim;
+      // quanto um passo na tela vale no corpo dela (a câmera é ortográfica): pra saber o que é "pulou de parte"
+      const v = camera.view?.enabled ? camera.view.width / camera.view.fullWidth : 1;
+      const passoNoCorpo = passo * (camera.top - camera.bottom) / camera.zoom / innerHeight * v;
+      const lidos = await Promise.all(escolhidos.map(pontoSobDepois));
+      if (tracos.includes(traco)) lidos.forEach((pt) => continuarTraco(traco, pt, passoNoCorpo));   // (se apagou tudo no meio, deixa pra lá)
+    }
+    lendo = false;
+  }
+  function continuarTraco(traco, pt, passoNoCorpo = 0) {
+    const trecho = traco.trechos[traco.trechos.length - 1];
+    if (!pt) { if (trecho.length) traco.trechos.push([]); return; }
+    const ultimo = trecho[trecho.length - 1];
+    if (ultimo) {
+      const dist = ultimo.p.distanceTo(pt.p);
+      if (dist < traco.raio * 0.2) return;                                   // nem mexeu
+      if (dist > 1.2 + passoNoCorpo * 2.5) { traco.trechos.push([pt]); desenhar([pt], traco.cor, traco.raio); return; }   // pulou de uma parte pra outra
+      desenhar([ultimo, pt], traco.cor, traco.raio);
+    } else {
+      desenhar([pt], traco.cor, traco.raio);
+    }
+    trecho.push(pt);
+  }
   const soltar = (e) => {
     dedos.delete(e.pointerId);
     if (pinca) { if (!dedos.size) pinca = null; return; }   // só volta a pintar depois de soltar os dois dedos
@@ -520,7 +590,18 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
     _ancora.copy(personagem.pontoCabeca);
     _ancora.x += 0.26; _ancora.y += 0.3;        // em metros da cena
     _tela.copy(_ancora).project(camera);
-    botao.style.transform = `translate(${(_tela.x + 1) / 2 * innerWidth}px, ${(1 - _tela.y) / 2 * innerHeight}px)`;
+    let x = (_tela.x + 1) / 2 * innerWidth, y = (1 - _tela.y) / 2 * innerHeight;
+    // no celular a tela é estreita: a nuvem encosta na borda em vez de ficar cortada
+    // (r = onde ela ficou no quadro anterior, sem o empurrão da borda)
+    const r = botao.getBoundingClientRect(), margem = 8;
+    const antesX = Number(botao.dataset.x || x), antesY = Number(botao.dataset.y || y);
+    const direita = r.right - antesX + x, topo = r.top - antesY + y;
+    if (r.width) {
+      if (direita > innerWidth - margem) x -= direita - (innerWidth - margem);
+      if (topo < margem) y += margem - topo;
+    }
+    botao.dataset.x = x; botao.dataset.y = y;
+    botao.style.transform = `translate(${x}px, ${y}px)`;
   }
   addEventListener('resize', () => { if (pintando) atualizarTamanhoLapis(); });
   // abrindo um projeto pelo link no meio da pintura: sai (a pintura fica)

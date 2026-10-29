@@ -14,11 +14,9 @@ const CONFIG_SOBRE = {
     'Olá! ✦',                // no "Olá" ela faz o aceno (a animação de "oi" da Ana)
     'Sou Ana Beatriz (Persocom), designer visual e artista multidisciplinar baseada em São Paulo.',
     'Minha relação com a criação começou na infância através do desenho, sempre com muito incentivo da minha família.',
-    'Ao escolher uma carreira, optei pelo Design em busca de estabilidade e de uma base sólida de fundamentos, mesmo receosa '
-      + 'com o forte foco mercadológico da área. No início, foi um desafio conciliar minha vontade de criar livremente com as '
-      + 'demandas e opiniões de clientes.',
-    'Porém, aos poucos, percebi que o design ia muito além da criação de pôsteres e identidades visuais. Foi nessa jornada '
-      + 'que descobri a modelagem 3D e a arte generativa, que hoje são o meu principal foco.',
+    'Escolhi o Design em busca de estabilidade e de uma base sólida de fundamentos. Os projetos com clientes me deram '
+      + 'disciplina; os pessoais, espaço pra testar.',
+    'Foi nesse vai e vem que descobri a modelagem 3D e a arte generativa, que hoje são o meu principal foco.',
     'Atualmente, atuo na intersecção entre arte digital, tecnologia e cultura da internet, desenvolvendo uma pesquisa prática '
       + 'que articula comunicação gráfica, manufatura aditiva 3D, ilustração mista e experiências interativas.',
   ],

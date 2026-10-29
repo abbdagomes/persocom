@@ -81,28 +81,20 @@ const PROJETOS = [
   // ---------------- 3D ----------------
   {
     id: 'boneca-lovecore', categoria: '3d', destaque: true, titulo: 'Boneca 1,80 m', resumo: 'escultura 3D impressa · Lovecore 7',
-    texto: 'O projeto consistiu na criação e materialização de uma escultura física de 1,80 m, desenvolvida digitalmente em 3D '
-      + 'e fabricada via impressão em grande escala para a Lovecore 7. O fluxo de trabalho envolveu desde a modelagem e '
-      + 'subdivisão estrutural das peças para viabilizar o fatiamento e a impressão, até o pós-processamento, montagem, '
-      + 'reforço interno e acabamento superficial. A peça foi projetada para garantir presença de palco e impacto cenográfico '
-      + 'imersivo na Lovecore, evento realizado pelo coletivo REBU DIGITAL que reuniu nesta edição a atração internacional '
-      + 'somewherespecial. Consolidada como um dos principais pólos da vanguarda underground de São Paulo, a festa atua como '
-      + 'uma plataforma multidisciplinar que reúne mais de 500 pessoas por edição, articulando música eletrônica experimental, '
-      + 'moda, cultura da internet e artes visuais com curadoria de artistas nacionais e internacionais.',
+    texto: 'Escultura de 1,80 m modelada em 3D e impressa em grande escala para a cenografia da Lovecore 7, festa do '
+      + 'coletivo REBU DIGITAL. O trabalho foi da modelagem e da divisão da peça em partes para impressão até a montagem, '
+      + 'o reforço interno e o acabamento. A Lovecore é um dos principais pólos da cena underground de São Paulo e reúne '
+      + 'mais de 500 pessoas por edição, entre música eletrônica experimental, moda, artes visuais e cultura da internet.',
     capa: '', video: '', link: '',
     etiquetas: ['impressão 3d', 'escultura', 'cenografia', 'lovecore 7', 'rebu digital'],
     imagens: [],
   },
   {
     id: 'shader-glsl', categoria: '3d', destaque: true, titulo: 'Shader GLSL', resumo: 'instalação interativa · TouchDesigner',
-    texto: 'O projeto consistiu em uma instalação visual e interativa desenvolvida em TouchDesigner com shaders GLSL '
-      + 'customizados, gerando um grid de imagens dinâmico e responsivo em tempo real. A aplicação explorou a intersecção '
-      + 'entre código criativo, performance gráfica e arte generativa, permitindo que o público interagisse diretamente com '
-      + 'os parâmetros visuais no espaço. O trabalho foi exibido como parte da cenografia interativa da Lovecore 6, integrando '
-      + 'a atmosfera sonora e visual da noite que teve como atrações internacionais o produtor Dinamarca (cofundador da label '
-      + 'Staycore) e o trio mexicano de neo-perreo gótico METH MATH. Realizado pelo coletivo REBU DIGITAL, o evento é um dos '
-      + 'maiores pólos da vanguarda underground paulistana, atraindo mais de 500 pessoas por edição ao fundir música de clube '
-      + 'desconstruída, artes visuais, moda e estética da internet.',
+    texto: 'Instalação interativa feita em TouchDesigner com shaders GLSL próprios para a cenografia da Lovecore 6, festa do '
+      + 'coletivo REBU DIGITAL. A imagem da câmera vira, em tempo real, um mosaico de pequenas imagens, e o público muda '
+      + 'o tamanho dos quadrados com o gesto de pinça da mão. A noite teve como atrações internacionais Dinamarca '
+      + '(cofundador da Staycore) e o trio mexicano METH MATH; a Lovecore reúne mais de 500 pessoas por edição.',
     capa: 'projetos/shader-glsl/capa.webp',
     video: 'projetos/shader-glsl/instalacao.mp4?v=2',   // 480 px, 1,8 MB
     link: '',
@@ -120,18 +112,26 @@ const PROJETOS = [
           ],
         },
         legenda: 'teste você: ligue a câmera e faça pinça com a mão — abrindo, os quadrados crescem; fechando, diminuem' },
+      // o dia da Lovecore 6 (REBU) numa pastinha: clicando, as fotos e vídeos saem e se espalham (pasta.js)
+      // vídeos: Downloads/IMG_3218.MOV (o painel) e IMG_9046.mov (a montagem); as fotos são quadros desses vídeos
+      // o reel da REBU (baixado pela Ana do post instagram.com/reel/DQnHe1TkUl-) abre grande COM som e o player do site
+      { pasta: { nome: 'lovecore 6', itens: [
+          { video: 'projetos/shader-glsl/lovecore/making-of.mp4', poster: 'projetos/shader-glsl/lovecore/making-of-poster.webp', x: -21, y: -6, r: -4, w: 40 },
+          { video: 'projetos/shader-glsl/lovecore/reel-rebu.mp4', som: true, poster: 'projetos/shader-glsl/lovecore/reel-rebu-poster.webp',
+            legenda: 'vídeo: @rebudigital', emPe: true, x: 12, y: -6, r: 3, w: 16 },
+          { video: 'projetos/shader-glsl/lovecore/painel.mp4', poster: 'projetos/shader-glsl/lovecore/painel-poster.webp', emPe: true, x: 33, y: -1, r: 7, w: 14 },
+        ] } },
+      // a tela do TouchDesigner gravada pela Ana (Videos/2026-07-15 14-17-35.mp4), sem a barra do Windows
+      { video: 'projetos/shader-glsl/bastidores.mp4?v=2', ampliar: true, grande: 'projetos/shader-glsl/bastidores-grande.mp4?v=2',
+        legenda: 'bastidores: a rede do shader GLSL no TouchDesigner' },
     ],
   },
   {
     id: 'game-jam', categoria: '3d', destaque: true, titulo: 'Tony Matrimony', resumo: 'personagens 3D · GMTK Game Jam 2026',
-    texto: 'Durante a GMTK Game Jam 2026, uma das maiores maratonas globais de desenvolvimento de jogos independentes, '
-      + 'com mais de 10.000 projetos submetidos, assumi a produção completa de 8 personagens 3D em apenas 4 dias para o jogo '
-      + 'Tony Matrimony. O curto prazo do evento exigiu a estruturação de um pipeline extremamente ágil, focado em blocagem '
-      + 'rápida de volumes com o objetivo central de manter a consistência estilística e a identidade visual de todo o elenco. '
-      + 'Além do desafio artístico, cada modelo foi desenvolvido com foco rigoroso em otimização para a engine, utilizando '
-      + 'topologia limpa, texturas eficientes e rigs simplificados para garantir integração imediata sem perda de desempenho. '
-      + 'Essa rapidez técnica aliada à coesão visual foi determinante para o destaque do jogo na competição, conquistando o '
-      + '94º lugar na categoria de Arte entre os milhares de participantes.',
+    texto: '8 personagens 3D criados em 4 dias para Tony Matrimony, jogo feito na GMTK Game Jam 2026, uma das maiores '
+      + 'maratonas de jogos independentes do mundo, com mais de 10.000 projetos. Para dar conta do prazo, o processo '
+      + 'começou pela blocagem rápida dos volumes, sem perder a unidade visual do elenco, e os modelos foram otimizados '
+      + 'para a engine (topologia limpa, texturas leves e rigs simples). O jogo ficou em 94º lugar na categoria Arte.',
     capa: 'projetos/game-jam/tony-camera.webp?v=5', capaInteira: true,   // quadrada e o card é largo: não corta a cabeça nem os pés
     video: 'projetos/game-jam/turntable.mp4?v=9',
     link: 'https://ayayun.itch.io/tony-matrimony',
@@ -148,10 +148,9 @@ const PROJETOS = [
   },
   {
     id: 'menina-polvo', categoria: '3d', titulo: 'Menina Polvo', resumo: 'estudo de personagem · shader e animação',
-    texto: 'Projeto pessoal de exploração técnica e artística focado em transpor a expressividade do desenho tradicional '
-      + 'para o ambiente tridimensional. O desenvolvimento envolveu a modelagem completa do personagem, criação de shaders '
-      + 'estilizados (estética toon shading) para simular traços e volumes de ilustração 2D, culminando em uma animação '
-      + 'pensada para manter a fluidez e o charme visual da estética de desenho animado.',
+    texto: 'Personagem 3D autoral modelada e animada com shaders toon que imitam o traço e o volume do desenho 2D. Um '
+      + 'projeto pessoal para levar a expressividade da ilustração tradicional para o 3D, terminando numa animação com a '
+      + 'fluidez e o charme de desenho animado.',
     capa: 'projetos/menina-polvo/capa.webp',
     video: 'projetos/menina-polvo/turntable.mp4',
     link: '',
@@ -165,11 +164,9 @@ const PROJETOS = [
   },
   {
     id: 'garotas-3d', categoria: '3d', titulo: 'Garotas 3D', resumo: 'composições e animações · depth maps',
-    texto: 'Conjunto de composições e animações experimentais com 4 modelos 3D autorais, concebido a partir de um processo de '
-      + 'desconstrução da estética digital padrão. Ao longo do desenvolvimento, a busca por uma identidade mais autêntica e '
-      + 'expressiva levou ao uso experimental de mapas de profundidade (depth maps) aplicados diretamente como texturas. '
-      + 'O resultado é uma série vibrante, gráfica e lúdica que subverte o acabamento tradicional do 3D em favor de uma '
-      + 'linguagem visual contemporânea e colorida.',
+    texto: 'Série de composições e animações com 4 personagens 3D autorais. Para fugir do acabamento padrão do 3D, a solução '
+      + 'foi usar mapas de profundidade (depth maps) aplicados direto como textura, o que deu à série um visual gráfico, '
+      + 'colorido e lúdico.',
     capa: '', video: '', link: '',
     etiquetas: ['personagens', 'animação', 'depth maps', 'experimental'],
     imagens: [],
@@ -210,10 +207,10 @@ const PROJETOS = [
   },
   {
     id: 'cynth', categoria: 'design', titulo: 'Cynth', resumo: 'tipografia · fonte display',
-    texto: 'Projeto de tipografia desenvolvido em dupla, nascido da pesquisa e experimentação formal com contrastes de peso e '
-      + 'geometria. A Cynth é uma fonte display com proporções expandidas e forte presença visual, marcada pelo desenho '
-      + 'característico de suas contraformas internas em formato de gotas (simples e elongadas). O resultado é uma família '
-      + 'tipográfica completa, contemplando caixa alta, caixa baixa, numerais, acentuação, pontuação e conjunto abrangente de símbolos.',
+    texto: 'Cynth é uma fonte display criada em dupla, com proporções expandidas, contraste forte de peso e contraformas em '
+      + 'formato de gota (simples e alongadas). É uma família completa: caixa alta e baixa, numerais, acentos, pontuação '
+      + 'e um conjunto grande de símbolos. A apresentação da fonte ganhou motion e peças interativas feitas no '
+      + 'TouchDesigner.',
     // capa parada (a 1ª aba); passando o mouse, as abas da marca trocam 4 por segundo (como o switch do Touch)
     capa: 'projetos/cynth/capa.webp?v=2', video: 'projetos/cynth/capa-troca.mp4', link: '',
     etiquetas: ['tipografia', 'fonte display'],
@@ -230,16 +227,15 @@ const PROJETOS = [
       { gradeLetras: { fonte: 'projetos/cynth/cynth.otf' },
         legenda: 'o grid do TouchDesigner em 3D: perto do mouse as letras crescem e embaralham, e ele vira bloco / esfera e volta — arraste pra girar' },
       // bastidores: a tela do TouchDesigner gravada (overview da rede, com os viewers ao vivo)
-      { video: 'projetos/cynth/bastidores-grid.mp4', meia: true, legenda: 'bastidores: a rede do grid no TouchDesigner' },
-      { video: 'projetos/cynth/bastidores-abas.mp4', meia: true, legenda: 'bastidores: a rede das abas no TouchDesigner' },
+      { video: 'projetos/cynth/bastidores-grid.mp4', meia: true, ampliar: true, grande: 'projetos/cynth/bastidores-grid-grande.mp4', legenda: 'bastidores: a rede do grid no TouchDesigner' },
+      { video: 'projetos/cynth/bastidores-abas.mp4', meia: true, ampliar: true, grande: 'projetos/cynth/bastidores-abas-grande.mp4', legenda: 'bastidores: a rede das abas no TouchDesigner' },
     ],
   },
   {
     id: 'revista-espm', categoria: 'design', titulo: 'Boca Boca', resumo: 'revista · identidade',
-    texto: 'Criação da identidade visual, conceito editorial e projeto gráfico para a primeira edição de uma revista focada em '
-      + 'mapear e valorizar restaurantes de imigrantes em São Paulo. Com o continente latino-americano como tema inaugural, '
-      + 'o projeto foi construído colaborativamente em equipe, unindo diagramação, pesquisa cultural e um vídeo para '
-      + 'apresentação da marca e da publicação.',
+    texto: 'Boca Boca é uma revista sobre restaurantes de imigrantes em São Paulo. Em equipe, criamos o conceito editorial, '
+      + 'a identidade visual e o projeto gráfico da primeira edição, dedicada à América Latina, além do vídeo de '
+      + 'apresentação da marca.',
     // capa parada (o logo da capa do manual); passando o mouse, as bocas trocando do fim do vídeo (quadrado, igual ao card);
     // no topo da página, as bocas animadas
     capa: 'projetos/boca-boca/capa.webp', video: 'projetos/boca-boca/bocas-trocando.mp4', videoTopo: 'projetos/boca-boca/bocas.mp4?v=2', link: '',
@@ -263,13 +259,10 @@ const PROJETOS = [
   },
   {
     id: 'kitkat', categoria: 'design', titulo: 'KitKat Sugar Rush', resumo: 'embalagem · identidade',
-    texto: 'KitKat Sugar Rush é uma linha conceitual criada para trazer uma experiência Value Up ao varejo, com identidade visual '
-      + 'pensada estrategicamente para a Geração Z. O projeto explora o conceito do sugar rush (aquele impulso por uma sobremesa '
-      + 'indulgente no pós-almoço). A identidade une texturas de retícula (halftone), anéis gráficos vibrantes e fotografias '
-      + 'reais de alta definição das sobremesas, garantindo forte apelo sensorial no ponto de venda. A linha é estruturada em '
-      + 'uma embalagem pouch coletiva que reúne três sabores em porções individuais: Strawberry Cheesecake (rosa), Pudim '
-      + '(amarelo) e Tiramisu (marrom), e se expande com o tablete no sabor Banana Split (azul), formando um sistema de '
-      + 'embalagens coeso, dinâmico e contemporâneo.',
+    texto: 'Linha conceitual de KitKat para a Geração Z, inspirada no sugar rush: aquela vontade de doce depois do almoço. A '
+      + 'identidade mistura retícula (halftone), anéis gráficos coloridos e fotos das sobremesas. O sistema tem um pouch '
+      + 'com três sabores em porções individuais (Strawberry Cheesecake, Pudim e Tiramisu) e um tablete de Banana Split, '
+      + 'cada um com sua cor.',
     capa: '', video: '', link: '',
     etiquetas: ['embalagem', 'identidade', 'conceito'],
     imagens: [],
@@ -278,10 +271,9 @@ const PROJETOS = [
   // ---------------- ILUSTRAÇÃO (na grade, antes dos DESENHOS) ----------------
   {
     id: 'emoji-lab', categoria: 'ilustracao', titulo: 'Emoji Lab', resumo: 'colagem digital · vetor + 3D',
-    texto: 'Projeto autoral de experimentação visual focado em desconstruir a silhueta clássica dos emojis. O processo combina '
-      + 'vetorização com renders produzidos no software 3D, criando colagens digitais que misturam linguagens diferentes em '
-      + 'cada peça: reflexos de globo de festa, brilhos etéreos, acabamento metálico e texturas líquidas. Algumas das peças '
-      + 'foram animadas em loop para adicionar movimento às sobreposições.',
+    texto: 'Série de 8 emojis autorais que desmontam a silhueta clássica do emoji. Cada peça é uma colagem digital entre '
+      + 'vetor e render 3D, com reflexo de globo de festa, brilho, metal e texturas líquidas; algumas ganharam animação '
+      + 'em loop.',
     // capa parada (o palhaço); passando o mouse, os 8 emojis trocam
     capa: 'projetos/emoji-lab/capa.webp?v=2', video: 'projetos/emoji-lab/capa-troca.mp4', link: '',
     etiquetas: ['ilustração', 'vetor', '3d', 'animação em loop'],
@@ -511,6 +503,7 @@ let testadorAtual = null;  // o testador de fonte (se tiver)
 let gradeAtual = null;     // a grade de letras do Cynth (se tiver)
 let cartelaAtual = null;   // a cartela de emojis (se tiver)
 let revistaAtual = null;   // a revista 3D (se tiver)
+let pastaAtual = null;     // a pastinha com as fotos do dia (se tiver)
 let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
 let playersAtuais = [];    // os players do vídeo com som (player.js)
 function desligarVitrine() {
@@ -522,6 +515,7 @@ function desligarVitrine() {
   gradeAtual?.destruir(); gradeAtual = null;
   cartelaAtual?.destruir(); cartelaAtual = null;
   revistaAtual?.destruir(); revistaAtual = null;
+  pastaAtual?.destruir(); pastaAtual = null;
   somAtual?.disconnect(); somAtual = null;
   playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
 }
@@ -555,6 +549,9 @@ function abrirProjeto(projetoId) {
   //   { revista3d: { pasta, paginas } }                             (revista em 3D que abre e folheia — revista3d.js)
   //   { video: '...', som: true, poster: '...jpg' }                 (vídeo com som e controles, não toca sozinho)
   //   { src: '...', sangria: true }                                 (no blocão branco: vai de uma borda à outra, sem margem)
+  //   { video: '...', ampliar: true, grande: '...mp4' }              (clicando abre grande; "grande" = versão em resolução maior)
+  //   { pasta: { nome, itens: [{ src | video, x, y, r, w }] } }       (pastinha: clicando, as fotos saem e se espalham — pasta.js)
+  //   { instagram: 'https://www.instagram.com/reel/...' }            (o post inteiro, dentro da página)
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
   // o destaque do topo: o vídeo, senão a capa, senão a 1ª imagem
   const lista = (p.imagens || []).map(normalizar);
@@ -570,6 +567,12 @@ function abrirProjeto(projetoId) {
     if (m.mosaico) return `<div class="mosaico" data-mosaico></div>`;
     if (m.testador) return `<div class="testador" data-testador></div>`;
     if (m.cartela) return `<div class="cartela-lugar" data-cartela></div>`;
+    if (m.pasta) return `<div class="pasta-lugar" data-pasta></div>`;
+    // post do Instagram (o próprio post, com o crédito de quem postou); o endereço vem do link "copiar link"
+    if (m.instagram) {
+      const id = (/instagram\.com\/(?:reel|p)\/([\w-]+)/.exec(m.instagram) || [])[1];
+      return id ? `<div class="instagram"><iframe src="https://www.instagram.com/${m.instagram.includes('/reel/') ? 'reel' : 'p'}/${id}/embed/" title="post do Instagram" loading="lazy" allow="autoplay; encrypted-media; fullscreen" allowfullscreen scrolling="no"></iframe></div>` : '';
+    }
     if (m.revista3d) return `<div class="revista3d-lugar" data-revista3d></div>`;
     if (m.gradeLetras) return `<div class="cynth-interativo" data-grade-letras></div>`;
     if (m.issuu) return `<div class="issuu"><iframe src="${escapar(m.issuu)}" title="${escapar(p.titulo)} no Issuu" loading="lazy" allow="fullscreen" allowfullscreen></iframe></div>`;
@@ -583,8 +586,9 @@ function abrirProjeto(projetoId) {
 
   // as imagens de baixo, uma embaixo da outra (as "meia" ficam de duas em duas)
   const imagensHTML = lista.map((m) => `
-    <figure class="detalhe-imagem${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.centro ? ' centro' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
+    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.centro ? ' centro' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
       ${midiaHTML(m)}
+      ${m.ampliar ? `<button type="button" class="pilula ampliar-botao" data-ampliar="${escapar(m.grande || m.video || m.src)}" data-tipo="${m.video ? 'video' : 'img'}" data-legenda="${escapar(m.legenda || '')}" aria-label="ver de perto">⤢ ver de perto</button>` : ''}
       ${m.legenda ? `<figcaption>${escapar(m.legenda)}</figcaption>` : ''}
     </figure>`).join('');
 
@@ -629,6 +633,7 @@ function abrirProjeto(projetoId) {
   montar('[data-testador]', 'testador', './testador.js', 'montarTestador', (v) => { testadorAtual = v; });
   montar('[data-grade-letras]', 'gradeLetras', './cynth.js', 'montarGrade', (v) => { gradeAtual = v; });
   montar('[data-cartela]', 'cartela', './cartela.js', 'montarCartela', (v) => { cartelaAtual = v; });
+  montar('[data-pasta]', 'pasta', './pasta.js', 'montarPasta', (v) => { pastaAtual = v; });
   montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
 
   // o vídeo com som começa sozinho quando a pessoa chega nele (e pausa quando ela rola pra longe);
@@ -665,6 +670,10 @@ function abrirProjeto(projetoId) {
     });
   }
 
+  // clicar numa imagem/vídeo "ampliar" abre grande
+  det.querySelectorAll('.ampliavel').forEach((f) => f.addEventListener('click', () => abrirAmpliado(f.querySelector('[data-ampliar]')?.dataset)));
+  det.addEventListener('ampliar', (e) => abrirAmpliado({ ampliar: e.detail.src, ...e.detail }));   // a pastinha
+
   det.querySelectorAll('[data-fechar-projeto]').forEach((b) => b.addEventListener('click', fecharPeloBotao));
   det.querySelector('[data-rolar]')?.addEventListener('click', () => {
     painel.scrollTo({ top: det.querySelector('.detalhe-imagens').offsetTop - 20, behavior: rolarSuave });
@@ -681,6 +690,65 @@ function abrirProjeto(projetoId) {
   return true;
 }
 
+// ---------- ver de perto (itens com ampliar: true) ----------
+// abre grande na tela; clicando na imagem aproxima mais (2,5×) onde clicou, e o mouse passeia; clicar de novo volta
+const ampliado = document.createElement('div');
+ampliado.className = 'ampliado';
+ampliado.hidden = true;
+ampliado.innerHTML = `
+  <button class="pilula zoom-fechar" data-fechar-ampliado aria-label="fechar">✕</button>
+  <figure class="ampliado-quadro"><div class="ampliado-midia"></div><figcaption></figcaption></figure>
+  <p class="ampliado-dica">clique pra aproximar · clique de novo pra voltar</p>`;
+document.body.appendChild(ampliado);
+const ampliadoMidia = ampliado.querySelector('.ampliado-midia');
+let playerAmpliado = null;   // vídeo com som aberto grande (usa o player.js)
+function abrirAmpliado(dados) {        // { ampliar: src, tipo: 'video' | 'img', legenda, som, poster }
+  if (!dados) return;
+  const src = escapar(dados.ampliar);
+  const comSom = dados.tipo === 'video' && dados.som;
+  ampliadoMidia.innerHTML = comSom
+    ? `<div class="video-som"><video class="com-som" src="${src}"${dados.poster ? ` poster="${escapar(dados.poster)}"` : ''} playsinline disablepictureinpicture></video></div>`
+    : dados.tipo === 'video'
+      ? `<video src="${src}" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback></video>`
+      : `<img src="${src}" alt="" draggable="false">`;
+  ampliadoMidia.classList.toggle('com-player', !!comSom);   // com o player, clicar é tocar/pausar (não aproxima)
+  ampliado.querySelector('figcaption').textContent = dados.legenda || '';
+  ampliadoMidia.classList.remove('perto');
+  ampliado.hidden = false;
+  if (comSom) {
+    const caixa = ampliadoMidia.querySelector('.video-som');
+    import('./player.js').then((m) => {
+      if (!caixa.isConnected) return;
+      playerAmpliado = m.montarPlayer(caixa);
+      caixa.querySelector('video').play().catch(() => {});   // veio de um clique: pode tocar com som
+    });
+  }
+}
+function fecharAmpliado() {
+  if (ampliado.hidden) return false;
+  playerAmpliado?.destruir(); playerAmpliado = null;
+  ampliado.hidden = true;
+  ampliadoMidia.innerHTML = '';
+  return true;
+}
+const origemZoom = (e) => {
+  const r = ampliadoMidia.getBoundingClientRect();
+  ampliadoMidia.style.setProperty('--ox', `${((e.clientX - r.left) / r.width) * 100}%`);
+  ampliadoMidia.style.setProperty('--oy', `${((e.clientY - r.top) / r.height) * 100}%`);
+};
+ampliadoMidia.addEventListener('click', (e) => {
+  if (ampliadoMidia.classList.contains('com-player')) return;
+  origemZoom(e); ampliadoMidia.classList.toggle('perto');
+});
+ampliadoMidia.addEventListener('pointermove', (e) => { if (ampliadoMidia.classList.contains('perto')) origemZoom(e); });
+ampliado.addEventListener('click', (e) => {
+  if (e.target === ampliado || e.target.closest('[data-fechar-ampliado]')) fecharAmpliado();
+});
+// Esc fecha só o ampliado (não o projeto)
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && fecharAmpliado()) e.stopImmediatePropagation();
+}, true);
+
 function fecharProjeto() {
   if (!projetoAberto) return;
   projetoAberto = null;
@@ -688,6 +756,7 @@ function fecharProjeto() {
   galeria.setAttribute('aria-hidden', 'true');
   det.querySelectorAll('video').forEach((v) => v.pause());
   desligarVitrine();
+  fecharAmpliado();
   document.documentElement.classList.remove('travado');
   document.body.classList.remove('projeto-aberto');
 }
