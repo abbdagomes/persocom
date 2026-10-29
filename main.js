@@ -3,13 +3,15 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { carregamento } from './carregamento.js';
+import { montarPintura } from './pintura.js';
+import { montarSobre } from './sobre.js';
 
 // =====================================================================
 //  CONFIGURAÇÕES — mexa aqui sem medo
 // =====================================================================
 const CONFIG = {
   // Caminho do seu personagem exportado do Blender (.glb)
-  modelo: 'modelo/personagem.glb?v=4',
+  modelo: 'modelo/personagem.glb?v=6',
 
   // Nome do osso da cabeça. Com Rigify exportando "só ossos de deformação"
   // o osso da cabeça é o DEF-spine.006. Se não achar, olhe o console (F12):
@@ -27,7 +29,6 @@ const CONFIG = {
   giro: {
     de: 170, ate: 222,       // quadros do giro (no 222 o corpo já voltou pra frente)
     duracao: 1.3,            // segundos (o giro original tem ~2,2 s; aqui toca bem mais rápido — pedido da Ana)
-    trocaEm: 0.52,           // em que ponto do giro (0 a 1) a textura troca — no auge da névoa de glitter
   },
 
   // Usa só as malhas presas no rig (ignora chão, bolhas e outros objetos que vierem juntos na exportação)
@@ -59,6 +60,13 @@ const CONFIG = {
   },
 
   // Piscar sozinha enquanto olha o mouse (usa a shape key do Blender)
+  // boca falando (shape keys da Ana: a, e, o, M) — usada no "sobre mim" (sobre.js)
+  fala: {
+    formas: ['a', 'e', 'o', 'M'],
+    intensidade: 0.85,       // quanto abre (1 = a shape key inteira)
+    troca: 0.075,            // de quantos em quantos segundos olha a letra (mais rápido treme)
+    suavidade: 22,           // quão rápido vai de uma boca pra outra
+  },
   piscar: {
     ativo: true,
     shapeKey: 'pisca',       // nome da shape key
@@ -271,7 +279,9 @@ const personagem = {
   acaoGiro: null,
   girando: null,           // { aoTrocar, aoTerminar, trocou } enquanto gira
   pesoGiro: 0,
-  materiaisToon: [],       // materiais que usam a textura (os que trocam pela foto)
+  materiaisToon: [],       // materiais que usam a textura
+  malhasPintaveis: [],     // malhas onde dá pra pintar (pintura.js)
+  pintando: false,         // modo pintura ligado: ela fica parada de frente
   animando: false,
   pesoOlhar: 1,
   yaw: 0,
@@ -279,6 +289,12 @@ const personagem = {
   pesoAnim: 0,
   pontoCabeca: new THREE.Vector3(),
   piscaAlvos: [],
+  bocaAlvos: [],           // malhas com as bocas da fala
+  boca: [0, 0, 0, 0],      // quanto de a, e, o, M agora
+  bocaAlvo: [0, 0, 0, 0],
+  bocaTempo: 0,
+  letraFalando: null,      // a letra que o sobre.js está "falando" agora
+  oiRestante: 0,           // segundos que faltam do "oi" (a animação de aceno, no começo da fala)
   ossosRespiracao: [],
   tempoRespiracao: 0,
   proximaPiscada: 2,
@@ -360,6 +376,20 @@ function montarPersonagem(obj, animacoes) {
     console.log('Animações do modelo:', animacoes.map((a) => a.name));
     // Junta todas as animações numa só: a do rig (corpo) + a das shape keys (rosto).
     // Se CONFIG.animacao tiver um nome, usa só aquela.
+    // as bocas da fala (a, e, o, M) só mexem quando ela fala: tira elas da animação do arquivo
+    // (no .blend o "a" ficou com chave em 1 na KeyAction e deixava a boca entreaberta, com o branquinho dentro)
+    let dicBoca = null;
+    obj.traverse((o) => { if (!dicBoca && o.morphTargetDictionary && 'a' in o.morphTargetDictionary) dicBoca = o.morphTargetDictionary; });
+    if (dicBoca) {
+      const zerar = CONFIG.fala.formas.map((f) => dicBoca[f]).filter((i) => i !== undefined);
+      const passo = Object.keys(dicBoca).length;
+      for (const anim of animacoes) {
+        for (const trilha of anim.tracks) {
+          if (!trilha.name.endsWith('.morphTargetInfluences') || trilha.values.length !== trilha.times.length * passo) continue;
+          for (let q = 0; q < trilha.times.length; q++) for (const i of zerar) trilha.values[q * passo + i] = 0;
+        }
+      }
+    }
     const escolhida = CONFIG.animacao && THREE.AnimationClip.findByName(animacoes, CONFIG.animacao);
     const tudo = escolhida || new THREE.AnimationClip('tudo', -1, animacoes.flatMap((a) => a.tracks));
     const fps = 24;
@@ -393,6 +423,13 @@ function montarPersonagem(obj, animacoes) {
   if (personagem.cabeca) personagem.cabecaRepouso.copy(personagem.cabeca.quaternion);
   obj.updateMatrixWorld(true);
   (personagem.cabeca || obj).getWorldPosition(personagem.pontoCabeca);
+
+  // malhas que têm as bocas da fala (a, e, o, M)
+  obj.traverse((o) => {
+    const dic = o.morphTargetDictionary;
+    if (!dic || !CONFIG.fala.formas.some((f) => f in dic)) return;
+    personagem.bocaAlvos.push({ malha: o, indices: CONFIG.fala.formas.map((f) => dic[f]) });
+  });
 
   // malhas que têm a shape key de piscar
   obj.traverse((o) => {
@@ -442,116 +479,11 @@ function carregarTextura(caminho) {
   return cacheTexturas[caminho];
 }
 
-// ---------- FOTO "VESTIDA" NELA (troca de visual — ver transformacao.js e a seção do GIRO) ----------
-// uModo: 0 = textura dela · 1 = foto espalhada na folha de UV (quando não acha rosto) · 2 = foto PROJETADA:
-// o rosto da pessoa encaixado na cabeça (olhos nos olhos dela), cabelo atrás, e a roupa no vestido/braços/pernas.
-// Medidas da personagem no Blender (pose de descanso, Z pra cima, frente = +Y):
-const MEDIDAS_PERSONAGEM = {
-  olhoX: 0.448,        // olhos em x = ±0,448 (centro das malhas dos olhos)
-  olhoZ: 0.42,         // altura do centro dos olhos
-  narizZ: 0.14,        // ponta do nariz
-  bocaZ: -0.24,        // meio da boca
-  queixoZ: -0.74,      // queixo / começo do pescoço (abaixo disso é o corpo)
-  pesZ: -7.62,         // sola dos pés
-  barraZ: -5.15,       // barra do vestido (daqui pra baixo: pernas)
-  sapatoZ: -6.2,       // daqui pra baixo: os sapatos (continuam os dela)
-  maoX: 3.9,           // daqui pra fora (na pose de descanso os braços ficam abertos, ao longo de x): mãos
-  bracoY: -1.08, bracoProf: -0.145,   // eixo do braço (altura e profundidade), pra "enrolar" a manga em volta
-  ombroX: 1.3,         // daqui pra fora são os braços (ficam "dobrados" pra dentro da roupa, viram as mangas)
-  // o "globo" do olho dela (a parte que recebe o olho da pessoa): oval centrado em x ±0,45, altura 0,358
-  globoX: 0.4505, globoZ: 0.358, globoMeiaLarg: 0.22, globoMeiaAlt: 0.346,
-};
-const UNI_FOTO = {
-  uFoto: { value: null },
-  uModo: { value: 0 },
-  uCabeca: { value: new THREE.Vector4() },        // meio dos olhos na foto (px), escala k (px por unidade), metade da dist. dos olhos (px)
-  uTamFoto: { value: new THREE.Vector2(1, 1) },   // largura/altura da foto (px)
-  uGiroRosto: { value: new THREE.Vector2(1, 0) }, // cos/sen da inclinação do rosto na foto
-  uRoupa: { value: new THREE.Vector4() },         // modo 2: retângulo da ROUPA na foto (px: x0, y0, x1, y1) — vazio = cor lisa
-  uCorRoupa: { value: new THREE.Color() },        // modo 2: a cor que mais aparece na roupa (pernas, e o vestido se não tiver roupa na foto)
-  uOlhoE: { value: new THREE.Vector4(0, 0.02, 0.16, 0.235) },   // pedaços da textura que continuam os dela: os olhos
-  uOlhoD: { value: new THREE.Vector4(0.85, 0.02, 1, 0.235) },
-};
-const f3 = (x) => x.toFixed(3);
-const GLSL_FOTO = /* glsl */`
-  uniform sampler2D uFoto;
-  uniform float uModo;
-  uniform vec4 uCabeca, uRoupa, uOlhoE, uOlhoD;
-  uniform vec2 uGiroRosto, uTamFoto;
-  uniform vec3 uCorRoupa;
-  varying vec3 vPosRep;
-  varying vec3 vNorRep;
-  bool dentro(vec2 u, vec4 r) { return u.x > r.x && u.x < r.z && u.y > r.y && u.y < r.w; }
-  // passou da borda da foto? "espelha" de volta (sem as listras de esticar o último pixel)
-  vec2 espelha(vec2 u) { return 1.0 - abs(1.0 - mod(u, 2.0)); }
-  vec2 gira(vec2 d) { return vec2(d.x * uGiroRosto.x - d.y * uGiroRosto.y, d.x * uGiroRosto.y + d.y * uGiroRosto.x); }
-  vec3 corDaFoto(vec2 uvTextura, vec3 original) {
-    bool globo = dentro(uvTextura, uOlhoE) || dentro(uvTextura, uOlhoD);
-    if (globo && uModo < 1.5) return original;                     // sem rosto achado: os olhos continuam os dela
-    vec3 foto;
-    if (globo) {
-      // o OLHO DA PESSOA vira o olho dela: recorte em volta do olho da foto, esticado pra preencher o oval
-      float meio = uCabeca.w;                                       // metade da distância entre os olhos NA FOTO (px)
-      float lado = vPosRep.x > 0.0 ? -1.0 : 1.0;                    // o olho +x dela = o olho da esquerda na foto
-      vec2 centro = uCabeca.xy + gira(vec2(lado * meio, 0.0));
-      vec2 l = vec2(-(vPosRep.x - (-lado) * ${f3(MEDIDAS_PERSONAGEM.globoX)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaLarg)},
-                    -(vPosRep.y - ${f3(MEDIDAS_PERSONAGEM.globoZ)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaAlt)});
-      vec2 d = gira(l * vec2(meio * 0.62, meio * 0.42));              // tamanho do recorte: olho + pálpebra + cílios
-      foto = texture2D(uFoto, espelha((centro + d) / uTamFoto)).rgb;
-    } else if (uModo < 1.5) {
-      foto = texture2D(uFoto, uvTextura).rgb;
-    } else {
-      // posição na pose de descanso, em medidas do Blender (o .glb troca: z do Blender = y, frente = -z)
-      float bx = vPosRep.x, bz = vPosRep.y;
-      float frente = -normalize(vNorRep).z;
-      if (bz > ${f3(MEDIDAS_PERSONAGEM.queixoZ)}) {
-        // cabeça: x da foto cresce pra direita de quem olha (= -x dela); y da foto cresce pra baixo (= -z)
-        float dy = -(bz - ${f3(MEDIDAS_PERSONAGEM.olhoZ)});
-        float atras = smoothstep(0.15, -0.35, frente);          // atrás da cabeça: cabelo (alto da cabeça na foto)
-        dy = mix(dy, -1.15, atras);
-        float k = uCabeca.z;
-        vec2 d = gira(vec2(-bx, dy) * k);                         // em pixels da foto (mesma proporção nos dois eixos)
-        foto = texture2D(uFoto, espelha((uCabeca.xy + d) / uTamFoto)).rgb;
-        // em volta do globo (pálpebras, que fecham quando ela pisca): cor da pele da pessoa (pega logo abaixo do olho),
-        // senão a pálpebra fechada mostraria o olho da foto de novo
-        // (só do tamanho do globo, com borda suave — fora dele continua a foto normal)
-        vec2 e = vec2((abs(bx) - ${f3(MEDIDAS_PERSONAGEM.globoX)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaLarg)},
-                      (bz - ${f3(MEDIDAS_PERSONAGEM.globoZ)}) / ${f3(MEDIDAS_PERSONAGEM.globoMeiaAlt)});
-        float palpebra = (1.0 - smoothstep(0.7, 1.0, length(e))) * (1.0 - atras);
-        float meioOlho = uCabeca.w;
-        vec2 pele = uCabeca.xy + gira(vec2((bx > 0.0 ? -1.0 : 1.0) * meioOlho, meioOlho * 0.7));
-        foto = mix(foto, texture2D(uFoto, espelha(pele / uTamFoto)).rgb, palpebra);
-      } else {
-        // CORPO com a roupa da foto "planificada": o pedaço de roupa abaixo do queixo é enrolado em volta dela
-        // como um tubo (frente = roupa, costas = a mesma roupa espelhada, lados sem esticar)
-        float zp = vPosRep.z;
-        bool temRoupa = uRoupa.z - uRoupa.x > 2.0;
-        if (bz < ${f3(MEDIDAS_PERSONAGEM.sapatoZ)}) {
-          return original;                                          // sapatos: os dela
-        } else if (bz < ${f3(MEDIDAS_PERSONAGEM.barraZ)}) {
-          foto = uCorRoupa * 0.8;                                   // pernas: a cor da roupa, um tom mais escuro (meia/calça)
-        } else if (abs(bx) > ${f3(MEDIDAS_PERSONAGEM.maoX)}) {
-          // mãos: cor da pele da pessoa (pega logo abaixo do olho na foto)
-          foto = texture2D(uFoto, espelha((uCabeca.xy + gira(vec2(-uCabeca.w, uCabeca.w * 0.7))) / uTamFoto)).rgb;
-        } else if (abs(bx) > ${f3(MEDIDAS_PERSONAGEM.ombroX)} && bz > -4.2) {
-          // braços (ao longo de x): mangas = a borda da roupa, enrolada em volta do braço
-          float ang = atan(bz - ${f3(MEDIDAS_PERSONAGEM.bracoY)}, zp - ${f3(MEDIDAS_PERSONAGEM.bracoProf)}) / 3.14159;
-          float ao = (abs(bx) - ${f3(MEDIDAS_PERSONAGEM.ombroX)}) / (${f3(MEDIDAS_PERSONAGEM.maoX)} - ${f3(MEDIDAS_PERSONAGEM.ombroX)});
-          vec2 uvM = vec2((bx > 0.0 ? 0.08 : 0.92) + ang * 0.06, ao * 0.55);
-          foto = temRoupa ? texture2D(uFoto, mix(uRoupa.xy, uRoupa.zw, uvM) / uTamFoto).rgb : uCorRoupa;
-        } else {
-          // vestido: ângulo em volta do corpo (0 = frente) → largura da roupa; altura (pescoço → barra) → altura da roupa
-          float th = atan(bx, -zp);
-          float t = abs(th) > 1.5708 ? sign(th) * (3.14159 - abs(th)) : th;   // costas = frente espelhada
-          vec2 uvR = vec2(0.5 - t / 3.14159, (${f3(MEDIDAS_PERSONAGEM.queixoZ)} - bz) / (${f3(MEDIDAS_PERSONAGEM.queixoZ)} - ${f3(MEDIDAS_PERSONAGEM.barraZ)}));
-          foto = temRoupa ? texture2D(uFoto, mix(uRoupa.xy, uRoupa.zw, uvR) / uTamFoto).rgb : uCorRoupa;
-        }
-      }
-    }
-    // mantém os brilhos dela (só os pontos MAIS claros da textura original — o braço dela é claro e não conta)
-    float l = dot(original, vec3(0.2126, 0.7152, 0.0722));
-    return mix(foto, vec3(1.0), smoothstep(0.86, 0.99, l) * 0.6);
-  }`;
+// ---------- TINTA (o que a pessoa pinta nela — ver pintura.js) ----------
+// textura com a tinta, no mesmo mapa de UV da textura dela (começa vazia; a pintura.js troca pela de verdade)
+const tintaVazia = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1);
+tintaVazia.needsUpdate = true;
+const UNI_PINTURA = { uPintura: { value: tintaVazia } };
 
 function criarMaterialToon(textura) {
   const mat = new THREE.MeshStandardMaterial({ map: textura, roughness: 1, metalness: 0 });
@@ -559,13 +491,11 @@ function criarMaterialToon(textura) {
     shader.uniforms.uSombra = { value: CONFIG.toonSombra };
     shader.uniforms.uSuave = { value: CONFIG.toonSuavidade };
     shader.uniforms.uBorda = { value: CONFIG.toonBrilhoBorda };
-    Object.assign(shader.uniforms, UNI_FOTO);
-    shader.vertexShader = shader.vertexShader
-      .replace('void main() {', 'varying vec3 vPosRep;\nvarying vec3 vNorRep;\nvoid main() {')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPosRep = position;\nvNorRep = normal;')
+    Object.assign(shader.uniforms, UNI_PINTURA);
     shader.fragmentShader = shader.fragmentShader
-      .replace('void main() {', 'uniform float uSombra, uSuave, uBorda;\n' + GLSL_FOTO + '\nvoid main() {')
-      .replace('#include <map_fragment>', '#include <map_fragment>\nif (uModo > 0.5) diffuseColor.rgb = corDaFoto(vMapUv, diffuseColor.rgb);')
+      .replace('void main() {', 'uniform float uSombra, uSuave, uBorda;\nuniform sampler2D uPintura;\nvoid main() {')
+      // a tinta por cima da textura dela (a luz toon e o brilho de borda continuam por cima da tinta)
+      .replace('#include <map_fragment>', '#include <map_fragment>\nvec4 tinta = texture2D(uPintura, vMapUv);\ndiffuseColor.rgb = diffuseColor.rgb * (1.0 - tinta.a) + tinta.rgb;')
       .replace(
         '#include <opaque_fragment>',
         `
@@ -630,6 +560,7 @@ function aplicarToon(obj) {
     novo.name = m.name;
     o.material = novo;
     personagem.materiaisToon.push(novo);
+    personagem.malhasPintaveis.push(o);
   });
 }
 
@@ -746,7 +677,10 @@ function atualizarPersonagem(dt) {
   // margem: entra perto de "distanciaPerto" e só sai 40% mais longe (evita ficar liga/desliga)
   const limite = p.animando ? CONFIG.distanciaPerto * 1.4 : CONFIG.distanciaPerto;
   // (descendo pros projetos ou com um projeto aberto, não anima)
-  const perto = rolagem.valor < 0.3 && !rolagem.projetoAberto && mouse.dentro && distancia < limite;
+  // o "oi" (começo do "sobre mim") toca a animação dela inteira uma vez, mesmo sem o mouse perto
+  if (p.oiRestante > 0) p.oiRestante -= dt;
+  const perto = p.oiRestante > 0
+    || (rolagem.valor < 0.3 && !rolagem.projetoAberto && !p.pintando && !p.falando && mouse.dentro && distancia < limite);
 
   // perto → toca a animação | longe → para e volta a olhar o mouse
   // mistura suave entre a pose parada e a animação (sem saltos, mesmo se o mouse entra e sai rápido)
@@ -783,6 +717,7 @@ function atualizarPersonagem(dt) {
   // olha o mouse (e respira) na mesma medida em que NÃO está animando
   p.pesoOlhar = (p.acao ? 1 - p.pesoAnim : 1) * (1 - p.pesoGiro);
   piscar(dt);
+  falar(dt);
   respirar(dt);
 
   if (!p.cabeca) return;
@@ -793,6 +728,15 @@ function atualizarPersonagem(dt) {
   const dy = THREE.MathUtils.clamp((telaY - mouse.y) / (innerHeight * 0.5), -1, 1);
   let alvoYaw = mouse.dentro ? dx * CONFIG.giroMaxHorizontal : 0;
   let alvoPitch = mouse.dentro ? -dy * CONFIG.giroMaxVertical : 0;
+  // pintando: fica olhando reto pra frente (parada, pra pintar)
+  if (p.pintando) { alvoYaw = 0; alvoPitch = 0; }
+  // contando o "sobre mim": de frente pra câmera, e enquanto o texto aparece a cabeça balança de leve (falando)
+  if (p.falando) {
+    p.tempoFala = (p.tempoFala || 0) + dt;
+    const f = p.falandoAgora ? 1 : 0.25;
+    alvoYaw = Math.sin(p.tempoFala * 2.3) * 0.07 * f;
+    alvoPitch = (Math.sin(p.tempoFala * 7.1) * 0.035 + Math.sin(p.tempoFala * 3.3) * 0.02) * f;
+  }
   // descendo pros projetos, ela olha pra baixo (pra grade)
   if (rolagem.valor > 0) {
     alvoYaw *= 1 - rolagem.valor * 0.7;
@@ -879,6 +823,33 @@ function respirar(dt) {
 }
 
 // Piscada automática enquanto ela está parada olhando o mouse (usa a shape key "pisca")
+// a boca acompanha a letra que está sendo digitada (vogal → a / e / o · m, b, p → M · espaço e pontuação → fecha)
+function formaDaLetra(ch) {
+  if (!ch) return null;
+  const c = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (c === 'a') return [1, 0, 0, 0];
+  if (c === 'e' || c === 'i' || c === 'y') return [0, 1, 0, 0];
+  if (c === 'o' || c === 'u') return [0, 0, 1, 0];
+  if (c === 'm' || c === 'b' || c === 'p') return [0, 0, 0, 1];
+  if (/[a-z]/.test(c)) return [0.35, 0.2, 0, 0];   // outras consoantes: entreaberta
+  return null;
+}
+function falar(dt) {
+  const p = personagem, B = CONFIG.fala;
+  if (!p.bocaAlvos.length) return;
+  p.bocaTempo -= dt;
+  if (p.bocaTempo <= 0) {
+    p.bocaTempo = B.troca;
+    const forma = p.falando ? formaDaLetra(p.letraFalando) : null;
+    p.bocaAlvo = forma ? forma.map((v) => v * B.intensidade) : [0, 0, 0, 0];
+  }
+  const k = 1 - Math.exp(-dt * B.suavidade);
+  for (let i = 0; i < 4; i++) p.boca[i] += (p.bocaAlvo[i] - p.boca[i]) * k;
+  for (const { malha, indices } of p.bocaAlvos) {
+    indices.forEach((idx, i) => { if (idx !== undefined) malha.morphTargetInfluences[idx] = p.boca[i]; });
+  }
+}
+
 function piscar(dt) {
   const p = personagem;
   const P = CONFIG.piscar;
@@ -1242,6 +1213,7 @@ function bolhaSobMouse(e) {
   return hit ? hit.object.userData.bolha : null;
 }
 canvas.addEventListener('pointerdown', (e) => {
+  if (personagem.pintando) return;
   const b = bolhaSobMouse(e);
   if (!b) return;
   b.userData.estado = 'estourando';
@@ -1250,7 +1222,7 @@ canvas.addEventListener('pointerdown', (e) => {
   tocarPop();
 });
 canvas.addEventListener('pointermove', (e) => {
-  const sobreBolha = !!bolhaSobMouse(e);
+  const sobreBolha = !personagem.pintando && !!bolhaSobMouse(e);
   canvas.style.cursor = sobreBolha ? 'pointer' : 'default';
   // avisa o cursor perolado (cursor.js) pra virar bolinha em cima das bolhas
   document.body.classList.toggle('cursor-clicavel', sobreBolha);
@@ -1274,15 +1246,14 @@ function tocarPop() {
 }
 
 // =====================================================================
-//  GIRO + TROCA DE TEXTURA: a pessoa manda uma foto (transformacao.js) → a personagem dá o giro numa
-//  névoa de glitter e, quando volta pra pose, está com a foto de "textura".
-//  transformacao.js chama: window.transformarPersonagem(textura) → Promise (resolve quando termina o giro)
+//  GIRO: quando a pessoa confirma a pintura (pintura.js), ela dá um giro numa névoa de glitter.
+//  girarPersonagem() → Promise (resolve quando termina o giro)
 // =====================================================================
 const CONFIG_GLITTER = {
   quantidade: 650,          // partículas girando em volta dela (bem pequenas, viram uma "névoa")
   cores: ['#ffffff', '#ffffff', '#f6f4ff', '#f2f7ff'],   // brancas (com um tiquinho de perolado)
   tamanhoPx: 5,             // tamanho de cada partícula (pixels)
-  nevoa: 0.8,               // opacidade máxima da névoa perolada (no auge ela esconde a troca de textura)
+  nevoa: 0.8,               // opacidade máxima da névoa perolada
 };
 
 // estrelinha de 4 pontas com brilho, pra cada partícula
@@ -1389,110 +1360,34 @@ window.mudarGlitter = ({ cores, forma, tamanhoPx } = {}) => {
   if (tamanhoPx) CONFIG_GLITTER.tamanhoPx = tamanhoPx;
 };
 
-// prepara a foto: rosto achado → projeta (rosto na cabeça, roupa no corpo); sem rosto → espalha na folha de UV
-// foto = <canvas> com a foto (proporção original) · rosto = { olhos: [{x,y},{x,y}], nariz, boca } em pixels da foto, ou null
-function prepararFoto(foto, rosto) {
-  const t = new THREE.CanvasTexture(foto);
-  t.flipY = false;                       // uv (0,0) = canto de cima da foto
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
-  if (!rosto) return { textura: t, modo: 1 };
-  const W = foto.width, H = foto.height, M = MEDIDAS_PERSONAGEM;
-  const [a, b] = [...rosto.olhos].sort((p, q) => p.x - q.x);       // olho da esquerda e da direita (na foto)
-  const meio = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-  const dist = Math.hypot(b.x - a.x, b.y - a.y);
-  const ang = Math.atan2(b.y - a.y, b.x - a.x);
-  // nariz e boca da pessoa: quantos px abaixo da linha dos olhos (na direção do rosto, mesmo se estiver inclinado)
-  const baixo = { x: -Math.sin(ang), y: Math.cos(ang) };
-  const abaixo = (pt, padrao) => (pt ? Math.max(4, (pt.x - meio.x) * baixo.x + (pt.y - meio.y) * baixo.y) : padrao);
-  const nariz = abaixo(rosto.nariz, dist * 0.55);
-  const boca = Math.max(nariz + 4, abaixo(rosto.boca, dist * 0.95));
-  const queixo = boca + (boca - nariz) * 1.6;                       // a ponta do queixo fica um pouco abaixo da boca
-  // UMA escala só (não distorce nariz e boca): escolhida pra boca da pessoa cair na boca dela; o rosto todo
-  // fica dentro da cabeça dela. Os olhos da foto vão pros olhos dela à parte (recorte de cada olho).
-  const k = boca / (M.olhoZ - M.bocaZ);                             // pixels da foto por unidade do modelo
-  // cor da roupa: a que mais aparece abaixo do queixo (numa faixa da largura dos ombros); se a foto quase não tem
-  // nada abaixo do rosto, a que mais aparece no resto da foto, fora do rosto
-  const ombros = dist * 2.4;
-  const yRoupa = meio.y + boca + (boca - nariz) * 1.2;               // logo abaixo do queixo de verdade
-  const rostoCaixa = { x0: meio.x - dist * 1.3, x1: meio.x + dist * 1.3, y0: meio.y - dist * 1.6, y1: meio.y + queixo + dist * 0.2 };
-  // retângulo da roupa: largura dos ombros, na proporção do corpo dela "desenrolado" (não estica);
-  // se a foto tem pouco abaixo do rosto, fica um pedaço menor (mesma proporção); quase nada → cor lisa
-  const proporcao = (Math.PI * 1.2) / (M.queixoZ - M.barraZ);       // largura / altura da roupa planificada
-  let larg = dist * 4.0, alt = larg / proporcao;
-  const sobra = H - yRoupa;
-  if (sobra < alt) { alt = sobra; larg = alt * proporcao; }
-  const x0 = Math.min(Math.max(0, meio.x - larg / 2), Math.max(0, W - larg));
-  const roupa = alt > dist * 0.25 ? [x0, yRoupa, Math.min(W, x0 + larg), yRoupa + alt] : [0, 0, 0, 0];
-  const corRoupa = (H - yRoupa > dist * 0.25 && corPredominante(foto, meio.x - ombros, yRoupa, meio.x + ombros, H))
-    || corPredominante(foto, 0, 0, W, H, rostoCaixa) || new THREE.Color(0.5, 0.5, 0.5);
-  return {
-    textura: t, modo: 2,
-    cabeca: [meio.x, meio.y, k, dist / 2],
-    corRoupa, roupa,
-    tam: [W, H],
-    giro: [Math.cos(ang), Math.sin(ang)],
-  };
-}
-// a cor que mais aparece num pedaço da foto (agrupa cores parecidas e tira a média do grupo maior)
-function corPredominante(foto, x0, y0, x1, y1, fora = null) {
-  const W = foto.width, H = foto.height;
-  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0));
-  x1 = Math.min(W, Math.ceil(x1)); y1 = Math.min(H, Math.ceil(y1));
-  if (x1 - x0 < 4 || y1 - y0 < 4) return null;
-  const px = foto.getContext('2d').getImageData(x0, y0, x1 - x0, y1 - y0).data;
-  const grupos = new Map();
-  const passo = Math.max(1, Math.floor(Math.sqrt(((x1 - x0) * (y1 - y0)) / 40000)));   // no máx. ~40 mil amostras
-  for (let y = 0; y < y1 - y0; y += passo) {
-    for (let x = 0; x < x1 - x0; x += passo) {
-      if (fora && x + x0 > fora.x0 && x + x0 < fora.x1 && y + y0 > fora.y0 && y + y0 < fora.y1) continue;
-      const i = (y * (x1 - x0) + x) * 4;
-      const r = px[i], g = px[i + 1], b = px[i + 2];
-      const chave = (r >> 4) << 8 | (g >> 4) << 4 | (b >> 4);              // 16 tons por canal
-      const gr = grupos.get(chave) || [0, 0, 0, 0];
-      gr[0] += r; gr[1] += g; gr[2] += b; gr[3]++;
-      grupos.set(chave, gr);
-    }
-  }
-  let maior = null;
-  for (const gr of grupos.values()) if (!maior || gr[3] > maior[3]) maior = gr;
-  return maior ? new THREE.Color().setRGB(maior[0] / maior[3] / 255, maior[1] / maior[3] / 255, maior[2] / maior[3] / 255, THREE.SRGBColorSpace) : null;
+function girarPersonagem() {
+  return new Promise((ok) => {
+    const p = personagem;
+    if (!p.acaoGiro || p.girando) { ok(); return; }   // modelo sem giro: nada
+    p.girando = { aoTerminar: ok };
+    p.acaoGiro.reset();
+    p.acaoGiro.setEffectiveWeight(p.pesoGiro);
+    p.acaoGiro.play();
+    efeitoGiro.tempo = 0;
+  });
 }
 
-function vestirFoto(f) {
-  if (!f) { UNI_FOTO.uModo.value = 0; return; }                    // volta pra textura dela
-  UNI_FOTO.uFoto.value?.dispose?.();
-  UNI_FOTO.uFoto.value = f.textura;
-  UNI_FOTO.uModo.value = f.modo;
-  if (f.modo === 2) {
-    UNI_FOTO.uCabeca.value.set(...f.cabeca);
-    UNI_FOTO.uTamFoto.value.set(...f.tam);
-    UNI_FOTO.uCorRoupa.value.copy(f.corRoupa);
-    UNI_FOTO.uRoupa.value.set(...f.roupa);
-    UNI_FOTO.uGiroRosto.value.set(...f.giro);
-  }
-}
-
-// gira, "veste" a foto no meio (no auge da névoa) e resolve quando ela volta pra pose
-// foto = <canvas> (a foto da pessoa) · rosto = olhos achados na foto (ou null) · foto null = volta ao normal
-window.transformarPersonagem = (foto, rosto = null) => new Promise((ok) => {
+// o "oi": toca a animação de aceno dela uma vez (o sobre.js chama no "Olá!")
+personagem.dizerOi = () => {
   const p = personagem;
-  const nova = foto ? prepararFoto(foto, rosto) : null;
-  if (!p.acaoGiro) { vestirFoto(nova); ok(); return; }   // modelo sem giro: só troca
-  if (p.girando) { ok(); return; }
-  p.girando = { trocou: false, aoTrocar: () => vestirFoto(nova), aoTerminar: ok };
-  p.acaoGiro.reset();
-  p.acaoGiro.setEffectiveWeight(p.pesoGiro);
-  p.acaoGiro.play();
-  efeitoGiro.tempo = 0;
-});
-
-// onde fica a cabeça dela na tela (o balão de fala do transformacao.js se posiciona por aqui)
-window.posicaoCabecaNaTela = () => {
-  if (!personagem.raiz || rolagem.valor > 0.5) return null;
-  _v.copy(personagem.pontoCabeca).project(camera);
-  return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight };
+  if (!p.acao) return;
+  p.acao.time = 0;
+  p.oiRestante = p.acao.getClip().duration;
 };
+
+// modo pintura (o botão "customize persocom"), quando ela termina de carregar
+let pintura = null;
+let sobre = null;        // o "sobre mim" (sobre.js): holofote + ela contando quem é a Ana
+personagemPronto.then(() => {
+  if (bonecoTeste) return;
+  pintura = montarPintura({ renderer, camera, cameraChao, personagem, uniformePintura: UNI_PINTURA.uPintura, girar: girarPersonagem });
+  sobre = montarSobre({ camera, cameraChao, personagem });
+});
 
 const _centroGiro = new THREE.Vector3(0, 0, 0);
 function atualizarGiro(dt) {
@@ -1502,7 +1397,6 @@ function atualizarGiro(dt) {
     const prog = Math.min(1, p.acaoGiro.time / p.acaoGiro.getClip().duration);
     alvo = Math.sin(Math.PI * Math.min(1, prog * 1.08));                    // glitter: sobe e desce
     nevoa = Math.pow(Math.max(0, Math.sin(Math.PI * prog)), 2.2) * CONFIG_GLITTER.nevoa;
-    if (!g.trocou && prog >= CONFIG.giro.trocaEm) { g.trocou = true; g.aoTrocar(); }
     if (prog >= 1) { p.girando = null; g.aoTerminar(); }
   }
   e.brilho = THREE.MathUtils.damp(e.brilho, alvo, g ? 10 : 4, dt);
@@ -1580,6 +1474,8 @@ renderer.setAnimationLoop(() => {
   const t = relogio.elapsedTime;
   materialChao.uniforms.uDeslocamento.value -= CONFIG.chaoVelocidade * dt;
   atualizarPersonagem(dt);
+  pintura?.atualizar(dt);
+  sobre?.atualizar(dt);
   atualizarBolhas(dt, t);
   // 1) chão em perspectiva  2) personagem e bolhas em ortográfica, por cima
   renderer.clear();

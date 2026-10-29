@@ -256,7 +256,9 @@ body.rolou .seta-descer { animation: none; }
     linear-gradient(rgba(255,255,255,.7), rgba(255,255,255,0) 55%),
     linear-gradient(color-mix(in srgb, var(--c1, #cfd5dd) 55%, #fff), color-mix(in srgb, var(--c1, #cfd5dd) 85%, #fff));
 }
-.projetos-fim { display: flex; justify-content: center; padding: 26px 0 10px; }
+.projetos-fim { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 18px; padding: 26px 0 10px; }
+.contatos { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.contatos .pilula { padding: 8px 15px; font-size: 12px; }
 /* a grade dos projetos: 4 colunas (cada linha = 1 card grande + 2 pequenos), 3 no tablet, 2 no celular */
 .projetos .grade { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: dense; }
 @media (max-width: 1000px) { .projetos .grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -596,6 +598,8 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
 .thumb video { opacity: 0; }
 .card:hover .thumb video { opacity: 1; }
 .card:hover .thumb img { transform: scale(1.08); }
+/* capa inteira (capaInteira: true no projetos.js): cabe toda no card, com um respiro em cima e embaixo */
+.thumb.inteira img { object-fit: contain; padding: 6px 0; }
 /* prévia sem vídeo: um brilho passa pela imagem */
 .thumb-brilho {
   position: absolute;
@@ -1018,14 +1022,15 @@ body.mosaico-tela-cheia { overflow: hidden; }
 /* botão de trocar câmera (frontal ↔ traseira): à direita do disparador, como no app de câmera do celular */
 .tela-cheia .mosaico-redondo.mosaico-virar { position: absolute; z-index: 2; left: calc(50% + 62px); bottom: 36px; }
 .mosaico-virar svg { width: 26px; height: 26px; color: #7d848d; }
-/* vídeos sem nenhum controle por cima (nem o botão de play grande do iPhone quando o vídeo carrega) */
-video::-webkit-media-controls, video::-webkit-media-controls-start-playback-button,
-video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
+/* vídeos sem nenhum controle por cima (nem o botão de play grande do iPhone quando o vídeo carrega)
+   — menos o vídeo com som (.com-som), que precisa dos controles pra dar play */
+video:not(.com-som)::-webkit-media-controls, video:not(.com-som)::-webkit-media-controls-start-playback-button,
+video:not(.com-som)::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
 
-/* ---------- TROCA DE VISUAL COM FOTO (transformacao.js) ---------- */
+/* ---------- PINTAR A PERSOCOM (pintura.js) ---------- */
 /* botão de customizar (ícone da Ana, redondo como os do lado): logo acima dos projetos, no meio;
    o nome "customize persocom" só aparece passando o mouse */
-.botao-foto {
+.botao-sobre {
   position: fixed; left: 50%; z-index: 3;
   width: 62px; height: 62px;               /* um pouco maior que as bolas do lado (pedido da Ana) */
   margin-left: -31px;                      /* metade da bola (centraliza sem usar transform, que fica pro hover) */
@@ -1033,9 +1038,9 @@ video::-webkit-media-controls-overlay-play-button { display: none !important; -w
   color: #4b5563;
   transition: transform .25s cubic-bezier(.34, 1.6, .64, 1), opacity .4s;
 }
-.botao-foto svg { width: auto; height: 42px; display: block; }
-.botao-foto:disabled { opacity: .5; cursor: default; transform: none; }
-.botao-foto::after {
+.botao-sobre svg { width: auto; height: 42px; display: block; }   /* a bonequinha com "?" da Ana */
+.botao-sobre:disabled { opacity: .5; cursor: default; transform: none; }
+.botao-sobre::after {
   content: attr(data-dica);
   position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translate(-50%, 4px);
   padding: 5px 12px; border-radius: 999px; white-space: nowrap; pointer-events: none;
@@ -1043,41 +1048,418 @@ video::-webkit-media-controls-overlay-play-button { display: none !important; -w
   background: rgba(255,255,255,.95); box-shadow: 0 4px 12px rgba(60,70,90,.14);
   opacity: 0; transition: opacity .2s, transform .2s;
 }
-.botao-foto:hover::after, .botao-foto:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
-@media (max-width: 600px) { .botao-foto { width: 50px; height: 50px; margin-left: -25px; } .botao-foto svg { height: 34px; } }
-body.rolou .botao-foto { opacity: 0; pointer-events: none; }
+.botao-sobre:hover::after, .botao-sobre:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 600px) { .botao-sobre { width: 50px; height: 50px; margin-left: -25px; } .botao-sobre svg { height: 34px; } }
+body.rolou .botao-sobre { opacity: 0; pointer-events: none; }
 
-/* balão de fala cinza clarinho, preso na cabeça dela */
-.balao-fala {
-  position: fixed; left: 0; top: 0; z-index: 6;
-  width: min(270px, calc(100vw - 24px));
-  padding: 14px 16px 12px;
-  border-radius: 20px;
-  background: #eef0f3;
-  color: #374151;
-  box-shadow: 0 10px 28px rgba(60, 70, 90, .16), inset 0 1px 0 rgba(255,255,255,.9);
-  font: 500 13px/1.45 'Geist Mono', monospace;
-  animation: balao-entra .28s cubic-bezier(.34, 1.5, .64, 1);
-  --c1: #62b8e0;            /* cor do botão "confirmar" (na home não tem a cor da categoria) */
+body.pintando .botao-sobre { opacity: 0; pointer-events: none; }
+
+/* no modo pintura a página não rola e só ficam ela + as ferramentas */
+body.pintando .pagina, body.pintando .botoes-laterais { opacity: 0; pointer-events: none; }
+.pagina { transition: opacity .35s; }
+/* no celular, arrastar o dedo nela pinta (não rola nem dá zoom na página) */
+body.pintando #cena { touch-action: none; }
+.pintura[hidden] { display: none; }
+.pintura { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+.pintura > * { pointer-events: auto; }
+@keyframes pintura-entra { from { opacity: 0; transform: translateY(14px) scale(.9); } }
+.pintura-botoes, .pintura-zoom, .pintura-espessura, .pintura-gode { animation: pintura-entra .4s cubic-bezier(.34, 1.5, .64, 1) backwards; }
+.pintura-dica {
+  position: absolute; top: 24px; left: 50%; transform: translateX(-50%); margin: 0;
+  padding: 7px 16px; border-radius: 999px; white-space: nowrap; pointer-events: none;
+  font: 700 12px 'Geist Mono', monospace; letter-spacing: .03em; color: #4b5563;
+  background: rgba(255,255,255,.92); box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #cdd3db, 0 4px 12px rgba(60,70,90,.1);
+  transition: opacity .6s;
 }
-.balao-fala[hidden] { display: none; }
-@keyframes balao-entra { from { opacity: 0; scale: .85; } }
-.balao-texto { margin: 0 22px 10px 0; }
-.balao-fechar {
-  position: absolute; right: 8px; top: 8px; width: 26px; height: 26px; border: none; border-radius: 50%;
-  background: rgba(255,255,255,.7); color: #6b7280; cursor: pointer; font: 700 11px 'Geist Mono', monospace;
+.pintura-dica.sumiu { opacity: 0; }
+/* ✓ ↶ lixeira: no lugar dos botões do lado */
+.pintura-botoes {
+  position: absolute; left: 24px; top: max(50%, 310px); transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 14px;
 }
-.balao-fechar[hidden] { display: none; }
-.balao-escolher, .balao-botoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
-.balao-escolher[hidden], .balao-previa[hidden], .balao-nota[hidden], .balao-link[hidden] { display: none; }
-.balao-pilula { font-size: 12px; padding: 7px 14px; cursor: pointer; }
-.balao-link { border: none; background: none; padding: 0; cursor: pointer; font: 500 11px 'Geist Mono', monospace; color: #6b7280; text-decoration: underline; text-underline-offset: 3px; }
-.balao-previa { display: flex; align-items: center; gap: 12px; }
-.balao-previa img { width: 64px; height: 64px; object-fit: cover; border-radius: 14px; box-shadow: 0 4px 10px rgba(60,70,90,.15); flex: none; }
-.balao-botoes { flex-direction: column; align-items: flex-start; }
-.balao-nota { margin: 10px 0 0; font-size: 10px; color: #9aa0a8; letter-spacing: .02em; }
-/* o "rabinho" do balão apontando pra ela */
-.balao-rabinho { position: absolute; width: 16px; height: 16px; background: #eef0f3; border-radius: 3px; transform: rotate(45deg); }
-.balao-fala[data-lado="esquerda"] .balao-rabinho { left: -6px; margin-top: -8px; }
-.balao-fala[data-lado="baixo"] .balao-rabinho { bottom: -6px; margin-left: -8px; }
-@media (prefers-reduced-motion: reduce) { .balao-fala { animation: none; } }
+.pintura-botoes .bola { border: none; padding: 0; cursor: pointer; }
+/* ícones todos cinza (pedido da Ana) */
+.pintura-botoes .bola, .pintura-zoom .bola { color: #6b7280; }
+.pintura-confirmar { width: 62px; height: 62px; }
+/* zoom (lupa + / −): na direita, em cima da barra de espessura */
+.pintura-zoom { position: absolute; right: 30px; bottom: calc(min(400px, 44vw) * 0.83 + 82px); display: flex; flex-direction: column; gap: 12px; }
+.pintura-zoom .bola { border: none; padding: 0; cursor: pointer; width: 46px; height: 46px; }
+/* godê no canto de baixo, saindo um pouco da tela (como na referência da Ana) */
+.pintura-gode {
+  position: absolute; right: calc(var(--gode) * -0.3); bottom: calc(var(--gode) * -0.05);
+  --gode: min(400px, 44vw);
+  width: var(--gode);
+  filter: drop-shadow(0 12px 18px rgba(80, 50, 20, .22));
+}
+.pintura-gode img { display: block; width: 100%; height: auto; pointer-events: none; user-select: none; }
+.tinta {
+  position: absolute; width: calc(var(--gode) * 0.128); aspect-ratio: 1; translate: -50% -50%;
+  border: none; padding: 0; border-radius: 50%; background: none; cursor: pointer;
+  transition: transform .25s cubic-bezier(.34, 1.6, .64, 1), box-shadow .2s;
+}
+.tinta:hover { box-shadow: 0 0 0 3px rgba(255,255,255,.8); }
+.tinta.escolhida { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--cor), 0 6px 14px rgba(0,0,0,.2); transform: translateY(-3px) scale(1.06); }
+/* barra da espessura (em cima do godê) */
+.pintura-espessura {
+  position: absolute; right: 26px; bottom: calc(min(400px, 44vw) * 0.83 + 18px);
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 999px;
+  background: linear-gradient(rgba(255,255,255,.95), rgba(255,255,255,.75) 55%), linear-gradient(#f4f6f9, #dfe4ea);
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #cdd3db, 0 4px 10px rgba(60,70,90,.12);
+}
+.ponto-fino, .ponto-grosso { flex: none; border-radius: 50%; background: var(--cor-lapis, #ff5c6c); box-shadow: 0 0 0 1.5px #b9c0ca; }
+.ponto-fino { width: 6px; height: 6px; }
+.ponto-grosso { width: 16px; height: 16px; }
+.pintura-espessura input { width: min(170px, 30vw); height: 22px; margin: 0; background: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.pintura-espessura input::-webkit-slider-runnable-track { height: 10px; border-radius: 999px; background: linear-gradient(#cfe9f7, #9fd4ef); box-shadow: inset 0 1px 2px rgba(40,70,100,.25); }
+.pintura-espessura input::-moz-range-track { height: 10px; border-radius: 999px; background: linear-gradient(#cfe9f7, #9fd4ef); box-shadow: inset 0 1px 2px rgba(40,70,100,.25); }
+.pintura-espessura input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; margin-top: -6px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff 0 22%, #eef1f5 60%, #cfd5dd);
+  box-shadow: 0 0 0 1.5px #c9cfd8, 0 2px 5px rgba(0,0,0,.18);
+}
+.pintura-espessura input::-moz-range-thumb {
+  width: 22px; height: 22px; border: none; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff 0 22%, #eef1f5 60%, #cfd5dd);
+  box-shadow: 0 0 0 1.5px #c9cfd8, 0 2px 5px rgba(0,0,0,.18);
+}
+
+/* o lápis da Ana como cursor (só com mouse): a ponta fica onde o mouse está, inclinado pra baixo/direita */
+html.com-lapis, html.com-lapis * { cursor: none !important; }
+html.com-lapis #cursor { opacity: 0 !important; }
+.cursor-lapis {
+  position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none;
+  width: 0; height: 0; opacity: 0; transition: opacity .15s;
+}
+.cursor-lapis.visivel { opacity: 1; }
+html:not(.com-lapis) .cursor-lapis { display: none; }
+.cursor-lapis img, .lapis-ponta {
+  position: absolute; left: -14.5px; top: 0; width: 28px; height: 122px;
+  transform-origin: 14.5px 0; rotate: -32deg;
+  filter: drop-shadow(2px 4px 3px rgba(0,0,0,.18));
+}
+/* a ponta de grafite pega a cor escolhida */
+.lapis-ponta {
+  background: var(--cor-lapis, #ff5c6c); filter: none;
+  -webkit-mask: url(pintura/lapis-ponta.png) center / 100% 100% no-repeat;
+  mask: url(pintura/lapis-ponta.png) center / 100% 100% no-repeat;
+}
+/* círculo do tamanho do traço (aparece em cima dela e mexendo na barra) */
+.lapis-tamanho {
+  position: absolute; left: 0; top: 0; width: var(--tamanho, 12px); height: var(--tamanho, 12px); translate: -50% -50%;
+  border-radius: 50%; border: 1.5px solid var(--cor-lapis, #ff5c6c); box-shadow: 0 0 0 1px rgba(110,118,130,.55), inset 0 0 0 1px rgba(110,118,130,.35);
+  opacity: 0; transition: opacity .15s;
+}
+.cursor-lapis.sobre-ela .lapis-tamanho, .cursor-lapis.mostra-tamanho .lapis-tamanho { opacity: .85; }
+
+@media (max-width: 600px) {
+  .pintura-dica { top: auto; bottom: 14px; left: 16px; transform: none; font-size: 10px; white-space: normal; max-width: 46vw; }
+  .pintura-botoes { left: auto; right: 16px; top: 20px; transform: none; flex-direction: row; gap: 10px; }
+  .pintura-botoes .bola { width: 42px; height: 42px; }
+  .pintura-gode { --gode: min(300px, 62vw); }
+  .pintura-zoom { top: 78px; bottom: auto; right: 16px; gap: 10px; }
+  .pintura-zoom .bola { width: 40px; height: 40px; }
+  .pintura-espessura { right: 14px; bottom: calc(min(300px, 62vw) * 0.83 + 12px); padding: 7px 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .pintura-botoes, .pintura-espessura, .pintura-gode { animation: none; } }
+
+/* ---------- testador da fonte Cynth (testador.js) ---------- */
+.testador-palco {
+  display: grid; place-items: center; padding: clamp(18px, 4vw, 44px) clamp(10px, 3vw, 30px);
+  border-radius: 20px; background: #bcbcbc;   /* o cinza de fundo dos vídeos das abas */
+}
+.testador-janela {
+  width: min(100%, 760px); background: var(--cor); box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  transition: background .3s, transform .26s cubic-bezier(.5, 0, .75, 0), opacity .26s;
+}
+.testador-janela.fechando { transform: scale(.2); opacity: 0; }
+.testador-barra {
+  position: relative; display: grid; place-items: center; height: 34px; background: #fff;
+  font: 14px 'Cynth', 'Geist Mono', monospace; color: #000;
+}
+.testador-x {
+  position: absolute; left: 6px; top: 50%; translate: 0 -50%; width: 26px; height: 26px; padding: 0;
+  border: none; background: none; cursor: pointer; font: 700 17px 'Geist Mono', monospace; color: #000;
+}
+.testador-texto {
+  display: block; width: 100%; min-height: 1.4em; padding: .35em .5em .45em; border: none; outline: none; resize: none; overflow: hidden;
+  background: none; color: #fff; text-align: center; caret-color: #fff;
+  font-family: 'Cynth', 'Geist Mono', monospace; line-height: 1.12; letter-spacing: .01em;
+}
+.testador-texto::selection { background: rgba(0,0,0,.18); }
+.testador-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 18px; margin-top: 14px; }
+.testador-cores { display: flex; gap: 10px; }
+.testador-cor {
+  width: 30px; height: 30px; padding: 0; border: none; border-radius: 50%; cursor: pointer; background: var(--cor);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #c9cfd8; transition: transform .2s cubic-bezier(.34, 1.6, .64, 1);
+}
+.testador-cor:hover { transform: scale(1.12); }
+.testador-cor.ativa { box-shadow: 0 0 0 3px #fff, 0 0 0 5.5px var(--cor), 0 4px 10px rgba(0,0,0,.15); transform: scale(1.08); }
+.testador-tamanho { display: flex; align-items: center; gap: 8px; font: 15px 'Cynth', 'Geist Mono', monospace; color: #6b7280; }
+.testador-tamanho .grande { font-size: 24px; }
+.testador-tamanho input { width: 150px; accent-color: #8385a0; cursor: pointer; }
+.testador-atalhos { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.testador-atalhos .pilula { padding: 7px 13px; font: 13px 'Cynth', 'Geist Mono', monospace; cursor: pointer; }
+
+/* ---------- grid de letras do Cynth em 3D (cynth.js) ---------- */
+.cynth-palco {
+  position: relative; width: 100%; aspect-ratio: var(--aspecto, 16 / 10); overflow: hidden; border-radius: 20px;
+  background: #bcbcbc; touch-action: none; cursor: grab; margin-inline: auto;
+}
+.cynth-palco:active { cursor: grabbing; }
+/* as bolinhas são em pé (4:5, como o render do Touch): não ocupam a largura toda no computador */
+.cynth-palco[data-formato="bolinhas"] { max-width: 560px; }
+.cynth-formatos { position: absolute; left: 12px; top: 12px; display: flex; gap: 8px; }
+.cynth-formatos .pilula { padding: 6px 12px; font-size: 11px; cursor: pointer; }
+.cynth-formatos .pilula.ativo { color: #1f2937; background: linear-gradient(rgba(255,255,255,.7), rgba(255,255,255,0) 55%), linear-gradient(#d9dbe6, #c3c6d6); }
+.cynth-cores { position: absolute; right: 14px; top: 14px; display: flex; gap: 8px; }
+.cynth-cores .testador-cor { width: 22px; height: 22px; }
+.cynth-palco canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cynth-dica {
+  position: absolute; left: 50%; bottom: 14px; translate: -50% 0; margin: 0; padding: 6px 14px; border-radius: 999px;
+  white-space: nowrap; pointer-events: none; font: 700 11px 'Geist Mono', monospace; color: #4b5563;
+  background: rgba(255,255,255,.88); transition: opacity .5s;
+}
+.cynth-dica.sumiu { opacity: 0; }
+@media (max-width: 600px) {
+  .cynth-palco { aspect-ratio: 4 / 5; border-radius: 16px; }
+  .cynth-dica { font-size: 10px; white-space: normal; text-align: center; width: max-content; max-width: 86%; }
+}
+
+/* ---------- cartela de emojis (cartela.js) ---------- */
+.cartela { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.cartela-item {
+  position: relative; display: block; padding: 0; border: none; cursor: pointer; overflow: hidden;
+  aspect-ratio: 1; border-radius: 20px; background: #fff;
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #e3e6ec, 0 8px 18px rgba(60,70,90,.08);
+  transition: transform .3s cubic-bezier(.34, 1.6, .64, 1), box-shadow .3s;
+}
+.cartela-item:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #d4d9e2, 0 14px 26px rgba(60,70,90,.14); }
+.cartela-item img, .cartela-item video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.cartela-nome {
+  position: absolute; left: 50%; bottom: 10px; translate: -50% 0; white-space: nowrap;
+  font: 700 10px 'Geist Mono', monospace; letter-spacing: .04em; color: #6b7280;
+  opacity: 0; transition: opacity .2s;
+}
+.cartela-item:hover .cartela-nome, .cartela-item:focus-visible .cartela-nome { opacity: 1; }
+.cartela-selo {
+  position: absolute; top: 10px; left: 10px; padding: 3px 8px; border-radius: 999px; pointer-events: none;
+  font: 700 9px 'Geist Mono', monospace; letter-spacing: .06em; color: #1f2937;
+  background: rgba(255,255,255,.9); box-shadow: inset 0 0 0 1.5px #f7a8cf;
+}
+.cartela-zoom .cartela-grande { display: block; width: min(78vh, 82vw); height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 22px; background: #fff; box-shadow: 0 20px 50px rgba(60,70,90,.18); }
+/* o vídeo inteiro (sem o corte quadrado): cabe na tela na proporção original */
+.cartela-zoom .cartela-grande.inteiro { width: auto; max-width: 82vw; max-height: 78vh; aspect-ratio: auto; object-fit: contain; }
+@media (max-width: 720px) {
+  .cartela { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .cartela-nome { opacity: 1; }
+}
+
+/* páginas deitadas do manual (Boca Boca): de duas em duas, a primeira grande */
+.cartela.paginas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.cartela.paginas .cartela-item { aspect-ratio: 1800 / 1172; border-radius: 14px; }
+.cartela.paginas .cartela-item:first-child { grid-column: 1 / -1; }
+.cartela.paginas .cartela-item:hover { transform: translateY(-3px) scale(1.01); }
+.cartela.paginas .cartela-nome { padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.92); }
+.cartela-zoom.paginas .cartela-grande { width: min(92vw, 140vh); aspect-ratio: 1800 / 1172; border-radius: 14px; }
+@media (max-width: 720px) {
+  .cartela.paginas { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* a revista pra folhear (Issuu) e o vídeo com som */
+.issuu { position: relative; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden; background: #f3f5f8; box-shadow: 0 12px 30px rgba(60,70,90,.12), 0 0 0 1px rgba(255,255,255,.9); }
+.issuu iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+@media (max-width: 720px) { .issuu { aspect-ratio: 3 / 4; } }
+/* ---------- o vídeo com som e o player do site (player.js) ---------- */
+.video-som { position: relative; overflow: hidden; border-radius: 20px; background: #000;
+  box-shadow: 0 12px 30px rgba(60,70,90,.12), 0 0 0 1px rgba(255,255,255,.9); }
+.video-som > video { display: block; width: 100%; height: auto; background: #000; cursor: pointer; }
+/* o botão grande de tocar no meio (só aparece parado) */
+.player-grande {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 74px; height: 74px; border-radius: 50%;
+  display: grid; place-items: center; border: none; cursor: pointer; color: #4b5563;
+  background: linear-gradient(rgba(255,255,255,.95), rgba(255,255,255,0) 55%), linear-gradient(#f4f6f9, #dfe4ea);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #c9cfd8, 0 14px 30px rgba(20,25,40,.3);
+  transition: opacity .25s, transform .25s cubic-bezier(.34, 1.6, .64, 1);
+}
+.player-grande svg { width: 28px; height: 28px; margin-left: 4px; }
+.player-grande:hover { transform: scale(1.07); }
+.video-som.tocando .player-grande { opacity: 0; pointer-events: none; }
+/* a barra de baixo */
+.player-barra {
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 10px;
+  padding: 26px 14px 12px; background: linear-gradient(transparent, rgba(10,12,20,.55));
+  transition: opacity .3s;
+}
+.video-som.quieto .player-barra { opacity: 0; pointer-events: none; }
+.video-som.quieto > video { cursor: none; }
+.player-botao { padding: 8px 10px; flex: none; }
+.player-botao svg { display: block; }
+.player-tempo { flex: none; min-width: 92px; font: 700 11px 'Geist Mono', monospace; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.player-linha { position: relative; flex: 1; height: 22px; cursor: pointer; touch-action: none; outline: none; }
+.player-linha::before, .player-carregado, .player-feito {
+  content: ''; position: absolute; left: 0; top: 50%; height: 6px; translate: 0 -50%; border-radius: 99px;
+}
+.player-linha::before { right: 0; background: rgba(255,255,255,.28); }
+.player-carregado { background: rgba(255,255,255,.4); width: 0; }
+.player-feito { background: #fff; width: 0; box-shadow: 0 0 8px rgba(255,255,255,.5); }
+.player-bolinha {
+  position: absolute; top: 50%; width: 16px; height: 16px; translate: -50% -50%; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #c9cfd8, 0 2px 6px rgba(0,0,0,.3); transition: scale .15s;
+}
+.player-linha:hover .player-bolinha, .video-som.arrastando .player-bolinha, .player-linha:focus-visible .player-bolinha { scale: 1.25; }
+/* tela cheia (a de verdade ou a "falsa", quando o navegador não deixa) */
+.video-som.cheia, .video-som:fullscreen { position: fixed; inset: 0; z-index: 900; border-radius: 0; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+.video-som.cheia > video, .video-som:fullscreen > video { width: 100%; height: 100%; object-fit: contain; }
+.video-som.cheia .player-barra, .video-som:fullscreen .player-barra { padding: 40px 24px 20px; }
+@media (max-width: 600px) {
+  .player-barra { gap: 6px; padding: 20px 8px 8px; }
+  .player-tempo { min-width: 0; font-size: 10px; }
+  .player-botao { padding: 7px 8px; }
+  .player-grande { width: 58px; height: 58px; }
+}
+
+
+/* ---------- sobre mim: holofote + a Persocom falando (sobre.js) ---------- */
+.sobre { position: fixed; inset: 0; z-index: 7; cursor: pointer; }
+.sobre[hidden] { display: none; }
+.sobre > * { transition: opacity .7s ease; }
+.sobre-escuro, .sobre-feixe, .sobre-chao { opacity: 0; pointer-events: none; }
+.sobre.aceso .sobre-escuro, .sobre.aceso .sobre-feixe, .sobre.aceso .sobre-chao { opacity: 1; }
+/* palco escuro, com a área dela iluminada */
+.sobre-escuro {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse calc(var(--alt, 300px) * .62) calc(var(--alt, 300px) * .8) at var(--x, 50%) var(--y, 50%),
+    rgba(14, 10, 26, 0) 0%, rgba(14, 10, 26, 0) 64%, rgba(14, 10, 26, .82) 100%);
+}
+/* o feixe do holofote, vindo de cima (borrado pra ficar macio) */
+.sobre-feixe { position: absolute; inset: 0; filter: blur(14px); mix-blend-mode: screen; }
+.sobre-feixe::before {
+  content: ''; position: absolute; inset: 0;
+  clip-path: polygon(calc(var(--x, 50%) - 26px) 0, calc(var(--x, 50%) + 26px) 0,
+    calc(var(--x, 50%) + var(--alt, 300px) * .52) var(--pes, 80%), calc(var(--x, 50%) - var(--alt, 300px) * .52) var(--pes, 80%));
+  background: linear-gradient(rgba(255, 248, 228, .05), rgba(255, 248, 228, .3));
+}
+/* a luz batendo no chão, nos pés dela */
+.sobre-chao {
+  position: absolute; left: var(--x, 50%); top: var(--pes, 80%); translate: -50% -50%;
+  width: calc(var(--alt, 300px) * 1.05); height: calc(var(--alt, 300px) * .2); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 250, 236, .55), rgba(255, 250, 236, 0));
+  mix-blend-mode: screen;
+}
+/* a caixa de diálogo, perolada como os botões */
+.sobre-caixa {
+  position: absolute; left: 50%; bottom: 28px; translate: -50% 18px; opacity: 0;
+  width: min(680px, calc(100% - 32px)); min-height: 132px; padding: 24px 26px 14px; border-radius: 22px;
+  color: #1f2937; font: 400 15px/1.6 'Geist Mono', monospace; cursor: pointer;
+  background: radial-gradient(ellipse 70% 40% at 20% 0%, #fff, transparent 70%), linear-gradient(170deg, rgba(255,255,255,.97), rgba(236,239,245,.95));
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #c9cfd8, 0 20px 46px rgba(0, 0, 0, .38);
+  transition: opacity .45s ease .25s, translate .5s cubic-bezier(.34, 1.4, .64, 1) .25s;
+}
+.sobre.aceso .sobre-caixa { opacity: 1; translate: -50% 0; }
+.sobre-nome {
+  position: absolute; left: 22px; top: -14px; padding: 4px 13px; border-radius: 999px;
+  font: 700 12px 'Geist Mono', monospace; letter-spacing: .05em; color: #1f2937;
+  background: linear-gradient(rgba(255,255,255,.7), rgba(255,255,255,0) 55%), linear-gradient(#ffd4e8, #f7a8cf);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #e7b3cc;
+}
+.sobre-fechar {
+  position: absolute; right: 12px; top: 10px; width: 30px; height: 30px; padding: 0; border: none; border-radius: 50%;
+  cursor: pointer; font: 700 13px 'Geist Mono', monospace; color: #6b7280; background: transparent;
+}
+.sobre-fechar:hover { background: rgba(0, 0, 0, .06); }
+.sobre-texto { margin: 0 18px 10px 0; min-height: 3.2em; white-space: pre-wrap; }
+.sobre-rodape { display: flex; align-items: center; gap: 12px; font: 500 11px 'Geist Mono', monospace; color: #9aa0a8; }
+.sobre-ler { padding: 0; border: none; background: none; cursor: pointer; font: inherit; color: #6b7280; text-decoration: underline; text-underline-offset: 3px; }
+.sobre-pagina { margin-left: auto; }
+.sobre-seta { font-size: 16px; color: #f08cbc; animation: sobre-pisca 1s steps(2) infinite; }
+.sobre-caixa.digitando .sobre-seta, .sobre-caixa.tudo .sobre-seta { visibility: hidden; }
+@keyframes sobre-pisca { 50% { opacity: 0; } }
+.sobre-caixa.tudo .sobre-texto { max-height: 42vh; overflow: auto; }
+.sobre-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 12px; }
+.sobre-links[hidden] { display: none; }
+.sobre-links .pilula { padding: 7px 14px; font-size: 12px; }
+/* enquanto ela fala, o resto da home some */
+body.sobre-aberto .pagina, body.sobre-aberto .botoes-laterais, body.sobre-aberto .botao-sobre { opacity: 0; pointer-events: none; }
+@media (max-width: 600px) {
+  .sobre-caixa { bottom: 14px; padding: 22px 18px 12px; font-size: 13px; min-height: 120px; }
+}
+@media (prefers-reduced-motion: reduce) { .sobre-seta { animation: none; } }
+
+/* ---------- nuvem "customize persocom" saindo dela (pintura.js posiciona ao lado da cabeça) (sobre.js posiciona ao lado da cabeça) ---------- */
+/* pílula + uma bolinha média grudada embaixo + uma bolinha pequena solta, apontando pra ela (como a referência da Ana);
+   o contorno é um drop-shadow, assim a pílula e a bolinha grudada viram uma silhueta só, sem emenda */
+.nuvem-balao {
+  --nuvem: #eef0f3;
+  position: fixed; left: 0; top: 0; z-index: 3;
+  display: flex; align-items: center; gap: 8px; padding: 10px 18px 10px 13px;
+  border: none; border-radius: 999px; cursor: pointer;
+  font: 700 13px 'Geist Mono', monospace; letter-spacing: .02em; color: #374151;
+  background: radial-gradient(ellipse 80% 70% at 30% 15%, #fff, transparent 70%), var(--nuvem);
+  filter: drop-shadow(0 0 .6px #b9c0ca) drop-shadow(0 0 .6px #b9c0ca) drop-shadow(0 8px 12px rgba(60, 70, 90, .16));
+  /* o canto de baixo/esquerda (onde ficam as bolinhas) fica no ponto ao lado da cabeça */
+  translate: 22px calc(-100% - 22px);
+  opacity: 0; transition: opacity .4s;
+}
+.nuvem-balao[hidden] { display: none; }
+.nuvem-balao.aparece { opacity: 1; }
+.nuvem-balao > * { animation: balao-flutua 2.6s ease-in-out infinite; }
+.nuvem-balao svg { height: 28px; width: 28px; color: #4b5563; flex: none; }   /* o lápis da Ana */
+.nuvem-balao::before, .nuvem-balao::after { content: ''; position: absolute; border-radius: 50%; background: var(--nuvem); }
+.nuvem-balao::before { width: 30px; height: 26px; left: 14px; bottom: -11px; }   /* bolinha grudada */
+.nuvem-balao::after { width: 11px; height: 11px; left: -12px; bottom: -24px; }  /* bolinha solta, perto dela */
+.nuvem-balao:hover span { text-decoration: underline; text-underline-offset: 3px; }
+@keyframes balao-flutua { 50% { transform: translateY(-3px); } }
+body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-balao, body.projeto-aberto .nuvem-balao { opacity: 0; pointer-events: none; }
+@media (max-width: 600px) { .nuvem-balao { font-size: 11px; padding: 8px 14px 8px 10px; translate: 16px calc(-100% - 18px); } .nuvem-balao svg { height: 21px; } }
+@media (prefers-reduced-motion: reduce) { .nuvem-balao > * { animation: none; } }
+
+/* ---------- revista 3D da Boca Boca (revista3d.js) ---------- */
+.revista3d {
+  position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 20px;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, #fff, #eef1f5);
+  box-shadow: 0 12px 30px rgba(60,70,90,.12), 0 0 0 1px rgba(255,255,255,.9);
+}
+.revista3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer; touch-action: pan-y; }
+.revista-dica {
+  position: absolute; left: 50%; bottom: 14px; translate: -50% 0; margin: 0; pointer-events: none; white-space: nowrap;
+  font: 700 11px 'Geist Mono', monospace; letter-spacing: .04em; color: #6b7280;
+  padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.85); transition: opacity .3s;
+}
+.revista-controles {
+  position: absolute; left: 50%; bottom: 12px; translate: -50% 0; display: flex; align-items: center; gap: 8px;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.revista-contador { min-width: 92px; text-align: center; font: 700 11px 'Geist Mono', monospace; color: #4b5563; }
+.revista-controles .pilula:disabled { opacity: .35; cursor: default; }
+.revista3d[data-modo="aberta"] .revista-dica { opacity: 0; }
+.revista3d[data-modo="aberta"] .revista-controles { opacity: 1; pointer-events: auto; }
+@media (max-width: 720px) {
+  .revista3d { aspect-ratio: 4 / 3; border-radius: 16px; }
+  .revista-controles { gap: 4px; }
+  .revista-contador { min-width: 70px; }
+}
+.revista-icone { display: inline-flex; align-items: center; justify-content: center; padding-left: 10px; padding-right: 10px; }
+.revista-icone svg { display: block; }
+.revista3d.ampliada canvas { cursor: grab; }
+.revista3d.ampliada canvas:active { cursor: grabbing; }
+/* tela cheia: a revista vai pro <body> e cobre a janela toda (revista3d.js) */
+.revista3d.cheia { position: fixed; inset: 0; z-index: 900;   /* por cima do projeto, mas embaixo do cursor (999/1000) */ width: auto; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+.revista3d.cheia canvas { touch-action: none; }
+.revista3d.cheia .revista-controles { bottom: 22px; }
+
+/* blocão branco juntando as imagens de baixo (projeto com blocoBranco: true — Sinapse):
+   um fundo só, e cada imagem/vídeo sem moldura, sem sombra e sem fundinho cinza */
+.detalhe-imagens.bloco-branco {
+  --respiro: clamp(18px, 4vw, 48px);
+  background: #fff; border-radius: 28px; padding: var(--respiro);
+  box-shadow: 0 12px 30px rgba(60,70,90,.1), 0 0 0 1px rgba(255,255,255,.9);
+  row-gap: clamp(24px, 4vw, 48px);
+}
+.detalhe-imagens.bloco-branco .detalhe-imagem > img,
+.detalhe-imagens.bloco-branco .detalhe-imagem > video { background: none; box-shadow: none; border-radius: 0; }
+.detalhe-imagens.bloco-branco .detalhe-imagem figcaption { text-align: center; }
+.detalhe-imagens.bloco-branco .detalhe-imagem.sangria { margin-inline: calc(-1 * var(--respiro)); }   /* de borda a borda do bloco */
+@media (max-width: 720px) { .detalhe-imagens.bloco-branco { border-radius: 20px; } }
+
+/* em tela cheia (o vídeo com som) o cursor próprio do site fica de fora: volta a setinha normal */
+.cursor-proprio :fullscreen, .cursor-proprio :fullscreen * { cursor: auto !important; }

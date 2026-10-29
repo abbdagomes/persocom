@@ -34,7 +34,11 @@ const DESENHOS = [
 //   titulo, resumo, texto → nome, frase curta (no quadradinho) e texto do detalhe
 //   destaque    → true = card duplo, e vem primeiro da categoria (os projetos "grandes" da tabela do Miro)
 //   capa        → imagem do quadradinho (ex: 'projetos/game-jam/capa.jpg'). Vazio = degradê
+//   capaInteira → true = a capa aparece inteira no card (sem cortar), bom pra imagem com fundo transparente
+//   blocoBranco → true = as imagens de baixo ficam todas num blocão branco, sem moldura em cada uma
+//                 (pros recortes/adesivos parecerem parte da página, não fotos — pedido da Ana no Sinapse)
 //   video       → vídeo curtinho (turntable 360, animação...). Toca no hover e no detalhe
+//   videoTopo   → (opcional) outro vídeo só pro topo do detalhe, se o do hover for diferente
 //   imagens     → as imagens que aparecem rolando pra baixo no detalhe, em ordem:
 //                 ['projetos/game-jam/1.jpg', 'projetos/game-jam/2.jpg', ...]
 //                 ou com opções: { src: '...jpg', legenda: 'texto', meia: true }  (meia = duas lado a lado)
@@ -128,7 +132,7 @@ const PROJETOS = [
       + 'topologia limpa, texturas eficientes e rigs simplificados para garantir integração imediata sem perda de desempenho. '
       + 'Essa rapidez técnica aliada à coesão visual foi determinante para o destaque do jogo na competição, conquistando o '
       + '94º lugar na categoria de Arte entre os milhares de participantes.',
-    capa: 'projetos/game-jam/tony-camera.webp?v=5',
+    capa: 'projetos/game-jam/tony-camera.webp?v=5', capaInteira: true,   // quadrada e o card é largo: não corta a cabeça nem os pés
     video: 'projetos/game-jam/turntable.mp4?v=9',
     link: 'https://ayayun.itch.io/tony-matrimony',
     etiquetas: ['gmtk game jam 2026', '94º em arte', 'personagens', 'low poly', 'blender'],
@@ -185,13 +189,24 @@ const PROJETOS = [
   },
   {
     id: 'sinapse', categoria: 'design', titulo: 'Sinapse', resumo: 'web · identidade',
-    texto: 'Projeto colaborativo de web design e identidade visual focado na vivência dos sentidos na rotina de São Paulo. '
-      + 'A plataforma utiliza sobreposições de imagens, filtros visuais dedicados para cada sentido e interações lúdicas que '
-      + 'refletem o dinamismo caótico da cidade. O escopo abrangeu desde a conceituação e criação do logotipo (com destaque às '
-      + 'iniciais de SP) até a arquitetura da experiência web, cartazes de divulgação e desdobramentos em produtos.',
-    capa: '', video: '', link: '',
-    etiquetas: ['web', 'identidade', 'cartazes'],
-    imagens: [],
+    texto: 'Site colaborativo que propõe experimentar São Paulo pelos cinco sentidos. O nome vem da sinapse, a conexão entre '
+      + 'neurônios por onde passam os impulsos nervosos: é assim que toda experiência sensorial acontece no corpo. Com imagens '
+      + 'sobrepostas, um filtro visual para cada sentido e jogos interativos, a plataforma convida a misturar os estímulos como '
+      + 'acontece no dia a dia da cidade. O projeto abrangeu a conceituação, o logotipo (o "S" e o "P" em destaque são as '
+      + 'iniciais de São Paulo), a experiência web e os cartazes de divulgação.',
+    // capa = o mapa de adesivos + o logo (do Behance); passando o mouse, o mapa se montando no site;
+    // no topo, por enquanto, o mesmo do hover. Material da pasta "Motion" do grupo e do Behance
+    capa: 'projetos/sinapse/capa.webp', video: 'projetos/sinapse/capa-troca.mp4',   // (o topo vai ser o motion novo da Ana — trocar aqui com videoTopo)
+    link: 'https://sinapse-5s3w.vercel.app/', blocoBranco: true,
+    etiquetas: ['web', 'identidade', 'cartazes', 'motion'],
+    imagens: [
+      { video: 'projetos/sinapse/logo-objetos.mp4', legenda: 'o logo trocando letras por objetos da cidade (Juliana Nakashima)' },
+      { src: 'projetos/sinapse/adesivos.webp?v=2', sangria: true },
+      { video: 'projetos/sinapse/site.mp4', centro: true },
+      { video: 'projetos/sinapse/placa-filtros.mp4', legenda: 'um filtro pra cada sentido: visão (vibrance), tato (bordas rasgadas), olfato (desfoque), audição (ruído) e paladar (vidro)' },
+      { src: 'projetos/sinapse/cartazes.webp', legenda: 'cartazes de divulgação' },
+      { video: 'projetos/sinapse/cartazes.mp4', centro: true, legenda: 'motion dos cartazes (Juliana Nakashima)' },
+    ],
   },
   {
     id: 'cynth', categoria: 'design', titulo: 'Cynth', resumo: 'tipografia · fonte display',
@@ -199,19 +214,52 @@ const PROJETOS = [
       + 'geometria. A Cynth é uma fonte display com proporções expandidas e forte presença visual, marcada pelo desenho '
       + 'característico de suas contraformas internas em formato de gotas (simples e elongadas). O resultado é uma família '
       + 'tipográfica completa, contemplando caixa alta, caixa baixa, numerais, acentuação, pontuação e conjunto abrangente de símbolos.',
-    capa: '', video: '', link: '',
+    // capa parada (a 1ª aba); passando o mouse, as abas da marca trocam 4 por segundo (como o switch do Touch)
+    capa: 'projetos/cynth/capa.webp?v=2', video: 'projetos/cynth/capa-troca.mp4', link: '',
     etiquetas: ['tipografia', 'fonte display'],
-    imagens: [],
+    imagens: [
+      // as abas (da capa) foram recoloridas nas cores da marca por .claude/ferramentas/recolorir_abas_cynth.py
+      // vídeos da Ana (540 px, sem som), três lado a lado: as abas no TouchDesigner e os motions
+      { video: 'projetos/cynth/abas.mp4', terco: true },
+      { video: 'projetos/cynth/emoji.mp4', terco: true },
+      { video: 'projetos/cynth/letras.mp4', terco: true },
+      // detalhes do desenho das letras (recolorido nas cores da marca por .claude/ferramentas/recolorir_detalhes.py)
+      { src: 'projetos/cynth/detalhes.webp', legenda: 'os bojos em gota: gota elongada (k, a) e em forma de gota (p, d)' },
+      { testador: { fonte: 'projetos/cynth/cynth.otf' },
+        legenda: 'teste a Cynth: digite na janelinha — o ✕ fecha e ela volta em outra cor' },
+      { gradeLetras: { fonte: 'projetos/cynth/cynth.otf' },
+        legenda: 'o grid do TouchDesigner em 3D: perto do mouse as letras crescem e embaralham, e ele vira bloco / esfera e volta — arraste pra girar' },
+      // bastidores: a tela do TouchDesigner gravada (overview da rede, com os viewers ao vivo)
+      { video: 'projetos/cynth/bastidores-grid.mp4', meia: true, legenda: 'bastidores: a rede do grid no TouchDesigner' },
+      { video: 'projetos/cynth/bastidores-abas.mp4', meia: true, legenda: 'bastidores: a rede das abas no TouchDesigner' },
+    ],
   },
   {
-    id: 'revista-espm', categoria: 'design', titulo: 'Revista ESPM', resumo: 'editorial · identidade',
+    id: 'revista-espm', categoria: 'design', titulo: 'Boca Boca', resumo: 'revista · identidade',
     texto: 'Criação da identidade visual, conceito editorial e projeto gráfico para a primeira edição de uma revista focada em '
       + 'mapear e valorizar restaurantes de imigrantes em São Paulo. Com o continente latino-americano como tema inaugural, '
       + 'o projeto foi construído colaborativamente em equipe, unindo diagramação, pesquisa cultural e um vídeo para '
       + 'apresentação da marca e da publicação.',
-    capa: '', video: '', link: '',
+    // capa parada (o logo da capa do manual); passando o mouse, as bocas trocando do fim do vídeo (quadrado, igual ao card);
+    // no topo da página, as bocas animadas
+    capa: 'projetos/boca-boca/capa.webp', video: 'projetos/boca-boca/bocas-trocando.mp4', videoTopo: 'projetos/boca-boca/bocas.mp4?v=2', link: '',
     etiquetas: ['editorial', 'diagramação', 'identidade'],
-    imagens: [],
+    imagens: [
+      // a revista inteira em 3D: flutua girando, clicando abre e dá pra folhear (revista3d.js; páginas tiradas do Issuu)
+      { revista3d: { pasta: 'projetos/boca-boca/revista/', paginas: 100 },
+        legenda: 'folheie a revista: clique pra abrir · clique nos lados, arraste ou use ← → pra virar · 2 cliques (ou a lupa) amplia pra ler' },
+      // páginas do manual da marca (clicando, abrem grandes — cartela.js)
+      { cartela: { formato: 'paginas', itens: [
+          { nome: 'conceituação · universo gráfico', src: 'projetos/boca-boca/pagina-08.webp' },
+          { nome: 'área de proteção e aplicações', src: 'projetos/boca-boca/pagina-11.webp' },
+          { nome: 'tagline e ícones', src: 'projetos/boca-boca/pagina-12.webp' },
+          { nome: 'elementos de apoio', src: 'projetos/boca-boca/pagina-13.webp' },
+          { nome: 'diagramação', src: 'projetos/boca-boca/pagina-26.webp' },
+        ] },
+        legenda: 'bastidores: páginas do manual do projeto gráfico — clique pra ver grande' },
+      { video: 'projetos/boca-boca/bocas-trocando.mp4', centro: true },
+      { video: 'projetos/boca-boca/video.mp4', som: true, poster: 'projetos/boca-boca/poster.webp?v=2', legenda: 'o vídeo de apresentação da marca e da revista (com som)' },
+    ],
   },
   {
     id: 'kitkat', categoria: 'design', titulo: 'KitKat Sugar Rush', resumo: 'embalagem · identidade',
@@ -234,9 +282,23 @@ const PROJETOS = [
       + 'vetorização com renders produzidos no software 3D, criando colagens digitais que misturam linguagens diferentes em '
       + 'cada peça: reflexos de globo de festa, brilhos etéreos, acabamento metálico e texturas líquidas. Algumas das peças '
       + 'foram animadas em loop para adicionar movimento às sobreposições.',
-    capa: '', video: '', link: '',
+    // capa parada (o palhaço); passando o mouse, os 8 emojis trocam
+    capa: 'projetos/emoji-lab/capa.webp?v=2', video: 'projetos/emoji-lab/capa-troca.mp4', link: '',
     etiquetas: ['ilustração', 'vetor', '3d', 'animação em loop'],
-    imagens: [],
+    imagens: [
+      // a série inteira numa cartela; os animados tocam o loop no quadradinho (cartela.js)
+      { cartela: { semNome: true, emojis: [
+          { nome: 'palhaço', src: 'projetos/emoji-lab/palhaco.webp' },
+          { nome: 'frankenstein', src: 'projetos/emoji-lab/frankenstein.webp' },
+          { nome: 'globo de festa', src: 'projetos/emoji-lab/globo.webp' },
+          { nome: 'robô-gatinho', src: 'projetos/emoji-lab/robo-gato.webp', video: 'projetos/emoji-lab/robo-gato.mp4', videoInteiro: 'projetos/emoji-lab/robo-gato-inteiro.mp4' },
+          { nome: 'bolinha rosa', src: 'projetos/emoji-lab/bolinha-rosa.webp', video: 'projetos/emoji-lab/bolinha-rosa.mp4', videoInteiro: 'projetos/emoji-lab/bolinha-rosa-inteira.mp4?v=2' },
+          { nome: 'slime', src: 'projetos/emoji-lab/slime.webp' },
+          { nome: 'cabecinha', src: 'projetos/emoji-lab/cabecinha.webp', video: 'projetos/emoji-lab/cabecinha.mp4', videoInteiro: 'projetos/emoji-lab/cabecinha-inteira.mp4' },
+          { nome: 'cristal', src: 'projetos/emoji-lab/cristal.webp' },
+        ] },
+        legenda: 'a série: clique em um pra ver grande — os marcados como "animado" se mexem em loop' },
+    ],
   },
 ];
 
@@ -275,7 +337,7 @@ function embaralharTitulo(el) {
 // miniatura: capa, vídeo (toca no hover) ou degradê com as cores
 function miniatura(p, cores) {
   return `
-    <div class="thumb" style="--c1:${cores[0]}; --c2:${cores[1]}">
+    <div class="thumb${p.capaInteira ? ' inteira' : ''}" style="--c1:${cores[0]}; --c2:${cores[1]}">
       ${p.capa ? `<img src="${escapar(p.capa)}" alt="" loading="lazy" draggable="false">` : ''}
       ${p.video ? `<video src="${escapar(p.video)}" muted loop playsinline preload="none"></video>` : ''}
       <span class="thumb-brilho"></span>
@@ -310,7 +372,6 @@ function ligarCard(card, aoClicar) {
 //  Os DESENHOS entram depois dos projetos de ilustração.
 // =====================================================================
 const grade = document.getElementById('grade');
-const filtros = document.getElementById('filtros');
 
 function itensDaGrade() {
   const filas = {};
@@ -326,8 +387,8 @@ function itensDaGrade() {
   return itens;
 }
 
-// etiqueta com a categoria, no cantinho da miniatura
-const etiquetaCategoria = (id) => `<span class="tag-categoria" style="--c1:${CATEGORIAS[id].cores[0]}">${escapar(CATEGORIAS[id].nome)}</span>`;
+// (a etiqueta da categoria no canto da capa, a frase curta embaixo do nome e os filtros saíram — pedido da Ana;
+//  o "resumo" de cada projeto continua aqui no PROJETOS, caso um dia volte)
 
 itensDaGrade().forEach((item) => {
   const c = CATEGORIAS[item.categoria];
@@ -339,9 +400,7 @@ itensDaGrade().forEach((item) => {
     q.href = `#${p.id}`;
     q.innerHTML = `
       ${miniatura(p, c.cores)}
-      ${etiquetaCategoria(item.categoria)}
-      <h3 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h3>
-      <p>${escapar(p.resumo)}</p>`;
+      <h3 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h3>`;
     ligarCard(q, () => { abertoPeloSite = true; location.hash = p.id; });
   } else {
     // desenho: quadradinho recortado; clicando abre grande, inteiro
@@ -355,9 +414,7 @@ itensDaGrade().forEach((item) => {
         ${d.src ? `<img src="${escapar(d.src)}" alt="${escapar(d.titulo || '')}" loading="lazy" draggable="false">` : `<span class="desenho-exemplo">${escapar(d.exemplo || '')}</span>`}
         <span class="thumb-brilho"></span>
       </div>
-      ${etiquetaCategoria(item.categoria)}
-      <h3 data-texto="${escapar(titulo)}">${escapar(titulo)}</h3>
-      <p>${escapar(['desenho', d.ano].filter(Boolean).join(' · '))}</p>`;
+      <h3 data-texto="${escapar(titulo)}">${escapar(titulo)}</h3>`;
     ligarCard(q, () => abrirZoom(item.indice));
   }
   q.draggable = false;
@@ -377,34 +434,6 @@ const observador = new IntersectionObserver((entradas) => {
 }, { rootMargin: '0px 0px -30px 0px' });
 grade.querySelectorAll('.quadradinho').forEach((q) => observador.observe(q));
 
-// ---------- filtros: tudo · 3D · design · ilustração ----------
-filtros.innerHTML = [['', 'tudo'], ...CONFIG_GALERIA.ordemCategorias.map((id) => [id, CATEGORIAS[id].nome])]
-  .map(([id, nome]) => `<button type="button" class="pilula filtro${id ? '' : ' ativo'}" data-filtro="${id}"`
-    + `${id ? ` style="--c1:${CATEGORIAS[id].cores[0]}"` : ''} aria-pressed="${!id}">${escapar(nome)}</button>`).join('');
-function filtrar(id) {
-  filtros.querySelectorAll('.filtro').forEach((b) => {
-    const ativo = b.dataset.filtro === id;
-    b.classList.toggle('ativo', ativo);
-    b.setAttribute('aria-pressed', ativo);
-  });
-  let ordem = 0;
-  grade.querySelectorAll('.quadradinho').forEach((q) => {
-    const mostra = !id || q.dataset.categoria === id;
-    q.hidden = !mostra;
-    if (!mostra) return;
-    // entram de novo, um depois do outro
-    observador.unobserve(q);
-    q.classList.remove('visivel');
-    q.style.setProperty('--i', Math.min(ordem++, 12));
-  });
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    grade.querySelectorAll('.quadradinho:not([hidden])').forEach((q) => q.classList.add('visivel'));
-  }));
-}
-filtros.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-filtro]');
-  if (b) filtrar(b.dataset.filtro);
-});
 
 // =====================================================================
 //  ROLAGEM: a cena fica parada atrás, cada vez mais enevoada
@@ -478,11 +507,23 @@ let vitrineAtual = null;   // a vitrine 3D aberta (se tiver), pra desligar ao sa
 let cenarioAtual = null;   // o cenário 3D do jogo (se tiver)
 let modeloAtual = null;    // o visualizador de modelo com a barra de topologia (se tiver)
 let mosaicoAtual = null;   // o mosaico de fotos ao vivo (se tiver) — destruir desliga a câmera
+let testadorAtual = null;  // o testador de fonte (se tiver)
+let gradeAtual = null;     // a grade de letras do Cynth (se tiver)
+let cartelaAtual = null;   // a cartela de emojis (se tiver)
+let revistaAtual = null;   // a revista 3D (se tiver)
+let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
+let playersAtuais = [];    // os players do vídeo com som (player.js)
 function desligarVitrine() {
   vitrineAtual?.destruir(); vitrineAtual = null;
   cenarioAtual?.destruir(); cenarioAtual = null;
   modeloAtual?.destruir(); modeloAtual = null;
   mosaicoAtual?.destruir(); mosaicoAtual = null;
+  testadorAtual?.destruir(); testadorAtual = null;
+  gradeAtual?.destruir(); gradeAtual = null;
+  cartelaAtual?.destruir(); cartelaAtual = null;
+  revistaAtual?.destruir(); revistaAtual = null;
+  somAtual?.disconnect(); somAtual = null;
+  playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
 }
 
 function abrirProjeto(projetoId) {
@@ -506,10 +547,18 @@ function abrirProjeto(projetoId) {
   //   { cenario: { pasta, personagens } }                          (cenário do jogo em 3D com gente andando — cenario.js)
   //   { modelo3d: { arquivo } }                                    (um modelo pra girar, com a barra material ↕ topologia — modelo3d.js)
   //   { mosaico: { conjuntos } }                                   (o mosaico de fotos ao vivo com câmera + pinça — mosaico.js)
+  //   { testador: { fonte } }                                      (janelinha pra digitar e testar uma fonte — testador.js)
+  //   { gradeLetras: { fonte } }                                   (grade de letras do Cynth — cynth.js)
+  //   { cartela: { emojis } }                                      (cartela de figurinhas, animadas tocando — cartela.js)
+  //   { cartela: { formato: 'paginas', itens } }                    (páginas deitadas, clicando abrem grandes — cartela.js)
+  //   { issuu: 'https://e.issuu.com/embed.html?...' }               (a revista pra folhear, do Issuu)
+  //   { revista3d: { pasta, paginas } }                             (revista em 3D que abre e folheia — revista3d.js)
+  //   { video: '...', som: true, poster: '...jpg' }                 (vídeo com som e controles, não toca sozinho)
+  //   { src: '...', sangria: true }                                 (no blocão branco: vai de uma borda à outra, sem margem)
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
   // o destaque do topo: o vídeo, senão a capa, senão a 1ª imagem
   const lista = (p.imagens || []).map(normalizar);
-  const destaque = p.video ? { video: p.video } : p.capa ? { src: p.capa } : lista.shift();
+  const destaque = p.videoTopo || p.video ? { video: p.videoTopo || p.video } : p.capa ? { src: p.capa } : lista.shift();
 
   const midiaHTML = (m, classe = '') => {
     if (!m || m.exemplo) {
@@ -519,6 +568,14 @@ function abrirProjeto(projetoId) {
     if (m.cenario) return `<div class="cenario" data-cenario></div>`;
     if (m.modelo3d) return `<div class="modelo3d" data-modelo3d></div>`;
     if (m.mosaico) return `<div class="mosaico" data-mosaico></div>`;
+    if (m.testador) return `<div class="testador" data-testador></div>`;
+    if (m.cartela) return `<div class="cartela-lugar" data-cartela></div>`;
+    if (m.revista3d) return `<div class="revista3d-lugar" data-revista3d></div>`;
+    if (m.gradeLetras) return `<div class="cynth-interativo" data-grade-letras></div>`;
+    if (m.issuu) return `<div class="issuu"><iframe src="${escapar(m.issuu)}" title="${escapar(p.titulo)} no Issuu" loading="lazy" allow="fullscreen" allowfullscreen></iframe></div>`;
+    // o vídeo completo, com som: esse sim tem os controles (não toca sozinho)
+    // vídeo com som: os botões são todos do site (player.js), não os do navegador
+    if (m.video && m.som) return `<div class="video-som" data-player><video class="${classe} com-som" src="${escapar(m.video)}"${m.poster ? ` poster="${escapar(m.poster)}"` : ''} preload="metadata" playsinline disablepictureinpicture></video></div>`;
     // vídeos "planos": sem botões nem barra por cima (pedido da Ana) — tocam sozinhos, sem som, em loop
     if (m.video) return `<video class="${classe}" src="${escapar(m.video)}" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback></video>`;
     return `<img class="${classe}" src="${escapar(m.src)}" alt="${escapar(m.legenda || p.titulo)}" loading="lazy">`;
@@ -526,7 +583,7 @@ function abrirProjeto(projetoId) {
 
   // as imagens de baixo, uma embaixo da outra (as "meia" ficam de duas em duas)
   const imagensHTML = lista.map((m) => `
-    <figure class="detalhe-imagem${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.centro ? ' centro' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}">
+    <figure class="detalhe-imagem${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.centro ? ' centro' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
       ${midiaHTML(m)}
       ${m.legenda ? `<figcaption>${escapar(m.legenda)}</figcaption>` : ''}
     </figure>`).join('');
@@ -549,7 +606,7 @@ function abrirProjeto(projetoId) {
         ${lista.length ? `<button class="pilula rolar" data-rolar>⌄ ver mais imagens (${lista.length})</button>` : ''}
       </div>
     </div>
-    ${lista.length ? `<div class="detalhe-imagens">${imagensHTML}</div>` : ''}
+    ${lista.length ? `<div class="detalhe-imagens${p.blocoBranco ? ' bloco-branco' : ''}">${imagensHTML}</div>` : ''}
     <div class="detalhe-fim"${lista.length ? '' : ' hidden'}>
       <button class="pilula" data-topo>⌃ voltar pro topo</button>
       <button class="pilula" data-fechar-projeto>‹ todos os projetos</button>
@@ -569,6 +626,44 @@ function abrirProjeto(projetoId) {
   montar('[data-cenario]', 'cenario', './cenario.js', 'montarCenario', (v) => { cenarioAtual = v; });
   montar('[data-modelo3d]', 'modelo3d', './modelo3d.js', 'montarModelo3d', (v) => { modeloAtual = v; });
   montar('[data-mosaico]', 'mosaico', './mosaico.js', 'montarMosaico', (v) => { mosaicoAtual = v; });
+  montar('[data-testador]', 'testador', './testador.js', 'montarTestador', (v) => { testadorAtual = v; });
+  montar('[data-grade-letras]', 'gradeLetras', './cynth.js', 'montarGrade', (v) => { gradeAtual = v; });
+  montar('[data-cartela]', 'cartela', './cartela.js', 'montarCartela', (v) => { cartelaAtual = v; });
+  montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
+
+  // o vídeo com som começa sozinho quando a pessoa chega nele (e pausa quando ela rola pra longe);
+  // se o navegador não deixar tocar com som, toca mudo (a pessoa liga o som nos controles)
+  const lugaresPlayer = det.querySelectorAll('[data-player]');
+  if (lugaresPlayer.length) {
+    import('./player.js').then((modulo) => {
+      lugaresPlayer.forEach((c) => { if (c.isConnected) playersAtuais.push(modulo.montarPlayer(c)); });
+    });
+  }
+  const comSom = det.querySelectorAll('video.com-som');
+  if (comSom.length) {
+    somAtual = new IntersectionObserver((avisos) => {
+      for (const a of avisos) {
+        const v = a.target;
+        if (a.isIntersecting) {
+          if (v.dataset.pausadoPelaPessoa) continue;
+          v.dataset.tocandoSozinho = '1';
+          v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+        } else if (!v.paused) {
+          v.dataset.pausaAuto = '1';
+          v.pause();
+        }
+      }
+    }, { threshold: 0.6 });
+    comSom.forEach((v) => {
+      somAtual.observe(v);
+      // se a pessoa pausou com o vídeo na tela, não volta a tocar sozinho
+      v.addEventListener('pause', () => {
+        if (v.dataset.pausaAuto) { delete v.dataset.pausaAuto; return; }   // fui eu (rolou pra longe)
+        if (!v.ended && v.isConnected) v.dataset.pausadoPelaPessoa = '1';
+      });
+      v.addEventListener('play', () => { delete v.dataset.pausadoPelaPessoa; });
+    });
+  }
 
   det.querySelectorAll('[data-fechar-projeto]').forEach((b) => b.addEventListener('click', fecharPeloBotao));
   det.querySelector('[data-rolar]')?.addEventListener('click', () => {
@@ -610,7 +705,7 @@ function fecharPeloBotao() {
 }
 
 // ---------- o endereço (#game-jam...) decide o que aparece ----------
-// links antigos continuam valendo: #3d/game-jam abre o projeto e #3d desce pra grade filtrada
+// links antigos continuam valendo: #3d/game-jam abre o projeto e #3d desce pra grade (não tem mais filtro)
 function seguirEndereco() {
   const partes = location.hash.replace('#', '').split('/').filter(Boolean);
   const projeto = partes.find((x) => PROJETOS.some((p) => p.id === x));
@@ -619,7 +714,6 @@ function seguirEndereco() {
   abertoPeloSite = false;
   if (CATEGORIAS[partes[0]]) {
     history.replaceState('', '', location.pathname + location.search);
-    filtrar(partes[0]);
     irPraGrade();
   }
 }
