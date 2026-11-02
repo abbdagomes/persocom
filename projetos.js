@@ -31,6 +31,7 @@ const DESENHOS = [];
 //                 (pros recortes/adesivos parecerem parte da página, não fotos — pedido da Ana no Sinapse)
 //   video       → vídeo curtinho (turntable 360, animação...). Toca no hover e no detalhe
 //   videoTopo   → (opcional) outro vídeo só pro topo do detalhe, se o do hover for diferente
+//   imagemTopo  → (opcional) uma foto no topo do detalhe, se não for a capa
 //   imagens     → as imagens que aparecem rolando pra baixo no detalhe, em ordem:
 //                 ['projetos/game-jam/1.jpg', 'projetos/game-jam/2.jpg', ...]
 //                 ou com opções: { src: '...jpg', legenda: 'texto', meia: true }  (meia = duas lado a lado)
@@ -77,28 +78,28 @@ const PROJETOS = [
       + 'coletivo REBU DIGITAL que reúne mais de 500 pessoas por edição. O trabalho foi da modelagem e da divisão da peça em '
       + 'partes para impressão até a montagem, o reforço interno e o acabamento. A cena também foi recriada em 3D, com luz e '
       + 'material ajustados para o render imitar a foto real da peça.',
-    capa: 'projetos/boneca-lovecore/capa.webp?v=2', videoTopo: 'projetos/boneca-lovecore/render.mp4?v=2', link: '',
+    capa: 'projetos/boneca-lovecore/capa.webp?v=3', imagemTopo: 'projetos/boneca-lovecore/parede-inteira.webp', link: '',
     etiquetas: ['impressão 3d', 'escultura', 'cenografia', 'lovecore 7', 'rebu digital'],
     imagens: [
       // a foto real e o render na mesma parede (arrastando, um vira o outro), ao lado das costas
       { comparar: { antes: 'projetos/boneca-lovecore/comparar-foto.webp', depois: 'projetos/boneca-lovecore/comparar-render.webp',
           rotuloAntes: 'foto', rotuloDepois: 'render 3D' }, meia: true, inteiroCelular: true },
       { src: 'projetos/boneca-lovecore/costas.webp', meia: true, inteiroCelular: true, ampliar: true },
+      // o render em movimento
+      { video: 'projetos/boneca-lovecore/render.mp4?v=2', medio: true },
       // como foi feita: o corte em 3D (o .3mf dela; os pinos de encaixe ficaram de fora) e os bastidores
       { secao: 'processo' },
       { corte3d: { arquivo: 'projetos/boneca-lovecore/corte.glb', arma: ['p9', 'p23', 'p28', 'p31', 'p36'] } },
-      { video: 'projetos/boneca-lovecore/impressao.mp4', terco: true, inteiroCelular: true },
-      { video: 'projetos/boneca-lovecore/montagem.mp4', terco: true, parCelular: true },
-      { video: 'projetos/boneca-lovecore/acabamento.mp4', terco: true, parCelular: true },
-      // a peça pronta, de novo, depois de ver como foi feita
-      { src: 'projetos/boneca-lovecore/parede-inteira.webp', ampliar: true },
+      { video: 'projetos/boneca-lovecore/impressao.mp4', meia: true },
+      { video: 'projetos/boneca-lovecore/montagem.mp4', meia: true },
+      { video: 'projetos/boneca-lovecore/acabamento.mp4', meia: true },
+      { video: 'projetos/boneca-lovecore/caminhao.mp4', meia: true },
       // os vídeos do evento numa pastinha, igual à da Lovecore 6 (pasta.js)
       { pasta: { nome: 'mídias', itens: [
-          { video: 'projetos/boneca-lovecore/festa.mp4', som: true, poster: 'projetos/boneca-lovecore/festa-poster.webp', emPe: true, x: -37, y: -8, r: -5, w: 15, celular: { x: -30, y: -24, w: 30 } },
-          { video: 'projetos/boneca-lovecore/pista.mp4', som: true, poster: 'projetos/boneca-lovecore/pista-poster.webp', emPe: true, x: -18.5, y: -11, r: 3, w: 15, celular: { x: 0, y: -25, w: 31 } },
-          { video: 'projetos/boneca-lovecore/caminhao.mp4', poster: 'projetos/boneca-lovecore/caminhao-poster.webp', emPe: true, x: 0, y: -7, r: -2, w: 15, celular: { x: 30, y: -24, w: 30 } },
-          { video: 'projetos/boneca-lovecore/giro.mp4?v=2', poster: 'projetos/boneca-lovecore/giro-poster.webp', emPe: true, x: 18.5, y: -10, r: 4, w: 15, celular: { x: -18, y: 9, w: 34 } },
-          { video: 'projetos/boneca-lovecore/bastidor.mp4?v=2', poster: 'projetos/boneca-lovecore/bastidor-poster.webp', emPe: true, x: 37, y: -7, r: 5, w: 15, celular: { x: 18, y: 10, w: 34 } },
+          { video: 'projetos/boneca-lovecore/festa.mp4', som: true, poster: 'projetos/boneca-lovecore/festa-poster.webp', emPe: true, x: -33, y: -8, r: -5, w: 17, celular: { x: -23, y: -26, w: 40 } },
+          { video: 'projetos/boneca-lovecore/pista.mp4', som: true, poster: 'projetos/boneca-lovecore/pista-poster.webp', emPe: true, x: -11, y: -11, r: 3, w: 17, celular: { x: 23, y: -27, w: 40 } },
+          { video: 'projetos/boneca-lovecore/giro.mp4?v=2', poster: 'projetos/boneca-lovecore/giro-poster.webp', emPe: true, x: 11, y: -7, r: -2, w: 17, celular: { x: -23, y: 13, w: 40 } },
+          { video: 'projetos/boneca-lovecore/bastidor.mp4?v=2', poster: 'projetos/boneca-lovecore/bastidor-poster.webp', emPe: true, x: 33, y: -10, r: 5, w: 17, celular: { x: 23, y: 12, w: 40 } },
         ] } },
     ],
   },
@@ -681,7 +682,7 @@ function abrirProjeto(projetoId) {
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
   // o destaque do topo: o vídeo, senão a capa, senão a 1ª imagem
   const lista = (p.imagens || []).map(normalizar);
-  const destaque = p.videoTopo || p.video ? { video: p.videoTopo || p.video } : p.capa ? { src: p.capa } : lista.shift();
+  const destaque = p.imagemTopo ? { src: p.imagemTopo } : p.videoTopo || p.video ? { video: p.videoTopo || p.video } : p.capa ? { src: p.capa } : lista.shift();
 
   const midiaHTML = (m, classe = '') => {
     if (!m || m.exemplo) {
