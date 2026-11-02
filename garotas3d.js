@@ -8,8 +8,7 @@
 //  Modelos: só a forma, sem textura (.claude/… exportar3d.py a partir de uma cópia na memória do garota.blend).
 // =====================================================================
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { carregarGlb } from './carregarGlb.js';
 
 const CONFIG_GAROTAS = {
   aspecto: 5 / 4,
@@ -105,13 +104,11 @@ export function montarGarotas3d(raiz, cfg) {
   cena.add(giro);
 
   // ---------- as personagens (carrega quando escolhe; todas com altura 1 e os pés no chão) ----------
-  const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/');
-  const carregador = new GLTFLoader().setDRACOLoader(draco);
   const modelos = new Map();
   let amostras = [], atual = 0, vivo = true;
   function carregar(n) {
     if (!modelos.has(n)) {
-      modelos.set(n, carregador.loadAsync(`${cfg.pasta}garota${n}.glb`).then((g) => {
+      modelos.set(n, carregarGlb(`${cfg.pasta}garota${n}.glb`).then((g) => {
         const o = g.scene;
         o.traverse((m) => { if (m.isMesh) { m.material = material; m.frustumCulled = false; } });
         const caixa = new THREE.Box3().setFromObject(o);
@@ -357,7 +354,7 @@ export function montarGarotas3d(raiz, cfg) {
       for (const p of modelos.values()) {
         p.then(({ o }) => o.traverse((m) => { if (m.isMesh) m.geometry.dispose(); })).catch(() => {});
       }
-      chao.geometry.dispose(); chao.material.dispose(); material.dispose(); draco.dispose(); texRampa.dispose();
+      chao.geometry.dispose(); chao.material.dispose(); material.dispose(); texRampa.dispose();
       renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
     },
   };

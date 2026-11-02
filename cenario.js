@@ -2,8 +2,7 @@
 // lugares dos convidados (os marcadores do próprio jogo). Dá pra girar, arrastar e dar zoom — só dentro da cena.
 // Quem monta é o projetos.js, quando o projeto tem um item { cenario: {...} } na lista de imagens.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { carregarGlb } from './carregarGlb.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
@@ -17,8 +16,6 @@ const CONFIG_CENARIO = {
   corCeu: '#cfe9f6',
 };
 
-const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/');
-const carregador = new GLTFLoader().setDRACOLoader(draco);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const sorteio = (a, b) => a + Math.random() * (b - a);
 
@@ -107,8 +104,8 @@ export function montarCenario(raiz, cfg) {
   async function carregar() {
     const [gltfCena, ...modelos] = await Promise.all([
       // no celular, a cópia com texturas menores (.claude/ferramentas/glb_leve.py)
-      carregador.loadAsync(url(matchMedia('(pointer: coarse)').matches ? 'cenario-leve.glb' : 'cenario.glb')),
-      ...cfg.personagens.map((p) => carregador.loadAsync(url(p.id + '.glb')).catch(() => null)),
+      carregarGlb(url(matchMedia('(pointer: coarse)').matches ? 'cenario-leve.glb' : 'cenario.glb')),
+      ...cfg.personagens.map((p) => carregarGlb(url(p.id + '.glb')).catch(() => null)),
     ]);
     if (!vivo) return;
     const mundo = gltfCena.scene;

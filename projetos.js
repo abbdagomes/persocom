@@ -6,6 +6,8 @@
 //
 //  PRA EDITAR O CONTEÚDO: mexa só nas listas CATEGORIAS, DESENHOS e PROJETOS abaixo.
 // =====================================================================
+import { carregamento } from './carregamento.js';
+
 
 const CATEGORIAS = {
   '3d': { nome: '3D', cores: ['#94d3ec', '#e0f4fb'] },
@@ -157,7 +159,7 @@ const PROJETOS = [
     etiquetas: ['estudo de personagem', 'shader toon', 'animação', 'rig', 'blender'],
     imagens: [
       { src: 'projetos/menina-polvo/sentada.webp', legenda: 'render final' },
-      { modelo3d: { arquivo: 'projetos/menina-polvo/menina-polvo.glb', arquivoCelular: 'projetos/menina-polvo/menina-polvo-leve.glb', versao: 2 },
+      { modelo3d: { arquivo: 'projetos/menina-polvo/menina-polvo.glb', arquivoCelular: 'projetos/menina-polvo/menina-polvo-leve.glb', versao: 3 },
         legenda: 'o modelo em 3D com o shader — gire, arraste o sol pra mudar a luz, veja cada camada do shader e desça a barra pra ver a topologia' },
       { video: 'projetos/menina-polvo/sentada.mp4', legenda: 'animação: ela sentando', centro: true },
     ],
@@ -539,6 +541,8 @@ let observadoresMontar = [];
 let pesados = [];
 let esperaPesado = 0;
 function escolherPesado() {
+  // abriu direto no link do projeto: espera a Persocom acabar de carregar pra não somar o pico de memória dos dois
+  if (carregamento.ativo) { esperaPesado = setTimeout(escolherPesado, 300); return; }
   const tela = painel.getBoundingClientRect();
   const meio = tela.top + tela.height / 2;
   let melhor = null, menor = Infinity;

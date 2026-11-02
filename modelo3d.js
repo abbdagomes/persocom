@@ -3,12 +3,14 @@
 // (as arestas de verdade, em quadrados), abaixo continua o material. Pra cima, o material volta.
 // Quem monta é o projetos.js, quando o projeto tem um item { modelo3d: {...} } na lista de imagens.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { carregarGlb } from './carregarGlb.js';
+
+const CELULAR = matchMedia('(pointer: coarse)').matches;
+const TELA_ESTREITA = matchMedia('(max-width: 720px)');
 
 const CONFIG_MODELO = {
   luz: new THREE.Vector3(-0.05, 0.74, 0.67).normalize(),   // (é trocada pela luz do arquivo da Ana, que vem no .glb)
-  contornoMinPx: 0.45,        // o contorno usa a espessura real do Solidify; isso é só o mínimo em pixels
+  contornoMinPx: CELULAR ? 0.75 : 0.45,   // (mais fino que isso, no celular a linha ficava tracejada) o contorno usa a espessura real do Solidify; isso é só o mínimo em pixels
   corContorno: '#15161a',
   corArame: '#3a4a5e',
   corPreenchimento: '#eef2f7',   // "barro" claro por trás do arame
@@ -18,8 +20,6 @@ const CONFIG_MODELO = {
   zoomMin: 0.55, zoomMax: 1.6,
 };
 
-const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/');
-const carregador = new GLTFLoader().setDRACOLoader(draco);
 
 // pedacinho comum: posição de mundo pro fragment shader (pra saber de que lado do corte está)
 const VERT_MUNDO = /* glsl */`
@@ -220,14 +220,15 @@ export function montarModelo3d(raiz, cfg) {
   const canvas = raiz.querySelector('.modelo-cena');
   const aviso = raiz.querySelector('.modelo-carregando');
   const barra = raiz.querySelector('.modelo-barra');
+  const camadas = raiz.querySelector('.modelo-camadas');
   const trilho = raiz.querySelector('.modelo-trilho');
   const pegador = raiz.querySelector('.modelo-pegador');
   const preenchido = raiz.querySelector('.modelo-preenchido');
   const disco = raiz.querySelector('.modelo-luz-disco');
   const sol = raiz.querySelector('.modelo-sol');
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !matchMedia('(pointer: coarse)').matches, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   const cena = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(22, 1, 0.1, 500);
   const giro = new THREE.Group(); cena.add(giro);
@@ -243,6 +244,7 @@ export function montarModelo3d(raiz, cfg) {
   };
   const luzOriginal = new THREE.Vector3();
   const cascos = [];
+  const soTopologia = [];                        // só desenhados quando a barra desce (a malha dela é pesada)
   let altura = 1, fracao = 0, zoom = 1;
   let angulo = 0, velocidade = 0, arrastando = false, ultimoToque = -99, visivel = false, vivo = true, raf = 0;
   const relogio = new THREE.Clock();
@@ -250,6 +252,7 @@ export function montarModelo3d(raiz, cfg) {
   function aplicarCorte() {
     // fração 0 = linha no topo (tudo material); 1 = linha no pé (tudo topologia)
     u.corte.value = fracao <= 0.001 ? 1e5 : fracao >= 0.999 ? -1e5 : altura * (1 - fracao);
+    soTopologia.forEach((o) => { o.visible = fracao > 0.001; });
     pegador.style.top = `${fracao * 100}%`;
     preenchido.style.height = `${fracao * 100}%`;
     barra.setAttribute('aria-valuenow', Math.round(fracao * 100));
@@ -257,8 +260,8 @@ export function montarModelo3d(raiz, cfg) {
 
   async function carregar() {
     // no celular, a cópia com texturas menores (.claude/ferramentas/glb_leve.py): as de 2048 derrubavam a página no iPhone
-    const arquivo = (matchMedia('(pointer: coarse)').matches && cfg.arquivoCelular) || cfg.arquivo;
-    const gltf = await carregador.loadAsync(arquivo + (cfg.versao ? `?v=${cfg.versao}` : ''));
+    const arquivo = (CELULAR && cfg.arquivoCelular) || cfg.arquivo;
+    const gltf = await carregarGlb(arquivo + (cfg.versao ? `?v=${cfg.versao}` : ''));
     if (!vivo) return;
     const modelo = gltf.scene;
     const caixa = new THREE.Box3().setFromObject(modelo);
@@ -270,7 +273,7 @@ export function montarModelo3d(raiz, cfg) {
     const extras = [];
     modelo.traverse((o) => {
       if (o.isLineSegments || o.isLine) {
-        o.material = materialArame(u); o.renderOrder = 3; o.frustumCulled = false;
+        o.material = materialArame(u); o.renderOrder = 3; o.frustumCulled = false; soTopologia.push(o);
         return;
       }
       if (!o.isMesh) return;
@@ -288,13 +291,14 @@ export function montarModelo3d(raiz, cfg) {
         : materialLiso(m.color ? '#' + m.color.getHexString() : '#18181b', u);
       // contorno + "barro" da parte de topologia, usando a mesma malha
       const casco = new THREE.Mesh(o.geometry, materialContorno(u)); cascos.push(casco);
-      const barro = new THREE.Mesh(o.geometry, materialPreenche(u));
+      const barro = new THREE.Mesh(o.geometry, materialPreenche(u)); soTopologia.push(barro);
       extras.push([o, casco], [o, barro]);
     });
     extras.forEach(([o, e]) => o.add(e));
     luzOriginal.copy(u.luz.value);
     mostrarSol();
     giro.add(modelo);
+    aplicarCorte();
     aviso.hidden = true;
     enquadrar();
   }
@@ -305,9 +309,13 @@ export function montarModelo3d(raiz, cfg) {
     renderer.setSize(w, h, false);
     u.tela.value.set(w, h);
     camera.aspect = w / h;
-    const d = (altura * 0.62) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.min(1, camera.aspect * 1.4) * zoom;
+    // celular: os botões de camada ocupam o topo, então ela cabe inteira no espaço que sobra embaixo deles
+    const topo = TELA_ESTREITA.matches ? camadas.offsetTop + camadas.offsetHeight : 0;
+    const d = (altura * 0.62 * (h / (h - topo))) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.min(1, camera.aspect * 1.4) * zoom;
     camera.position.set(0, altura * 0.52 + 0.1 * zoom, d);
-    camera.lookAt(0, altura * (0.5 + (1 - zoom) * 0.62), 0);   // aproximando, olha mais pro rosto
+    camera.lookAt(0, altura * (0.5 + Math.max(0, 1 - zoom) * 0.62), 0);   // aproximando, olha mais pro rosto (afastando, não: ela subia pra baixo dos botões)
+    if (topo) camera.setViewOffset(w, h, 0, -topo / 2, w, h);
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
   }
 

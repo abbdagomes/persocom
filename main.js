@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { carregarGlb } from './carregarGlb.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { carregamento } from './carregamento.js';
 import { montarPintura } from './pintura.js';
@@ -311,16 +310,11 @@ window.personagem = personagem; // pra investigar pelo console (F12)
 let marcarPersonagemPronto;
 const personagemPronto = new Promise((ok) => { marcarPersonagemPronto = ok; });
 // aceita arquivos exportados com "Compressão" (Draco) ligada no Blender — ficam bem menores
-const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/');
-const carregador = new GLTFLoader().setDRACOLoader(draco);
-
-carregador.load(
-  CONFIG.modelo,
+carregarGlb(CONFIG.modelo, (e) => {
+  // a personagem é quase tudo que o site baixa: vale até 85% da barra
+  if (e.total) carregamento.progresso((e.loaded / e.total) * 0.85);
+}).then(
   (gltf) => montarPersonagem(gltf.scene, gltf.animations),
-  (e) => {
-    // a personagem é quase tudo que o site baixa: vale até 85% da barra
-    if (e.total) carregamento.progresso((e.loaded / e.total) * 0.85);
-  },
   (erro) => {
     console.warn('Não achei o modelo, usando boneco de teste.', erro);
     mostrarAviso(`Modelo não encontrado — mostrando um boneco de teste. Coloque seu arquivo em <b>${CONFIG.modelo}</b>`);
@@ -1059,12 +1053,11 @@ for (let i = 0; i < CONFIG.quantidadeBolhas; i++) {
 // Troca as bolhas de teste pelos modelos do Blender (se existirem).
 // Cada bolha usa um dos modelos da lista, alternando.
 async function carregarBolhasDoBlender() {
-  const loader = carregador;
   const modelos = [];
   for (const caminho of CONFIG.modelosBolhas) {
     let gltf;
     try {
-      gltf = await loader.loadAsync(caminho);
+      gltf = await carregarGlb(caminho);
     } catch {
       console.warn('Não achei o modelo de bolha:', caminho);
       continue;

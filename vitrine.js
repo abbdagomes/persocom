@@ -3,8 +3,7 @@
 // e bolhas de expressão (carinhas de texto) que trocam o rosto na hora. Todos ficam em T-pose, parados.
 // Quem monta é o projetos.js, quando o projeto tem um item { vitrine: {...} } na lista de imagens.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { carregarGlb } from './carregarGlb.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const CONFIG_VITRINE = {
@@ -14,8 +13,6 @@ const CONFIG_VITRINE = {
   fov: 24,
 };
 
-const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/');
-const carregador = new GLTFLoader().setDRACOLoader(draco);
 const carregadorTextura = new THREE.TextureLoader();
 const CELULAR = matchMedia('(pointer: coarse)').matches;
 const TELA_ESTREITA = matchMedia('(max-width: 720px)');
@@ -23,7 +20,7 @@ const cacheModelos = new Map();   // id → Promise<gltf>
 const cacheRostos = new Map();    // url → Promise<Texture>
 
 function carregarModelo(url) {
-  if (!cacheModelos.has(url)) cacheModelos.set(url, carregador.loadAsync(url));
+  if (!cacheModelos.has(url)) cacheModelos.set(url, carregarGlb(url));
   return cacheModelos.get(url);
 }
 function carregarRosto(url) {
