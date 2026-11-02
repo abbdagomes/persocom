@@ -291,13 +291,17 @@ export function montarGarotas3d(raiz, cfg) {
   canvas.addEventListener('pointercancel', soltar);
 
   // ---------- tamanho e laço (só roda enquanto aparece) ----------
+  const _alvo = new THREE.Vector3(0, 0.34, 0);
   let w = 1, h = 1;
   function tamanho() {
     const r = palco.getBoundingClientRect();
     if (!r.width) return;
     w = r.width; h = r.height;
     renderer.setSize(w, h, false);
-    const alt = G.alturaQuadro, larg = alt * (w / h);
+    // tela em pé (celular): mais folga, ela fica entre os números (em cima) e a rampa (embaixo)
+    const emPe = w / h < 1;
+    _alvo.y = emPe ? 0.42 : 0.34;
+    const alt = emPe ? 1.75 : G.alturaQuadro, larg = alt * (w / h);
     camera.left = -larg / 2; camera.right = larg / 2; camera.top = alt / 2; camera.bottom = -alt / 2;
     camera.updateProjectionMatrix();
   }
@@ -305,7 +309,7 @@ export function montarGarotas3d(raiz, cfg) {
   obsTamanho.observe(palco);
   tamanho();
 
-  const DIST = 5, _alvo = new THREE.Vector3(0, 0.34, 0), _frente = new THREE.Vector3();
+  const DIST = 5, _frente = new THREE.Vector3();
   function desenhar(dt) {
     if (!mexeu) yaw += G.giroSozinho * dt;
     giro.rotation.y = yaw;

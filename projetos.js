@@ -157,7 +157,7 @@ const PROJETOS = [
     etiquetas: ['estudo de personagem', 'shader toon', 'animação', 'rig', 'blender'],
     imagens: [
       { src: 'projetos/menina-polvo/sentada.webp', legenda: 'render final' },
-      { modelo3d: { arquivo: 'projetos/menina-polvo/menina-polvo.glb', versao: 2 },
+      { modelo3d: { arquivo: 'projetos/menina-polvo/menina-polvo.glb', arquivoCelular: 'projetos/menina-polvo/menina-polvo-leve.glb', versao: 2 },
         legenda: 'o modelo em 3D com o shader — gire, arraste o sol pra mudar a luz, veja cada camada do shader e desça a barra pra ver a topologia' },
       { video: 'projetos/menina-polvo/sentada.mp4', legenda: 'animação: ela sentando', centro: true },
     ],
@@ -534,9 +534,33 @@ function tocarNaTela(raiz) {
 }
 const CELULAR = matchMedia('(pointer: coarse)').matches;   // celular / tablet (pouca memória de vídeo)
 let observadoresMontar = [];
+// celular: só o 3D pesado mais perto do meio da tela fica ligado (o Tony tinha o elenco e o cenário juntos e a memória
+// do iPhone estourava). Olha de novo um pouquinho depois que a pessoa para de rolar.
+let pesados = [];
+let esperaPesado = 0;
+function escolherPesado() {
+  const tela = painel.getBoundingClientRect();
+  const meio = tela.top + tela.height / 2;
+  let melhor = null, menor = Infinity;
+  for (const p of pesados) {
+    const r = p.lugar.getBoundingClientRect();
+    if (r.bottom < tela.top - 150 || r.top > tela.bottom + 150) continue;      // longe da tela
+    const d = Math.abs((r.top + r.bottom) / 2 - meio);
+    if (d < menor) { menor = d; melhor = p; }
+  }
+  for (const p of pesados) if (p !== melhor) p.desligar();
+  melhor?.ligar();
+}
+function agendarPesado() {
+  if (!pesados.length) return;
+  clearTimeout(esperaPesado);
+  esperaPesado = setTimeout(escolherPesado, 160);
+}
+painel.addEventListener('scroll', agendarPesado, { passive: true });
 const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d']);
 function desligarVitrine() {
   observadoresMontar.forEach((o) => o.disconnect()); observadoresMontar = [];
+  clearTimeout(esperaPesado); pesados = [];
   obsNaTela?.disconnect(); obsNaTela = null;
   vitrineAtual?.destruir(); vitrineAtual = null;
   cenarioAtual?.destruir(); cenarioAtual = null;
@@ -657,7 +681,8 @@ function abrirProjeto(projetoId) {
   // os visualizadores 3D / câmera só carregam quando o projeto abre
   // Cada um carrega só quando chega perto da tela (antes: todos ao abrir o projeto — no celular, o Tony abria
   // 2 cenas 3D de uma vez e a memória estourava: o navegador dava erro e recarregava o site).
-  // No celular, o que fica bem longe da tela é desmontado (libera a placa de vídeo) e volta quando a pessoa rola de volta.
+  // No celular, só um 3D pesado fica ligado: o mais perto do meio da tela (escolherPesado). Os outros são desmontados
+  // (liberam a placa de vídeo) e voltam quando a pessoa rola até eles.
   const montar = (seletor, chave, arquivo, funcao, guardar) => {
     const lugar = det.querySelector(seletor);
     if (!lugar) return;
@@ -682,11 +707,19 @@ function abrirProjeto(projetoId) {
       guardar(null);
       lugar.innerHTML = '';
     };
+    if (CELULAR && PESADOS.has(chave)) {
+      lugar.style.minHeight = '60vh';            // já guarda o lugar (vazio, os vizinhos ficariam todos "perto")
+      pesados.push({
+        lugar,
+        ligar() { perto = true; ligar(); },
+        desligar() { perto = false; desligar(); },
+      });
+      return;
+    }
     const obs = new IntersectionObserver(([e]) => {
       perto = e.isIntersecting;
       if (perto) ligar();
-      else if (CELULAR && PESADOS.has(chave)) desligar();   // só os que usam a placa de vídeo (3D / câmera)
-    }, { root: painel, rootMargin: CELULAR ? '500px 0px' : '900px 0px' });
+    }, { root: painel, rootMargin: '900px 0px' });
     obs.observe(lugar);
     observadoresMontar.push(obs);
   };
@@ -700,6 +733,7 @@ function abrirProjeto(projetoId) {
   montar('[data-pasta]', 'pasta', './pasta.js', 'montarPasta', (v) => { pastaAtual = v; });
   montar('[data-comparar]', 'comparar', './comparar.js', 'montarComparar', (v) => { compararAtual = v; });
   montar('[data-garotas3d]', 'garotas3d', './garotas3d.js', 'montarGarotas3d', (v) => { garotasAtual = v; });
+  agendarPesado();
   montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
 
   // o vídeo com som começa sozinho quando a pessoa chega nele (e pausa quando ela rola pra longe);

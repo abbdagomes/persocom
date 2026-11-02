@@ -17,6 +17,8 @@ const CONFIG_VITRINE = {
 const draco = new DRACOLoader().setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/');
 const carregador = new GLTFLoader().setDRACOLoader(draco);
 const carregadorTextura = new THREE.TextureLoader();
+const CELULAR = matchMedia('(pointer: coarse)').matches;
+const TELA_ESTREITA = matchMedia('(max-width: 720px)');
 const cacheModelos = new Map();   // id → Promise<gltf>
 const cacheRostos = new Map();    // url → Promise<Texture>
 
@@ -69,7 +71,7 @@ export function montarVitrine(raiz, cfg) {
   const barraExpr = raiz.querySelector('.vitrine-expressoes');
 
   // ---------- cena ----------
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !matchMedia('(pointer: coarse)').matches, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   renderer.toneMapping = THREE.NeutralToneMapping;
   const cena = new THREE.Scene();
@@ -110,14 +112,30 @@ export function montarVitrine(raiz, cfg) {
   let transicao = null;        // { tipo:'sai'|'entra', t0, alvo }
   let visivel = false, vivo = true, relogio = new THREE.Clock(), raf = 0;
   let pedido = 0;              // evita corrida se trocar rápido
+  let folga = 0, folgaAtual = 0;   // quanto o personagem sobe (px) pra dar lugar às bolhas
 
   function tamanho() {
-    const w = canvas.clientWidth, h = canvas.clientHeight;   // no celular o canvas não ocupa o palco todo
+    const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     enquadrar();
+    medirFolga();
+    folgaAtual = folga;
+    deslocar();
+  }
+  // celular: as bolhas ficam embaixo do personagem, então ele sobe só o tanto que elas ocupam
+  // (Tony e palhaço não têm: desce e fica no meio do espaço entre o texto de cima e o fim do palco)
+  function medirFolga() {
+    folga = !TELA_ESTREITA.matches ? 0 : barraExpr.hidden ? -70 : barraExpr.offsetHeight + 20;
+    palco.style.setProperty('--folga', folga + 'px');
+  }
+  function deslocar() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    if (folgaAtual) camera.setViewOffset(w, h, 0, folgaAtual / 2, w, h);
+    else camera.clearViewOffset();
   }
   function enquadrar() {
     // pedestal tem raio 1; o personagem é escalado pra caber em "alturaAlvo"
@@ -148,6 +166,7 @@ export function montarVitrine(raiz, cfg) {
       b.classList.toggle('ativo', b.dataset.expr === expressao);
     });
     barraExpr.hidden = !p.expressoes?.length;
+    medirFolga();
     titulo.textContent = p.nome;
     frase.textContent = p.frase || '';
   }
@@ -209,7 +228,7 @@ export function montarVitrine(raiz, cfg) {
     transicao = { tipo: 'entra', t0: relogio.elapsedTime, alvo: escala };
     suporte.scale.setScalar(0.001);
     // já deixa o próximo carregando
-    carregarModelo(url(personagens[(indice + 1) % personagens.length].id + '.glb')).catch(() => {});
+    if (!CELULAR) carregarModelo(url(personagens[(indice + 1) % personagens.length].id + '.glb')).catch(() => {});
   }
 
   function escolherExpressao(id) {
@@ -263,6 +282,10 @@ export function montarVitrine(raiz, cfg) {
       if (t - ultimoToque > CONFIG_VITRINE.voltaGirarDepois) angulo += CONFIG_VITRINE.giroSozinho * dt;
     }
     giro.rotation.y = angulo;
+    if (Math.abs(folga - folgaAtual) > 0.5) {
+      folgaAtual += (folga - folgaAtual) * (1 - Math.pow(0.002, dt));   // desliza até o lugar novo
+      deslocar();
+    } else if (folgaAtual !== folga) { folgaAtual = folga; deslocar(); }
     if (atual) {
       if (transicao) {
         const k = Math.min(1, (t - transicao.t0) / (transicao.tipo === 'sai' ? 0.18 : 0.45));
@@ -287,6 +310,8 @@ export function montarVitrine(raiz, cfg) {
       giro.clear();
       renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
       pmrem.dispose();
+      // celular: solta os modelos e rostos guardados (senão continuam na memória depois de sair da tela)
+      if (CELULAR) { cacheModelos.clear(); cacheRostos.clear(); }
     },
   };
 }

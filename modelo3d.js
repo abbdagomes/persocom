@@ -226,7 +226,7 @@ export function montarModelo3d(raiz, cfg) {
   const disco = raiz.querySelector('.modelo-luz-disco');
   const sol = raiz.querySelector('.modelo-sol');
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !matchMedia('(pointer: coarse)').matches, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   const cena = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(22, 1, 0.1, 500);
@@ -256,7 +256,9 @@ export function montarModelo3d(raiz, cfg) {
   }
 
   async function carregar() {
-    const gltf = await carregador.loadAsync(cfg.arquivo + (cfg.versao ? `?v=${cfg.versao}` : ''));
+    // no celular, a cópia com texturas menores (.claude/ferramentas/glb_leve.py): as de 2048 derrubavam a página no iPhone
+    const arquivo = (matchMedia('(pointer: coarse)').matches && cfg.arquivoCelular) || cfg.arquivo;
+    const gltf = await carregador.loadAsync(arquivo + (cfg.versao ? `?v=${cfg.versao}` : ''));
     if (!vivo) return;
     const modelo = gltf.scene;
     const caixa = new THREE.Box3().setFromObject(modelo);

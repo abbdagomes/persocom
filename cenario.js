@@ -41,7 +41,7 @@ export function montarCenario(raiz, cfg) {
   const botaoSair = raiz.querySelector('.cenario-sair');
 
   // ---------- cena ----------
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !matchMedia('(pointer: coarse)').matches });
   renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -52,7 +52,7 @@ export function montarCenario(raiz, cfg) {
   const sol = new THREE.DirectionalLight(0xfff4e0, 2.2);
   sol.position.set(14, 22, 10);
   sol.castShadow = true;
-  sol.shadow.mapSize.set(2048, 2048);
+  sol.shadow.mapSize.setScalar(matchMedia('(pointer: coarse)').matches ? 1024 : 2048);
   Object.assign(sol.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 70 });
   sol.shadow.bias = -0.0005;
   cena.add(sol, sol.target);
@@ -106,7 +106,8 @@ export function montarCenario(raiz, cfg) {
 
   async function carregar() {
     const [gltfCena, ...modelos] = await Promise.all([
-      carregador.loadAsync(url('cenario.glb')),
+      // no celular, a cópia com texturas menores (.claude/ferramentas/glb_leve.py)
+      carregador.loadAsync(url(matchMedia('(pointer: coarse)').matches ? 'cenario-leve.glb' : 'cenario.glb')),
       ...cfg.personagens.map((p) => carregador.loadAsync(url(p.id + '.glb')).catch(() => null)),
     ]);
     if (!vivo) return;

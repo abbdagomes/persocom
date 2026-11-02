@@ -1456,8 +1456,11 @@ addEventListener('resize', () => {
 // enquanto carrega, o 3D fica pixelado e vai ganhando resolução aos poucos
 const resolucaoFinal = Math.min(window.devicePixelRatio, 2);
 let resolucaoAtual = resolucaoFinal;
+const CELULAR = matchMedia('(pointer: coarse)').matches;
+let desenharUmaVez = false;      // mudou a resolução: precisa de um quadro novo mesmo com projeto aberto
 function atualizarPixelado() {
-  let alvoRes = resolucaoFinal;
+  // celular com projeto aberto: ela fica atrás do painel, então a tela dela encolhe e sobra memória pros 3D do projeto
+  let alvoRes = CELULAR && rolagem.projetoAberto ? 0.25 : resolucaoFinal;
   if (carregamento.ativo) {
     const r = carregamento.revelado;
     // 12 "degraus" de resolução, começando bem pixelado
@@ -1467,6 +1470,7 @@ function atualizarPixelado() {
     resolucaoAtual = alvoRes;
     renderer.setPixelRatio(alvoRes);
     renderer.setSize(innerWidth, innerHeight);
+    desenharUmaVez = true;
   }
   canvas.classList.toggle('pixelado', carregamento.ativo);
 }
@@ -1477,7 +1481,8 @@ renderer.setAnimationLoop(() => {
   lerRolagem();
   const dt = Math.min(relogio.getDelta(), 0.05);
   // projeto aberto: ela fica atrás do painel (borrada) — não precisa redesenhar (sobra memória e bateria pros 3D do projeto)
-  if (rolagem.projetoAberto && !carregamento.ativo) return;
+  if (rolagem.projetoAberto && !carregamento.ativo && !desenharUmaVez) return;
+  desenharUmaVez = false;
   const t = relogio.elapsedTime;
   materialChao.uniforms.uDeslocamento.value -= CONFIG.chaoVelocidade * dt;
   atualizarPersonagem(dt);
