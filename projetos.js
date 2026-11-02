@@ -15,20 +15,10 @@ const CATEGORIAS = {
   ilustracao: { nome: 'ilustração', cores: ['#f7a8cf', '#ffe3f0'] },
 };
 
-// ---------- DESENHOS (entram na grade como quadradinhos da ilustração) ----------
+// ---------- DESENHOS soltos na grade ----------
+// (agora os desenhos dela ficam no papel gigante: o projeto 'desenhos', mais abaixo. Esta lista continua pra um desenho avulso)
 // cada desenho: { src: 'projetos/ilustracao/nome.webp', titulo: 'nome do desenho', ano: '2025' }
-// na grade aparece recortado em quadrado; clicando, abre grande e inteiro (com setas pra passar).
-// Enquanto não tem imagem: { exemplo: 'texto', proporcao: '3 / 4' } mostra um quadro em degradê daquele formato.
-const DESENHOS = [
-  { exemplo: 'desenho 1', proporcao: '3 / 4' },
-  { exemplo: 'desenho 2', proporcao: '1 / 1' },
-  { exemplo: 'desenho 3', proporcao: '4 / 5' },
-  { exemplo: 'desenho 4', proporcao: '4 / 3' },
-  { exemplo: 'desenho 5', proporcao: '2 / 3' },
-  { exemplo: 'desenho 6', proporcao: '1 / 1' },
-  { exemplo: 'desenho 7', proporcao: '3 / 4' },
-  { exemplo: 'desenho 8', proporcao: '5 / 4' },
-];
+const DESENHOS = [];
 
 // Cada projeto:
 //   id          → nome curto sem espaço (vira o link: seusite.com/#game-jam)
@@ -284,6 +274,41 @@ const PROJETOS = [
 
   // ---------------- ILUSTRAÇÃO (na grade, antes dos DESENHOS) ----------------
   {
+    // não abre o painel: abre o papel gigante (papel.js). Medidas em "pontos" do papel; tipo lapis = o traço direto no papel,
+    // tipo folha = uma folha colada com fita. As imagens saem de .claude/ferramentas/tratar_desenhos.py
+    id: 'desenhos', categoria: 'ilustracao', destaque: true, titulo: 'Desenhos', resumo: 'sketches e lápis de cor',
+    capa: 'projetos/desenhos/capa.webp', link: '', imagens: [],
+    papel: { largura: 4940, altura: 4232, pasta: 'projetos/desenhos/', itens: [
+      { nome: 'cabelo', tipo: 'lapis', x: 697, y: 103, w: 680, a: 0.75 },
+      { nome: 'caretas', tipo: 'lapis', x: 17, y: 106, w: 640, a: 0.702 },
+      { nome: 'galaxia', tipo: 'folha', x: 2184, y: 125, w: 500, r: 1.0, a: 0.708 },
+      { nome: 'soldado', tipo: 'lapis', x: 2825, y: 161, w: 610, a: 0.735 },
+      { nome: 'barbudo', tipo: 'lapis', x: 3510, y: 165, w: 680, a: 0.722 },
+      { nome: 'narigudos', tipo: 'lapis', x: 1558, y: 886, w: 1200, a: 1.375 },
+      { nome: 'arcoiris', tipo: 'folha', x: 4209, y: 144, w: 680, r: 0.6, a: 1.333 },
+      { nome: 'coques', tipo: 'lapis', x: 4255, y: 759, w: 620, a: 0.781 },
+      { nome: 'capuz', tipo: 'lapis', x: 767, y: 1056, w: 560, a: 0.714 },
+      { nome: 'batom', tipo: 'folha', x: 148, y: 1115, w: 500, r: -2.3, a: 0.743 },
+      { nome: 'rascunho', tipo: 'lapis', x: 2809, y: 1130, w: 660, a: 0.75 },
+      { nome: 'menino', tipo: 'lapis', x: 3503, y: 1181, w: 660, a: 0.705 },
+      { nome: 'kraft', tipo: 'folha', x: 2911, y: 2117, w: 470, r: 1.3, a: 0.694 },
+      { nome: 'pedra', tipo: 'lapis', x: 4234, y: 1595, w: 540, a: 0.75 },
+      { nome: 'cinco', tipo: 'lapis', x: 1419, y: 1872, w: 660, a: 0.708 },
+      { nome: 'deitada', tipo: 'lapis', x: 2140, y: 1885, w: 520, a: 0.76 },
+      { nome: 'trancas', tipo: 'folha', x: 762, y: 1891, w: 540, r: -2.6, a: 0.75 },
+      { nome: 'espada', tipo: 'lapis', x: 30, y: 1922, w: 560, a: 0.737 },
+      { nome: 'mascara', tipo: 'lapis', x: 3530, y: 2219, w: 590, a: 0.75 },
+      { nome: 'laranja', tipo: 'folha', x: 4243, y: 2452, w: 520, r: 2.5, a: 0.75 },
+      { nome: 'caderno', tipo: 'lapis', x: 109, y: 2749, w: 1240, a: 1.436 },
+      { nome: 'cogumelo', tipo: 'lapis', x: 2157, y: 2653, w: 430, a: 0.766 },
+      { nome: 'camarao', tipo: 'folha', x: 2189, y: 3354, w: 520, r: -1.8, a: 0.75 },
+      { nome: 'vinil', tipo: 'lapis', x: 1439, y: 2906, w: 590, a: 0.729 },
+      { nome: 'rostos', tipo: 'lapis', x: 2832, y: 2873, w: 620, a: 0.78 },
+      { nome: 'chifrinhos', tipo: 'lapis', x: 3688, y: 3042, w: 410, a: 0.416 },
+      { nome: 'chifres', tipo: 'folha', x: 44, y: 3659, w: 600, r: 2.2, a: 1.272 },
+    ] },
+  },
+  {
     id: 'emoji-lab', categoria: 'ilustracao', titulo: 'Emoji Lab', resumo: 'colagem digital · vetor + 3D',
     texto: 'Série de 8 emojis autorais que desmontam a silhueta clássica do emoji. Cada peça é uma colagem digital entre '
       + 'vetor e render 3D, com reflexo de globo de festa, brilho, metal e texturas líquidas; algumas ganharam animação '
@@ -520,6 +545,7 @@ let revistaAtual = null;   // a revista 3D (se tiver)
 let pastaAtual = null;     // a pastinha com as fotos do dia (se tiver)
 let compararAtual = null;  // o antes / depois com a barrinha (se tiver)
 let garotasAtual = null;   // a personagem 3D com a cor de profundidade (se tiver)
+let papelAtual = null;     // o papel gigante dos desenhos (se estiver aberto)
 let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
 let playersAtuais = [];    // os players do vídeo com som (player.js)
 // vídeos mudos em loop: tocam só os que estão na tela (ou quase), os outros ficam parados
@@ -577,6 +603,7 @@ function desligarVitrine() {
   pastaAtual?.destruir(); pastaAtual = null;
   compararAtual?.destruir(); compararAtual = null;
   garotasAtual?.destruir(); garotasAtual = null;
+  papelAtual?.destruir(); papelAtual = null;
   somAtual?.disconnect(); somAtual = null;
   playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
 }
@@ -588,6 +615,16 @@ function abrirProjeto(projetoId) {
   projetoAberto = projetoId;
   fecharZoom();
   desligarVitrine();
+  if (p.papel) {
+    // o papel gigante cobre a tela toda; a Persocom para de desenhar igual a um projeto aberto
+    galeria.classList.remove('aberta');
+    document.documentElement.classList.add('travado');
+    document.body.classList.add('projeto-aberto');
+    import('./papel.js').then((m) => {
+      if (projetoAberto === projetoId) papelAtual = m.montarPapel({ ...p.papel, abertura: abertoPeloSite, aoFechar: fecharPeloBotao });
+    });
+    return true;
+  }
   const c = CATEGORIAS[p.categoria];
   galeria.style.setProperty('--c1', c.cores[0]);
   galeria.style.setProperty('--c2', c.cores[1]);

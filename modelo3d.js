@@ -10,7 +10,7 @@ const TELA_ESTREITA = matchMedia('(max-width: 720px)');
 
 const CONFIG_MODELO = {
   luz: new THREE.Vector3(-0.05, 0.74, 0.67).normalize(),   // (é trocada pela luz do arquivo da Ana, que vem no .glb)
-  contornoMinPx: CELULAR ? 0.75 : 0.45,   // (mais fino que isso, no celular a linha ficava tracejada) o contorno usa a espessura real do Solidify; isso é só o mínimo em pixels
+  contornoMinPx: 0.45,        // o contorno usa a espessura real do Solidify; isso é só o mínimo em pixels
   corContorno: '#15161a',
   corArame: '#3a4a5e',
   corPreenchimento: '#eef2f7',   // "barro" claro por trás do arame
