@@ -227,7 +227,7 @@ export function montarModelo3d(raiz, cfg) {
   const sol = raiz.querySelector('.modelo-sol');
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   const cena = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(22, 1, 0.1, 500);
   const giro = new THREE.Group(); cena.add(giro);
@@ -400,7 +400,7 @@ export function montarModelo3d(raiz, cfg) {
     destruir() {
       vivo = false; cancelAnimationFrame(raf);
       ro.disconnect(); io.disconnect();
-      renderer.dispose();
+      renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
     },
   };
 }

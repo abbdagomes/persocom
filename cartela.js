@@ -6,8 +6,9 @@
 //               videoInteiro: 'loop sem cortar.mp4' (opcional: aberto grande toca o vídeo no tamanho original) }
 // =====================================================================
 const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// (na cartela os vídeos só tocam na tela — ver obsTela; aberto grande, toca direto)
 const midia = (e, classe = '') => (e.video
-  ? `<video class="${classe}" src="${escapar(e.video)}" poster="${escapar(e.src)}" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback></video>`
+  ? `<video class="${classe}" src="${escapar(e.video)}" poster="${escapar(e.src)}" ${classe ? 'autoplay' : 'preload="none"'} muted loop playsinline disablepictureinpicture disableremoteplayback></video>`
   : `<img class="${classe}" src="${escapar(e.src)}" alt="${escapar(e.nome)}" loading="lazy" draggable="false">`);
 
 export function montarCartela(raiz, cfg) {
@@ -20,6 +21,14 @@ export function montarCartela(raiz, cfg) {
       ${e.video ? '<span class="cartela-selo">animado</span>' : ''}
       ${comNome ? `<span class="cartela-nome">${escapar(e.nome)}</span>` : ''}
     </button>`).join('')}</div>`;
+
+  const obsTela = new IntersectionObserver((avisos) => {
+    for (const a of avisos) {
+      if (a.isIntersecting) a.target.play().catch(() => {});
+      else a.target.pause();
+    }
+  }, { rootMargin: '250px 0px' });
+  raiz.querySelectorAll('.cartela video').forEach((v) => obsTela.observe(v));
 
   // aberto em tamanho grande
   const zoom = document.createElement('div');
@@ -66,6 +75,7 @@ export function montarCartela(raiz, cfg) {
   return {
     destruir() {
       removeEventListener('keydown', teclas, true);
+      obsTela.disconnect();
       zoom.remove();
     },
   };

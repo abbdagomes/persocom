@@ -42,7 +42,7 @@ export function montarCenario(raiz, cfg) {
 
   // ---------- cena ----------
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const cena = new THREE.Scene();
@@ -239,7 +239,7 @@ export function montarCenario(raiz, cfg) {
       document.removeEventListener('pointerdown', foraDoPalco);
       removeEventListener('keydown', esc_, true);
       controles.dispose();
-      renderer.dispose();
+      renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
     },
   };
 }

@@ -164,12 +164,24 @@ const PROJETOS = [
   },
   {
     id: 'garotas-3d', categoria: '3d', titulo: 'Garotas 3D', resumo: 'composições e animações · depth maps',
-    texto: 'Série de composições e animações com 4 personagens 3D autorais. Para fugir do acabamento padrão do 3D, a solução '
-      + 'foi usar mapas de profundidade (depth maps) aplicados direto como textura, o que deu à série um visual gráfico, '
-      + 'colorido e lúdico.',
-    capa: '', video: '', link: '',
+    texto: 'Série de composições e animações com 4 personagens 3D autorais. O ponto de partida era a estética anime; no processo, '
+      + 'as texturas deram lugar a mapas de profundidade, e a cor passou a dizer o que está perto e o que está longe. O resultado '
+      + 'é uma série gráfica, colorida e lúdica.',
+    // capa parada (o grupo rosa); passando o mouse e no topo, o vídeo roxo
+    capa: 'projetos/garotas-3d/capa.webp', video: 'projetos/garotas-3d/capa-troca.mp4', videoTopo: 'projetos/garotas-3d/roxo.mp4',
+    link: '', blocoBranco: true,
     etiquetas: ['personagens', 'animação', 'depth maps', 'experimental'],
-    imagens: [],
+    imagens: [
+      // o processo: a mesma cena com as texturas (anime) e com a cor de profundidade (render de uma cópia do garota.blend)
+      { comparar: { antes: 'projetos/garotas-3d/antes.webp?v=8', depois: 'projetos/garotas-3d/depois.webp?v=4', rotuloAntes: 'anime', rotuloDepois: 'profundidade' }, sangria: true },
+      // o mesmo efeito ao vivo: a cor vem da distância até a câmera, então muda ao girar (garotas3d.js)
+      { garotas3d: { pasta: 'projetos/garotas-3d/', quantas: 4 } },
+      // a série, uma cor de cada vez
+      { src: 'projetos/garotas-3d/rosa.webp', meia: true, ampliar: true },
+      { src: 'projetos/garotas-3d/verde.webp', meia: true, ampliar: true },
+      { video: 'projetos/garotas-3d/roxo.mp4', meia: true },
+      { video: 'projetos/garotas-3d/azul.mp4?v=2', meia: true },
+    ],
   },
   // caixa Nike x MAD: entra quando tiver texto e imagens
 
@@ -504,9 +516,28 @@ let gradeAtual = null;     // a grade de letras do Cynth (se tiver)
 let cartelaAtual = null;   // a cartela de emojis (se tiver)
 let revistaAtual = null;   // a revista 3D (se tiver)
 let pastaAtual = null;     // a pastinha com as fotos do dia (se tiver)
+let compararAtual = null;  // o antes / depois com a barrinha (se tiver)
+let garotasAtual = null;   // a personagem 3D com a cor de profundidade (se tiver)
 let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
 let playersAtuais = [];    // os players do vídeo com som (player.js)
+// vídeos mudos em loop: tocam só os que estão na tela (ou quase), os outros ficam parados
+let obsNaTela = null;
+function tocarNaTela(raiz) {
+  obsNaTela?.disconnect();
+  obsNaTela = new IntersectionObserver((avisos) => {
+    for (const a of avisos) {
+      if (a.isIntersecting) a.target.play().catch(() => {});
+      else a.target.pause();
+    }
+  }, { root: painel, rootMargin: '250px 0px' });
+  raiz.querySelectorAll('video[data-na-tela]').forEach((v) => obsNaTela.observe(v));
+}
+const CELULAR = matchMedia('(pointer: coarse)').matches;   // celular / tablet (pouca memória de vídeo)
+let observadoresMontar = [];
+const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d']);
 function desligarVitrine() {
+  observadoresMontar.forEach((o) => o.disconnect()); observadoresMontar = [];
+  obsNaTela?.disconnect(); obsNaTela = null;
   vitrineAtual?.destruir(); vitrineAtual = null;
   cenarioAtual?.destruir(); cenarioAtual = null;
   modeloAtual?.destruir(); modeloAtual = null;
@@ -516,6 +547,8 @@ function desligarVitrine() {
   cartelaAtual?.destruir(); cartelaAtual = null;
   revistaAtual?.destruir(); revistaAtual = null;
   pastaAtual?.destruir(); pastaAtual = null;
+  compararAtual?.destruir(); compararAtual = null;
+  garotasAtual?.destruir(); garotasAtual = null;
   somAtual?.disconnect(); somAtual = null;
   playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
 }
@@ -552,6 +585,8 @@ function abrirProjeto(projetoId) {
   //   { video: '...', ampliar: true, grande: '...mp4' }              (clicando abre grande; "grande" = versão em resolução maior)
   //   { pasta: { nome, itens: [{ src | video, x, y, r, w }] } }       (pastinha: clicando, as fotos saem e se espalham — pasta.js)
   //   { instagram: 'https://www.instagram.com/reel/...' }            (o post inteiro, dentro da página)
+  //   { comparar: { antes, depois, rotuloAntes, rotuloDepois } }     (duas imagens com uma barrinha pra arrastar — comparar.js)
+  //   { garotas3d: { pasta, quantas } }                              (personagem 3D com a cor de profundidade e uma rampa de cores — garotas3d.js)
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
   // o destaque do topo: o vídeo, senão a capa, senão a 1ª imagem
   const lista = (p.imagens || []).map(normalizar);
@@ -568,6 +603,8 @@ function abrirProjeto(projetoId) {
     if (m.testador) return `<div class="testador" data-testador></div>`;
     if (m.cartela) return `<div class="cartela-lugar" data-cartela></div>`;
     if (m.pasta) return `<div class="pasta-lugar" data-pasta></div>`;
+    if (m.comparar) return `<div class="comparar-lugar" data-comparar></div>`;
+    if (m.garotas3d) return `<div class="garotas3d-lugar" data-garotas3d></div>`;
     // post do Instagram (o próprio post, com o crédito de quem postou); o endereço vem do link "copiar link"
     if (m.instagram) {
       const id = (/instagram\.com\/(?:reel|p)\/([\w-]+)/.exec(m.instagram) || [])[1];
@@ -580,7 +617,8 @@ function abrirProjeto(projetoId) {
     // vídeo com som: os botões são todos do site (player.js), não os do navegador
     if (m.video && m.som) return `<div class="video-som" data-player><video class="${classe} com-som" src="${escapar(m.video)}"${m.poster ? ` poster="${escapar(m.poster)}"` : ''} preload="metadata" playsinline disablepictureinpicture></video></div>`;
     // vídeos "planos": sem botões nem barra por cima (pedido da Ana) — tocam sozinhos, sem som, em loop
-    if (m.video) return `<video class="${classe}" src="${escapar(m.video)}" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback></video>`;
+    // (só baixam e tocam quando chegam perto da tela: antes tocavam todos juntos, pesado no celular — ver tocarNaTela)
+    if (m.video) return `<video class="${classe}" data-na-tela src="${escapar(m.video)}" muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback></video>`;
     return `<img class="${classe}" src="${escapar(m.src)}" alt="${escapar(m.legenda || p.titulo)}" loading="lazy">`;
   };
 
@@ -617,14 +655,40 @@ function abrirProjeto(projetoId) {
     </div>`;
 
   // os visualizadores 3D / câmera só carregam quando o projeto abre
+  // Cada um carrega só quando chega perto da tela (antes: todos ao abrir o projeto — no celular, o Tony abria
+  // 2 cenas 3D de uma vez e a memória estourava: o navegador dava erro e recarregava o site).
+  // No celular, o que fica bem longe da tela é desmontado (libera a placa de vídeo) e volta quando a pessoa rola de volta.
   const montar = (seletor, chave, arquivo, funcao, guardar) => {
     const lugar = det.querySelector(seletor);
     if (!lugar) return;
     const cfg = lista.find((m) => m[chave])[chave];
-    import(arquivo).then((modulo) => {
-      if (!lugar.isConnected) return;          // já saiu do projeto enquanto carregava
-      guardar(modulo[funcao](lugar, cfg));
-    });
+    let instancia = null, perto = false, carregando = false;
+    const ligar = () => {
+      if (instancia || carregando) return;
+      carregando = true;
+      import(arquivo).then((modulo) => {
+        carregando = false;
+        if (!lugar.isConnected || !perto || instancia) return;   // saiu do projeto (ou de perto) enquanto carregava
+        lugar.style.minHeight = '';
+        instancia = modulo[funcao](lugar, cfg);
+        guardar(instancia);
+      });
+    };
+    const desligar = () => {
+      if (!instancia) return;
+      lugar.style.minHeight = `${lugar.offsetHeight}px`;   // segura a altura (a página não pula)
+      instancia.destruir();
+      instancia = null;
+      guardar(null);
+      lugar.innerHTML = '';
+    };
+    const obs = new IntersectionObserver(([e]) => {
+      perto = e.isIntersecting;
+      if (perto) ligar();
+      else if (CELULAR && PESADOS.has(chave)) desligar();   // só os que usam a placa de vídeo (3D / câmera)
+    }, { root: painel, rootMargin: CELULAR ? '500px 0px' : '900px 0px' });
+    obs.observe(lugar);
+    observadoresMontar.push(obs);
   };
   montar('[data-vitrine]', 'vitrine', './vitrine.js', 'montarVitrine', (v) => { vitrineAtual = v; });
   montar('[data-cenario]', 'cenario', './cenario.js', 'montarCenario', (v) => { cenarioAtual = v; });
@@ -634,6 +698,8 @@ function abrirProjeto(projetoId) {
   montar('[data-grade-letras]', 'gradeLetras', './cynth.js', 'montarGrade', (v) => { gradeAtual = v; });
   montar('[data-cartela]', 'cartela', './cartela.js', 'montarCartela', (v) => { cartelaAtual = v; });
   montar('[data-pasta]', 'pasta', './pasta.js', 'montarPasta', (v) => { pastaAtual = v; });
+  montar('[data-comparar]', 'comparar', './comparar.js', 'montarComparar', (v) => { compararAtual = v; });
+  montar('[data-garotas3d]', 'garotas3d', './garotas3d.js', 'montarGarotas3d', (v) => { garotasAtual = v; });
   montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
 
   // o vídeo com som começa sozinho quando a pessoa chega nele (e pausa quando ela rola pra longe);
@@ -669,6 +735,8 @@ function abrirProjeto(projetoId) {
       v.addEventListener('play', () => { delete v.dataset.pausadoPelaPessoa; });
     });
   }
+
+  tocarNaTela(det);
 
   // clicar numa imagem/vídeo "ampliar" abre grande
   det.querySelectorAll('.ampliavel').forEach((f) => f.addEventListener('click', () => abrirAmpliado(f.querySelector('[data-ampliar]')?.dataset)));

@@ -129,7 +129,7 @@ export function montarGrade(raiz, cfg) {
   const dica = palco.querySelector('.cynth-dica');
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   const cena = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(G.fov, 1, 0.1, 400);
   const controles = new OrbitControls(camera, canvas);
@@ -299,7 +299,7 @@ export function montarGrade(raiz, cfg) {
       obs.disconnect(); obsTamanho.disconnect(); cancelAnimationFrame(raf); visivel = false;
       controles.dispose();
       malha?.geometry.dispose(); material.dispose(); uni.uAtlas.value.dispose(); texturaTexto.dispose();
-      renderer.dispose();
+      renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
     },
   };
 }

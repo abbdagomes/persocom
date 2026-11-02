@@ -53,7 +53,7 @@ export function montarRevista3d(raiz, cfg) {
   const contador = palco.querySelector('.revista-contador');
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   const anisotropia = renderer.capabilities.getMaxAnisotropy();
   const cena = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(R.fov, 1, 0.1, 50);
@@ -493,7 +493,7 @@ export function montarRevista3d(raiz, cfg) {
       pilhaDir.geometry.dispose(); pilhaEsq.geometry.dispose(); matPilha.dispose();
       lombada.geometry.dispose(); matLombada.dispose();
       sombra.geometry.dispose(); sombra.material.dispose(); texSombra.dispose();
-      renderer.dispose();
+      renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
     },
   };
 }

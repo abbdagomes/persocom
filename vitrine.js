@@ -70,7 +70,7 @@ export function montarVitrine(raiz, cfg) {
 
   // ---------- cena ----------
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   renderer.toneMapping = THREE.NeutralToneMapping;
   const cena = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -285,7 +285,7 @@ export function montarVitrine(raiz, cfg) {
       removeEventListener('keydown', teclas);
       ro.disconnect(); io.disconnect();
       giro.clear();
-      renderer.dispose();
+      renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
       pmrem.dispose();
     },
   };

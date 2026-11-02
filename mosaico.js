@@ -155,7 +155,7 @@ export function montarMosaico(raiz, cfg) {
   const botaoVirar = raiz.querySelector('[data-virar]');
 
   const renderer = new THREE.WebGLRenderer({ canvas: tela, antialias: false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));   // celular: menos pixels
   const camera2d = new THREE.Camera();
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
   const cena = new THREE.Scene(); cena.add(quad);
@@ -510,7 +510,7 @@ export function montarMosaico(raiz, cfg) {
       video.pause(); video.srcObject = null;
       texCamera.dispose(); texAnim.dispose(); alvo.dispose(); matEscolha.dispose(); matDesenho.dispose();
       cache.forEach((p) => p.then(({ atlas, medias }) => { atlas.dispose(); medias.dispose(); }).catch(() => {}));
-      renderer.dispose();
+      renderer.dispose(); renderer.forceContextLoss();   // devolve a memória da placa na hora (celular)
     },
   };
 }

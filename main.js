@@ -6,6 +6,11 @@ import { carregamento } from './carregamento.js';
 import { montarPintura } from './pintura.js';
 import { montarSobre } from './sobre.js';
 
+// no celular a página não aproxima (2 toques ou pinça davam zoom e bagunçavam a pintura e os botões);
+// o iPhone ignora o "user-scalable=no" do index.html, então a pinça é barrada aqui também.
+// (as partes que usam pinça — pintar, revista, mosaico — tratam os dedos elas mesmas)
+for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
+
 // =====================================================================
 //  CONFIGURAÇÕES — mexa aqui sem medo
 // =====================================================================
@@ -1471,6 +1476,8 @@ renderer.setAnimationLoop(() => {
   atualizarPixelado();
   lerRolagem();
   const dt = Math.min(relogio.getDelta(), 0.05);
+  // projeto aberto: ela fica atrás do painel (borrada) — não precisa redesenhar (sobra memória e bateria pros 3D do projeto)
+  if (rolagem.projetoAberto && !carregamento.ativo) return;
   const t = relogio.elapsedTime;
   materialChao.uniforms.uDeslocamento.value -= CONFIG.chaoVelocidade * dt;
   atualizarPersonagem(dt);
