@@ -481,6 +481,16 @@ body.sem-transicao *, body.sem-transicao *::before, body.sem-transicao *::after 
 .detalhe-imagem { grid-column: 1 / -1; margin: 0; }
 .detalhe-imagem.meia { grid-column: span 3; }
 .detalhe-imagem.terco { grid-column: span 2; }   /* três lado a lado */
+@media (max-width: 720px) {
+  .detalhe-imagem.par-celular { grid-column: span 3; }   /* no celular, de dois em dois */
+  .detalhe-imagem.inteiro-celular { grid-column: 1 / -1; }
+}
+/* um título no meio das imagens */
+.detalhe-secao {
+  grid-column: 1 / -1; margin: 18px 0 -4px;
+  font: 700 clamp(18px, 2.2vw, 24px) 'Geist Mono', monospace; letter-spacing: -.04em; color: #1f2937;
+}
+.detalhe-imagem.medio { grid-column: 1 / -1; width: min(100%, 620px); justify-self: center; }
 .detalhe-imagem.centro { grid-column: 1 / -1; width: min(100%, 440px); justify-self: center; }   /* sozinho no meio (vídeo em pé) */
 .detalhe-imagem > img,
 .detalhe-imagem > video,
@@ -1505,7 +1515,6 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
   background: radial-gradient(ellipse 70% 60% at 50% 45%, #fff, #eef1f5);
   box-shadow: 0 12px 30px rgba(60,70,90,.12), 0 0 0 1px rgba(255,255,255,.9);
 }
-@media (max-width: 720px) { .pasta-mesa { aspect-ratio: 4 / 5; } }
 /* as fotos: guardadas, ficam pequenininhas dentro da pasta; abertas, voam pro lugar delas na mesa */
 .pasta-item {
   position: absolute; left: 50%; top: 50%; width: calc(var(--w) * 1cqw); padding: 0; border: none; cursor: zoom-in;
@@ -1573,6 +1582,19 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
   padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.85);
 }
 .pasta-mesa.aberta .pasta-dica { opacity: .8; }
+/* celular: a pasta e os vídeos bem maiores; a mesa cresce quando a pasta abre */
+@media (max-width: 720px) {
+  .pasta-mesa { aspect-ratio: 1 / 1; transition: aspect-ratio .55s cubic-bezier(.3, .9, .3, 1); }
+  .pasta-mesa.aberta { aspect-ratio: 9 / 16; }
+  .pasta { width: 66cqw; }
+  .pasta-nome { font-size: clamp(16px, 6.4cqw, 30px); }
+  .pasta-item { width: calc(var(--cw, var(--w)) * 1cqw); }
+  .pasta-mesa.aberta .pasta-item {
+    transform: translate(-50%, -50%) translate(calc(var(--cx, var(--x)) * 1cqw), calc(var(--cy, var(--y)) * 1cqh)) rotate(calc(var(--r) * 1deg)) scale(var(--s, 1));
+  }
+  .pasta-mesa.aberta .pasta { transform: translate(-50%, -50%) translate(0, 37cqh) scale(.3); }
+  .pasta-dica { font-size: 10px; bottom: 8px; }
+}
 @media (prefers-reduced-motion: reduce) { .pasta-item, .pasta-mesa.aberta .pasta-item, .pasta { transition-duration: .01s; transition-delay: 0s; } }
 
 /* post do Instagram dentro da página (item { instagram } no projetos.js) */
@@ -1774,3 +1796,11 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
   .papel-passo { top: auto; bottom: 20px; transform: none; }
   .papel-passo.proximo { left: 72px; right: auto; }
 }
+
+/* as peças da escultura em 3D (corte3d.js): mesmo palco do modelo 3D, mais alto e no cinza da página */
+.corte3d .modelo-barra { gap: 20px; }   /* o pegador não cobre os nomes */
+.modelo-palco.corte3d {
+  height: clamp(560px, 72vw, 720px);
+  background: radial-gradient(ellipse 60% 55% at 50% 45%, #f7f8fa, #e4e7ec);
+}
+@media (max-width: 720px) { .modelo-palco.corte3d { height: 600px; } }

@@ -74,12 +74,33 @@ const PROJETOS = [
   {
     id: 'boneca-lovecore', categoria: '3d', destaque: true, titulo: 'Boneca 1,80 m', resumo: 'escultura 3D impressa · Lovecore 7',
     texto: 'Escultura de 1,80 m modelada em 3D e impressa em grande escala para a cenografia da Lovecore 7, festa do '
-      + 'coletivo REBU DIGITAL. O trabalho foi da modelagem e da divisão da peça em partes para impressão até a montagem, '
-      + 'o reforço interno e o acabamento. A Lovecore é um dos principais pólos da cena underground de São Paulo e reúne '
-      + 'mais de 500 pessoas por edição, entre música eletrônica experimental, moda, artes visuais e cultura da internet.',
-    capa: '', video: '', link: '',
+      + 'coletivo REBU DIGITAL que reúne mais de 500 pessoas por edição. O trabalho foi da modelagem e da divisão da peça em '
+      + 'partes para impressão até a montagem, o reforço interno e o acabamento. A cena também foi recriada em 3D, com luz e '
+      + 'material ajustados para o render imitar a foto real da peça.',
+    capa: 'projetos/boneca-lovecore/capa.webp?v=2', videoTopo: 'projetos/boneca-lovecore/render.mp4?v=2', link: '',
     etiquetas: ['impressão 3d', 'escultura', 'cenografia', 'lovecore 7', 'rebu digital'],
-    imagens: [],
+    imagens: [
+      // a foto real e o render na mesma parede (arrastando, um vira o outro), ao lado das costas
+      { comparar: { antes: 'projetos/boneca-lovecore/comparar-foto.webp', depois: 'projetos/boneca-lovecore/comparar-render.webp',
+          rotuloAntes: 'foto', rotuloDepois: 'render 3D' }, meia: true, inteiroCelular: true },
+      { src: 'projetos/boneca-lovecore/costas.webp', meia: true, inteiroCelular: true, ampliar: true },
+      // como foi feita: o corte em 3D (o .3mf dela; os pinos de encaixe ficaram de fora) e os bastidores
+      { secao: 'processo' },
+      { corte3d: { arquivo: 'projetos/boneca-lovecore/corte.glb', arma: ['p9', 'p23', 'p28', 'p31', 'p36'] } },
+      { video: 'projetos/boneca-lovecore/impressao.mp4', terco: true, inteiroCelular: true },
+      { video: 'projetos/boneca-lovecore/montagem.mp4', terco: true, parCelular: true },
+      { video: 'projetos/boneca-lovecore/acabamento.mp4', terco: true, parCelular: true },
+      // a peça pronta, de novo, depois de ver como foi feita
+      { src: 'projetos/boneca-lovecore/parede-inteira.webp', ampliar: true },
+      // os vídeos do evento numa pastinha, igual à da Lovecore 6 (pasta.js)
+      { pasta: { nome: 'mídias', itens: [
+          { video: 'projetos/boneca-lovecore/festa.mp4', som: true, poster: 'projetos/boneca-lovecore/festa-poster.webp', emPe: true, x: -37, y: -8, r: -5, w: 15, celular: { x: -30, y: -24, w: 30 } },
+          { video: 'projetos/boneca-lovecore/pista.mp4', som: true, poster: 'projetos/boneca-lovecore/pista-poster.webp', emPe: true, x: -18.5, y: -11, r: 3, w: 15, celular: { x: 0, y: -25, w: 31 } },
+          { video: 'projetos/boneca-lovecore/caminhao.mp4', poster: 'projetos/boneca-lovecore/caminhao-poster.webp', emPe: true, x: 0, y: -7, r: -2, w: 15, celular: { x: 30, y: -24, w: 30 } },
+          { video: 'projetos/boneca-lovecore/giro.mp4?v=2', poster: 'projetos/boneca-lovecore/giro-poster.webp', emPe: true, x: 18.5, y: -10, r: 4, w: 15, celular: { x: -18, y: 9, w: 34 } },
+          { video: 'projetos/boneca-lovecore/bastidor.mp4?v=2', poster: 'projetos/boneca-lovecore/bastidor-poster.webp', emPe: true, x: 37, y: -7, r: 5, w: 15, celular: { x: 18, y: 10, w: 34 } },
+        ] } },
+    ],
   },
   {
     id: 'shader-glsl', categoria: '3d', destaque: true, titulo: 'Shader GLSL', resumo: 'instalação interativa · TouchDesigner',
@@ -107,11 +128,11 @@ const PROJETOS = [
       // o dia da Lovecore 6 (REBU) numa pastinha: clicando, as fotos e vídeos saem e se espalham (pasta.js)
       // vídeos: Downloads/IMG_3218.MOV (o painel) e IMG_9046.mov (a montagem); as fotos são quadros desses vídeos
       // o reel da REBU (baixado pela Ana do post instagram.com/reel/DQnHe1TkUl-) abre grande COM som e o player do site
-      { pasta: { nome: 'lovecore 6', itens: [
-          { video: 'projetos/shader-glsl/lovecore/making-of.mp4', poster: 'projetos/shader-glsl/lovecore/making-of-poster.webp', x: -21, y: -6, r: -4, w: 40 },
+      { pasta: { nome: 'mídias', itens: [
+          { video: 'projetos/shader-glsl/lovecore/making-of.mp4', poster: 'projetos/shader-glsl/lovecore/making-of-poster.webp', x: -21, y: -6, r: -4, w: 40, celular: { x: 0, y: -29, w: 84 } },
           { video: 'projetos/shader-glsl/lovecore/reel-rebu.mp4', som: true, poster: 'projetos/shader-glsl/lovecore/reel-rebu-poster.webp',
-            legenda: 'vídeo: @rebudigital', emPe: true, x: 12, y: -6, r: 3, w: 16 },
-          { video: 'projetos/shader-glsl/lovecore/painel.mp4', poster: 'projetos/shader-glsl/lovecore/painel-poster.webp', emPe: true, x: 33, y: -1, r: 7, w: 14 },
+            legenda: 'vídeo: @rebudigital', emPe: true, x: 12, y: -6, r: 3, w: 16, celular: { x: -22, y: 10, w: 40 } },
+          { video: 'projetos/shader-glsl/lovecore/painel.mp4', poster: 'projetos/shader-glsl/lovecore/painel-poster.webp', emPe: true, x: 33, y: -1, r: 7, w: 14, celular: { x: 22, y: 10, w: 40 } },
         ] } },
       // a tela do TouchDesigner gravada pela Ana (Videos/2026-07-15 14-17-35.mp4), sem a barra do Windows
       { video: 'projetos/shader-glsl/bastidores.mp4?v=2', ampliar: true, grande: 'projetos/shader-glsl/bastidores-grande.mp4?v=2',
@@ -545,6 +566,7 @@ let revistaAtual = null;   // a revista 3D (se tiver)
 let pastaAtual = null;     // a pastinha com as fotos do dia (se tiver)
 let compararAtual = null;  // o antes / depois com a barrinha (se tiver)
 let garotasAtual = null;   // a personagem 3D com a cor de profundidade (se tiver)
+let corteAtual = null;     // as peças da escultura em 3D (se tiver)
 let papelAtual = null;     // o papel gigante dos desenhos (se estiver aberto)
 let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
 let playersAtuais = [];    // os players do vídeo com som (player.js)
@@ -587,7 +609,7 @@ function agendarPesado() {
   esperaPesado = setTimeout(escolherPesado, 160);
 }
 painel.addEventListener('scroll', agendarPesado, { passive: true });
-const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d']);
+const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d', 'corte3d']);
 function desligarVitrine() {
   observadoresMontar.forEach((o) => o.disconnect()); observadoresMontar = [];
   clearTimeout(esperaPesado); pesados = [];
@@ -603,6 +625,7 @@ function desligarVitrine() {
   pastaAtual?.destruir(); pastaAtual = null;
   compararAtual?.destruir(); compararAtual = null;
   garotasAtual?.destruir(); garotasAtual = null;
+  corteAtual?.destruir(); corteAtual = null;
   papelAtual?.destruir(); papelAtual = null;
   somAtual?.disconnect(); somAtual = null;
   playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
@@ -634,6 +657,7 @@ function abrirProjeto(projetoId) {
   //   { video: '...mp4', legenda: '...' }                        (vídeo no meio das imagens)
   //   { exemplo: 'texto' }                                        (quadro de exemplo, pra ver o layout)
   //   { src: '...', terco: true }                                 (terco = três lado a lado)
+  //   { comparar: {...}, medio: true }                            (sozinho no meio, largura média)
   //   { video: '...', centro: true }                              (sozinho no meio, estreito — bom pra vídeo em pé)
   //   { vitrine: { pasta, personagens, expressoes } }             (personagens em 3D pra girar — vitrine.js)
   //   { cenario: { pasta, personagens } }                          (cenário do jogo em 3D com gente andando — cenario.js)
@@ -651,6 +675,8 @@ function abrirProjeto(projetoId) {
   //   { pasta: { nome, itens: [{ src | video, x, y, r, w }] } }       (pastinha: clicando, as fotos saem e se espalham — pasta.js)
   //   { instagram: 'https://www.instagram.com/reel/...' }            (o post inteiro, dentro da página)
   //   { comparar: { antes, depois, rotuloAntes, rotuloDepois } }     (duas imagens com uma barrinha pra arrastar — comparar.js)
+  //   { secao: 'processo' }                                          (um título no meio das imagens)
+  //   { corte3d: { arquivo, arma } }                                 (as peças do corte pra impressão, com a barra que separa — corte3d.js)
   //   { garotas3d: { pasta, quantas } }                              (personagem 3D com a cor de profundidade e uma rampa de cores — garotas3d.js)
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
   // o destaque do topo: o vídeo, senão a capa, senão a 1ª imagem
@@ -670,6 +696,7 @@ function abrirProjeto(projetoId) {
     if (m.pasta) return `<div class="pasta-lugar" data-pasta></div>`;
     if (m.comparar) return `<div class="comparar-lugar" data-comparar></div>`;
     if (m.garotas3d) return `<div class="garotas3d-lugar" data-garotas3d></div>`;
+    if (m.corte3d) return `<div class="modelo3d-lugar" data-corte3d></div>`;
     // post do Instagram (o próprio post, com o crédito de quem postou); o endereço vem do link "copiar link"
     if (m.instagram) {
       const id = (/instagram\.com\/(?:reel|p)\/([\w-]+)/.exec(m.instagram) || [])[1];
@@ -688,12 +715,12 @@ function abrirProjeto(projetoId) {
   };
 
   // as imagens de baixo, uma embaixo da outra (as "meia" ficam de duas em duas)
-  const imagensHTML = lista.map((m) => `
-    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.centro ? ' centro' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
+  const imagensHTML = lista.map((m) => (m.secao ? `<h3 class="detalhe-secao">${escapar(m.secao)}</h3>` : `
+    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.parCelular ? ' par-celular' : ''}${m.inteiroCelular ? ' inteiro-celular' : ''}${m.centro ? ' centro' : ''}${m.medio ? ' medio' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d || m.corte3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
       ${midiaHTML(m)}
       ${m.ampliar ? `<button type="button" class="pilula ampliar-botao" data-ampliar="${escapar(m.grande || m.video || m.src)}" data-tipo="${m.video ? 'video' : 'img'}" data-legenda="${escapar(m.legenda || '')}" aria-label="ver de perto">⤢ ver de perto</button>` : ''}
       ${m.legenda ? `<figcaption>${escapar(m.legenda)}</figcaption>` : ''}
-    </figure>`).join('');
+    </figure>`)).join('');
 
   det.innerHTML = `
     <div class="detalhe-barra">
@@ -710,7 +737,7 @@ function abrirProjeto(projetoId) {
         </div>
         <p class="detalhe-texto">${escapar(p.texto)}</p>
         ${p.link ? `<a class="pilula ver-projeto" href="${escapar(p.link)}" target="_blank" rel="noopener">ver projeto ↗</a>` : ''}
-        ${lista.length ? `<button class="pilula rolar" data-rolar>⌄ ver mais imagens (${lista.length})</button>` : ''}
+        ${lista.length ? `<button class="pilula rolar" data-rolar>⌄ ver mais imagens (${lista.filter((m) => !m.secao).length})</button>` : ''}
       </div>
     </div>
     ${lista.length ? `<div class="detalhe-imagens${p.blocoBranco ? ' bloco-branco' : ''}">${imagensHTML}</div>` : ''}
@@ -774,6 +801,7 @@ function abrirProjeto(projetoId) {
   montar('[data-pasta]', 'pasta', './pasta.js', 'montarPasta', (v) => { pastaAtual = v; });
   montar('[data-comparar]', 'comparar', './comparar.js', 'montarComparar', (v) => { compararAtual = v; });
   montar('[data-garotas3d]', 'garotas3d', './garotas3d.js', 'montarGarotas3d', (v) => { garotasAtual = v; });
+  montar('[data-corte3d]', 'corte3d', './corte3d.js', 'montarCorte3d', (v) => { corteAtual = v; });
   agendarPesado();
   montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
 

@@ -7,6 +7,7 @@
 //  cada item: { src: 'foto.webp' } ou { video: 'loop.mp4', poster: 'quadro.webp' } + onde cai na mesa:
 //    (os 3 primeiros aparecem pequenininhos espiando de dentro da pasta, pelo poster; emPe: true = vídeo em pé)
 //    x, y = deslocamento do centro (em % da largura / da altura da mesa) · r = giro (graus) · w = largura (% da mesa)
+//    celular: { x, y, w } = o lugar e o tamanho no celular, onde a mesa é em pé
 // =====================================================================
 const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -16,7 +17,7 @@ export function montarPasta(raiz, cfg) {
     <div class="pasta-mesa">
       ${itens.map((it, i) => `
         <button type="button" class="pasta-item" tabindex="-1" data-i="${i}" aria-label="ver grande"
-          style="--x:${it.x}; --y:${it.y}; --r:${it.r}; --w:${it.w}; --i:${i}">
+          style="--x:${it.x}; --y:${it.y}; --r:${it.r}; --w:${it.w}; --i:${i}${it.celular ? `; --cx:${it.celular.x}; --cy:${it.celular.y}; --cw:${it.celular.w}` : ''}">
           ${it.video
             ? `<video src="${escapar(it.video)}"${it.poster ? ` poster="${escapar(it.poster)}"` : ''} muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback></video>`
             : `<img src="${escapar(it.src)}" alt="" loading="lazy" draggable="false">`}
