@@ -1773,6 +1773,20 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
 }
 .caderno-verso { background: linear-gradient(90deg, #26262b, #15151a); border-radius: 62px 8px 8px 62px / 62px 8px 8px 62px; transform: rotateY(180deg); }
 .caderno-cena.abre .caderno-capa { transform: rotateY(-168deg); }
+/* celular: sem 3D de verdade. No iPhone, capa e página no mesmo plano brigam entre si e piscam; a capa só fecha pro lado da lombada */
+@media (pointer: coarse) {
+  .caderno-cena { perspective: none; }
+  .caderno, .caderno-capa { transform-style: flat; }
+  .caderno-verso { display: none; }
+  .caderno-capa { transition: transform .75s cubic-bezier(.45, .05, .3, 1), opacity .3s .5s; }
+  .caderno-cena.abre .caderno-capa { transform: scaleX(.02); opacity: 0; }
+  /* aproxima pouco, sem animar a imagem de dentro, e o papel de verdade aparece no fade */
+  .caderno-cena { transition: opacity .45s .4s; }
+  .caderno-cena.mergulha .caderno { transition: transform .9s cubic-bezier(.55, 0, .2, 1); }
+  .caderno-janela img, .caderno-cena.mergulha .caderno-janela img { transform: translate(-50%, -50%) scale(2); transition: none; }
+  /* com o papel aberto, o site atrás dele não precisa existir na tela: libera memória */
+  body.papel-por-cima .pagina, body.papel-por-cima .veu, body.papel-por-cima #cena { visibility: hidden; }
+}
 .papel-fechar { position: absolute; z-index: 6; left: 16px; top: 16px; width: 44px; height: 44px; padding: 0; justify-content: center; cursor: pointer; }
 /* passar pro próximo desenho: só aparece com um desenho aberto */
 .papel-passo {

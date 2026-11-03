@@ -1,8 +1,10 @@
 // O papel gigante dos desenhos: uma folha enorme pra arrastar e aproximar, sem 3D (leve no celular).
 // Os de lápis ficam direto no papel; os coloridos, como folhas coladas com fita. Clicando, a câmera vai até o desenho.
 // A imagem grande só carrega no desenho que está de perto; no celular, o que fica longe da tela sai da memória.
+// Celular: tudo em cópias menores (-p) e o que é pesado espera. Abrir o caderno estourava a memória do iPhone (tela branca e recarregava).
 const NITIDEZ = 1;        // a imagem pequena aguenta até essa ampliação; passou disso, entra a grande
 const LARGURA_PEQUENA = 1100;
+const LARGURA_PEQUENA_CELULAR = 700;
 const GRAO = 460;         // tamanho do quadradinho de grão do papel, em pontos do papel
 const MARGEM = 340;       // papel em branco em volta dos desenhos: dá pra centralizar qualquer um deles na tela
 const suave = (t) => 1 - Math.pow(1 - t, 3);
@@ -10,21 +12,23 @@ const suave = (t) => 1 - Math.pow(1 - t, 3);
 // ---------- o caderno fechado que abre e mergulha no papel (toda vez que a pessoa clica no card; pelo link direto, não) ----------
 // medidas do desenho do caderno (.claude/ferramentas/montar_caderno.py)
 const CAD = { w: 1180, h: 1620, pagX: 627, pagY: 727, pagW: 870, pagH: 1278 };
-function abrirCaderno(raiz, pasta, larguraPapel, escalaFinal) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+function abrirCaderno(raiz, pasta, larguraPapel, escalaFinal, toque, aoEntrar) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { aoEntrar(); return; }
+  const v = toque ? '-p' : '';
   const cena = document.createElement('div');
   cena.className = 'caderno-cena';
   cena.innerHTML = `
     <div class="caderno">
-      <img class="caderno-miolo" src="${pasta}caderno-miolo.webp" alt="" draggable="false">
-      <div class="caderno-janela"><img src="${pasta}caderno-visao.webp" alt="" draggable="false"></div>
-      <div class="caderno-capa"><img src="${pasta}caderno-capa.webp" alt="" draggable="false"><div class="caderno-verso"></div></div>
+      <img class="caderno-miolo" src="${pasta}caderno-miolo${v}.webp" alt="" draggable="false">
+      <div class="caderno-janela"><img src="${pasta}caderno-visao${v}.webp" alt="" draggable="false"></div>
+      <div class="caderno-capa"><img src="${pasta}caderno-capa${v}.webp" alt="" draggable="false"><div class="caderno-verso"></div></div>
     </div>`;
   raiz.appendChild(cena);
   const caderno = cena.querySelector('.caderno');
   const e = Math.min(innerWidth * 0.8 / CAD.w, innerHeight * 0.82 / CAD.h);
   caderno.style.width = `${CAD.w * e}px`;
-  const zoom = Math.max(innerWidth / (CAD.pagW * e), innerHeight / (CAD.pagH * e)) * 1.32;
+  // celular: aproxima bem menos e some antes (ampliar demais é o que mais gasta memória); a troca pro papel é no fade
+  const zoom = toque ? 1.8 : Math.max(innerWidth / (CAD.pagW * e), innerHeight / (CAD.pagH * e)) * 1.32;
   caderno.style.setProperty('--zoom', zoom);
   // o papel inteiro cabe na página; no fim do zoom, ele está exatamente no tamanho e no lugar do papel de verdade que aparece atrás
   caderno.style.setProperty('--visao', (escalaFinal / zoom) / ((CAD.pagW * e) / larguraPapel));
@@ -33,7 +37,9 @@ function abrirCaderno(raiz, pasta, larguraPapel, escalaFinal) {
   caderno.style.setProperty('--dx', `${(CAD.w / 2 - CAD.pagX) * e}px`);
   caderno.style.setProperty('--dy', `${(CAD.h / 2 - CAD.pagY) * e}px`);
   const esperas = [];
-  const fim = () => { esperas.forEach(clearTimeout); cena.remove(); };
+  let entrou = false;
+  const entrar = () => { if (!entrou) { entrou = true; aoEntrar(); } };
+  const fim = () => { esperas.forEach(clearTimeout); cena.remove(); entrar(); };
   cena.addEventListener('pointerdown', fim);      // tocar pula direto pro papel
   const imagens = [...cena.querySelectorAll('img')].map((i) => i.decode().catch(() => {}));
   const desiste = setTimeout(fim, 4000);          // internet lenta: não fica esperando o caderno
@@ -43,9 +49,9 @@ function abrirCaderno(raiz, pasta, larguraPapel, escalaFinal) {
     clearTimeout(desiste);
     cena.classList.add('pronta');
     // a capa abre, os desenhos aparecem pequenininhos na página e a câmera entra neles, sem corte
-    esperas.push(setTimeout(() => cena.classList.add('abre'), 600));
-    esperas.push(setTimeout(() => cena.classList.add('mergulha'), 1050));
-    esperas.push(setTimeout(fim, 2800));
+    esperas.push(setTimeout(() => cena.classList.add('abre'), toque ? 450 : 600));
+    esperas.push(setTimeout(() => { cena.classList.add('mergulha'); entrar(); }, toque ? 900 : 1050));
+    esperas.push(setTimeout(fim, toque ? 1900 : 2800));
   });
 }
 
@@ -57,7 +63,7 @@ export function montarPapel(cfg) {
   const toque = matchMedia('(pointer: coarse)').matches;
   raiz.innerHTML = `
     <div class="papel-tela"><div class="papel-mundo" style="width:${largura}px; height:${altura}px">
-      <img class="papel-marcas" src="${cfg.pasta}marcas.webp" alt="" draggable="false">
+      <img class="papel-marcas" src="${cfg.pasta}marcas${toque ? '-p' : ''}.webp" alt="" draggable="false">
     </div></div>
     <button type="button" class="pilula papel-fechar" aria-label="fechar">✕</button>
     <button type="button" class="pilula papel-passo anterior" data-passo="-1" aria-label="desenho anterior">‹</button>
@@ -87,7 +93,12 @@ export function montarPapel(cfg) {
 
   // ---------- câmera: um ponto do papel aparece em (ponto × s + x, ponto × s + y) ----------
   const cam = { x: 0, y: 0, s: 1 };
-  let vivo = true, raf = 0, parado = 0, olhando = 0;
+  let vivo = true, raf = 0, parado = 0, olhando = 0, porCima = 0;
+  // celular com o caderno: os desenhos só começam a carregar quando ele já está abrindo
+  let imagensLigadas = !(toque && cfg.abertura);
+  // celular: tudo o que ficou atrás do papel sai da tela, pra liberar memória
+  const nomePequena = (d) => `${cfg.pasta}${d.nome}${toque ? '-p' : ''}.webp`;
+  const nomeGrande = (d) => `${cfg.pasta}${d.nome}${toque ? '' : '-grande'}.webp`;
   let w = 1, h = 1;
   const escalaMin = () => Math.max(w / largura, h / altura);     // mesmo no mais longe, o papel cobre a tela toda
   const escalaMax = () => Math.max(2.4, escalaMin() * 6);
@@ -97,20 +108,28 @@ export function montarPapel(cfg) {
     cam.x = Math.min(0, Math.max(w - largura * cam.s, cam.x));
     cam.y = Math.min(0, Math.max(h - altura * cam.s, cam.y));
     mundo.style.transform = `translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s})`;
-    // o grão do papel acompanha a câmera, sem ser uma camada gigante na memória
-    tela.style.backgroundPosition = `${cam.x}px ${cam.y}px`;
-    tela.style.backgroundSize = `${GRAO * cam.s}px`;
-    mundo.classList.add('mexendo');
+    // celular: repintar o fundo e trocar o will-change a cada movimento fazia a tela piscar; lá o grão só acerta quando para
+    if (!toque) {
+      acertarGrao();
+      mundo.classList.add('mexendo');
+    }
     clearTimeout(parado);
     parado = setTimeout(aoParar, 180);
     if (!olhando) olhando = setTimeout(() => { olhando = 0; if (vivo) atualizarImagens(false); }, 200);
   }
+  // o grão do papel acompanha a câmera, sem ser uma camada gigante na memória
+  function acertarGrao() {
+    tela.style.backgroundPosition = `${cam.x}px ${cam.y}px`;
+    tela.style.backgroundSize = `${GRAO * cam.s}px`;
+  }
   function aoParar() {
     if (!vivo) return;
+    if (toque) acertarGrao();
     mundo.classList.remove('mexendo');     // parado, o navegador redesenha na escala certa e fica nítido
     atualizarImagens(true);
   }
   function atualizarImagens(podeGrande) {
+    if (!imagensLigadas) return;
     const dpr = Math.min(devicePixelRatio, 2);
     const folga = Math.max(w, h) * (toque ? 0.35 : 0.7);
     const dentro = (it, m) => it.x * cam.s + cam.x < w + m && (it.x + it.d.w) * cam.s + cam.x > -m
@@ -123,15 +142,15 @@ export function montarPapel(cfg) {
         continue;
       }
       it.b.style.visibility = '';
-      if (!it.img.hasAttribute('src')) it.img.src = `${cfg.pasta}${d.nome}.webp`;
+      if (!it.img.hasAttribute('src')) it.img.src = nomePequena(d);
       if (!podeGrande && !it.grande) continue;
-      const quer = dentro(it, 0) && d.w * cam.s * dpr > LARGURA_PEQUENA * NITIDEZ * Math.min(1, d.a);
+      const quer = dentro(it, 0) && d.w * cam.s * dpr > (toque ? LARGURA_PEQUENA_CELULAR * 1.2 : LARGURA_PEQUENA * NITIDEZ) * Math.min(1, d.a);
       if (quer === it.grande) continue;
       it.grande = quer;
-      if (!quer) { it.img.src = `${cfg.pasta}${d.nome}.webp`; continue; }
+      if (!quer) { it.img.src = nomePequena(d); continue; }
       const nova = new Image();
       nova.onload = () => { if (vivo && it.grande) it.img.src = nova.src; };
-      nova.src = `${cfg.pasta}${d.nome}-grande.webp`;
+      nova.src = nomeGrande(d);
     }
   }
 
@@ -238,8 +257,9 @@ export function montarPapel(cfg) {
     }
     if (deslize) return;
     if (!moveu && Math.hypot(e.clientX - inicio.x, e.clientY - inicio.y) < 7) return;
-    // com um desenho aberto no celular, deslizar o dedo passa pro próximo (a pinça continua livre)
-    if (!moveu && focado && e.pointerType === 'touch') { moveu = true; deslize = true; return; }
+    // com um desenho aberto no celular, deslizar pro lado passa pro próximo; pra cima e pra baixo passeia pelo papel
+    if (!moveu && focado && e.pointerType === 'touch'
+      && Math.abs(e.clientX - inicio.x) > Math.abs(e.clientY - inicio.y) * 1.3) { moveu = true; deslize = true; return; }
     if (!moveu) { moveu = true; marcar(null); some(); mundo.classList.add('arrastando'); }
     cam.x += dx; cam.y += dy;
     const dt = Math.max(1, e.timeStamp - ultimo);
@@ -306,13 +326,21 @@ export function montarPapel(cfg) {
   addEventListener('keydown', aoTeclar, true);
 
   requestAnimationFrame(() => raiz.classList.add('aberto'));
-  if (cfg.abertura) abrirCaderno(raiz, cfg.pasta, largura, cam.s);
+  porCima = setTimeout(() => document.body.classList.add('papel-por-cima'), 450);
+  if (cfg.abertura) {
+    abrirCaderno(raiz, cfg.pasta, largura, cam.s, toque, () => {
+      imagensLigadas = true;
+      if (vivo) atualizarImagens(true);
+    });
+  }
 
   return {
     destruir() {
       vivo = false;
       cancelAnimationFrame(raf);
       clearTimeout(parado);
+      clearTimeout(porCima);
+      document.body.classList.remove('papel-por-cima');
       removeEventListener('resize', aoMudarTela);
       removeEventListener('keydown', aoTeclar, true);
       raiz.remove();

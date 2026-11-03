@@ -300,7 +300,7 @@ const PROJETOS = [
     // tipo folha = uma folha colada com fita. As imagens saem de .claude/ferramentas/tratar_desenhos.py
     id: 'desenhos', categoria: 'ilustracao', destaque: true, titulo: 'Desenhos', resumo: 'sketches e lápis de cor',
     capa: 'projetos/desenhos/capa.webp', link: '', imagens: [],
-    papel: { largura: 4940, altura: 4232, pasta: 'projetos/desenhos/', itens: [
+    papel: { largura: 4940, altura: 5427, pasta: 'projetos/desenhos/', itens: [
       { nome: 'cabelo', tipo: 'lapis', x: 697, y: 103, w: 680, a: 0.75 },
       { nome: 'caretas', tipo: 'lapis', x: 17, y: 106, w: 640, a: 0.702 },
       { nome: 'galaxia', tipo: 'folha', x: 2184, y: 125, w: 500, r: 1.0, a: 0.708 },
@@ -325,9 +325,17 @@ const PROJETOS = [
       { nome: 'cogumelo', tipo: 'lapis', x: 2157, y: 2653, w: 430, a: 0.766 },
       { nome: 'camarao', tipo: 'folha', x: 2189, y: 3354, w: 520, r: -1.8, a: 0.75 },
       { nome: 'vinil', tipo: 'lapis', x: 1439, y: 2906, w: 590, a: 0.729 },
-      { nome: 'rostos', tipo: 'lapis', x: 2832, y: 2873, w: 620, a: 0.78 },
-      { nome: 'chifrinhos', tipo: 'lapis', x: 3688, y: 3042, w: 410, a: 0.416 },
+      { nome: 'rostos', tipo: 'lapis', x: 2832, y: 2873, w: 620, a: 0.767 },
+      { nome: 'chifrinhos', tipo: 'lapis', x: 3604, y: 3042, w: 540, a: 0.716 },
       { nome: 'chifres', tipo: 'folha', x: 44, y: 3659, w: 600, r: 2.2, a: 1.272 },
+      { nome: 'idoso', tipo: 'lapis', x: 4263, y: 3220, w: 580, a: 0.833 },
+      { nome: 'asas', tipo: 'lapis', x: 740, y: 3713, w: 640, a: 0.75 },
+      { nome: 'chapeu', tipo: 'lapis', x: 2846, y: 3733, w: 620, a: 0.683 },
+      { nome: 'viking', tipo: 'lapis', x: 3930, y: 4056, w: 760, a: 0.969 },
+      { nome: 'saxofone', tipo: 'folha', x: 1413, y: 3830, w: 640, r: -2.2, a: 1.666 },
+      { nome: 'lingua', tipo: 'lapis', x: 2157, y: 4109, w: 500, a: 0.402 },
+      { nome: 'punk', tipo: 'lapis', x: 24, y: 4272, w: 600, a: 0.796 },
+      { nome: 'careta', tipo: 'lapis', x: 1460, y: 140, w: 640, a: 0.964 },
     ] },
   },
   {
