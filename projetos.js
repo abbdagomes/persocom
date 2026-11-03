@@ -178,6 +178,23 @@ const PROJETOS = [
     ],
   },
   {
+    id: 'immortan', categoria: '3d', titulo: 'Pingente Immortan', resumo: 'pingente-apito impresso em 3D · UMS 458',
+    texto: 'Pingente-apito "Immortan", criado para a marca UMS 458, com caveiras nas laterais e carregado de pontas. Modelei a '
+      + 'peça do zero em 3D, imprimi e fiz o acabamento à mão. Ela foi lançada em dois tamanhos, em preto e prata.',
+    // fotos enviadas pela Ana (fundo branco, por isso o bloco branco); as fotos com gente ficam nos próprios posts da marca
+    capa: 'projetos/immortan/caveiras.webp', link: '', blocoBranco: true,
+    etiquetas: ['impressão 3d', 'modelagem', 'acabamento', 'ums 458'],
+    imagens: [
+      { colar3d: { arquivo: 'projetos/immortan/apito.glb?v=11' } },
+      { src: 'projetos/immortan/quatro.webp', meia: true, ampliar: true },
+      { src: 'projetos/immortan/angulo.webp', meia: true, ampliar: true },
+      { secao: 'em uso' },
+      // o próprio post do Instagram da marca, com os créditos dela
+      { instagram: 'https://www.instagram.com/p/DdeT8qHDrkE/', proporcao: 1, meia: true, inteiroCelular: true },
+      { instagram: 'https://www.instagram.com/p/DdkV9vjDhHH/', proporcao: 1.33, meia: true, inteiroCelular: true },
+    ],
+  },
+  {
     id: 'cyber-dance', categoria: '3d', titulo: 'Cyber Dance', resumo: 'estudo de shader e animação',
     texto: 'Personagem autoral modelada e animada em 3D, num estudo de shader e movimento. A dança foi animada com base na '
       + 'coreografia de "Cyber Dance", e os materiais próprios acompanham cenários que trocam de padrão e de cor. Na '
@@ -218,16 +235,6 @@ const PROJETOS = [
   // caixa Nike x MAD: entra quando tiver texto e imagens
 
   // ---------------- DESIGN GRÁFICO ----------------
-  {
-    id: 'ama', categoria: 'design', titulo: 'AMA', resumo: 'identidade · redesign de marca',
-    texto: 'Redesign de marca desenvolvido colaborativamente para a ONG AMA. O novo conceito traduz empatia e suporte através '
-      + 'de um logotipo tipográfico integrado, em que as letras formam duas pessoas conectadas. O projeto estabeleceu um guia '
-      + 'de marca completo, incluindo padronização cromática, sistema gráfico modular e desdobramento em múltiplos pontos de '
-      + 'contato: editorial, uniformes, frota de veículos e campanhas institucionais.',
-    capa: '', video: '', link: '',
-    etiquetas: ['identidade', 'logotipo', 'guia de marca'],
-    imagens: [],
-  },
   {
     id: 'sinapse', categoria: 'design', titulo: 'Sinapse', resumo: 'web · identidade',
     texto: 'Site colaborativo que propõe experimentar São Paulo pelos cinco sentidos. O nome vem da sinapse, a conexão entre '
@@ -300,16 +307,6 @@ const PROJETOS = [
       { video: 'projetos/boca-boca/bocas-trocando.mp4', centro: true },
       { video: 'projetos/boca-boca/video.mp4', som: true, poster: 'projetos/boca-boca/poster.webp?v=2', legenda: 'o vídeo de apresentação da marca e da revista (com som)' },
     ],
-  },
-  {
-    id: 'kitkat', categoria: 'design', titulo: 'KitKat Sugar Rush', resumo: 'embalagem · identidade',
-    texto: 'Linha conceitual de KitKat para a Geração Z, inspirada no sugar rush: aquela vontade de doce depois do almoço. A '
-      + 'identidade mistura retícula (halftone), anéis gráficos coloridos e fotos das sobremesas. O sistema tem um pouch '
-      + 'com três sabores em porções individuais (Strawberry Cheesecake, Pudim e Tiramisu) e um tablete de Banana Split, '
-      + 'cada um com sua cor.',
-    capa: '', video: '', link: '',
-    etiquetas: ['embalagem', 'identidade', 'conceito'],
-    imagens: [],
   },
 
   // ---------------- ILUSTRAÇÃO (na grade, antes dos DESENHOS) ----------------
@@ -594,6 +591,7 @@ let pastaAtual = null;     // a pastinha com as fotos do dia (se tiver)
 let compararAtual = null;  // o antes / depois com a barrinha (se tiver)
 let garotasAtual = null;   // a personagem 3D com a cor de profundidade (se tiver)
 let corteAtual = null;     // as peças da escultura em 3D (se tiver)
+let colarAtual = null;     // o colar em 3D (se tiver)
 let papelAtual = null;     // o papel gigante dos desenhos (se estiver aberto)
 let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
 let playersAtuais = [];    // os players do vídeo com som (player.js)
@@ -636,7 +634,7 @@ function agendarPesado() {
   esperaPesado = setTimeout(escolherPesado, 160);
 }
 painel.addEventListener('scroll', agendarPesado, { passive: true });
-const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d', 'corte3d']);
+const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d', 'corte3d', 'colar3d']);
 function desligarVitrine() {
   observadoresMontar.forEach((o) => o.disconnect()); observadoresMontar = [];
   clearTimeout(esperaPesado); pesados = [];
@@ -653,6 +651,7 @@ function desligarVitrine() {
   compararAtual?.destruir(); compararAtual = null;
   garotasAtual?.destruir(); garotasAtual = null;
   corteAtual?.destruir(); corteAtual = null;
+  colarAtual?.destruir(); colarAtual = null;
   papelAtual?.destruir(); papelAtual = null;
   somAtual?.disconnect(); somAtual = null;
   playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
@@ -703,6 +702,7 @@ function abrirProjeto(projetoId) {
   //   { instagram: 'https://www.instagram.com/reel/...' }            (o post inteiro, dentro da página)
   //   { comparar: { antes, depois, rotuloAntes, rotuloDepois } }     (duas imagens com uma barrinha pra arrastar — comparar.js)
   //   { secao: 'processo' }                                          (um título no meio das imagens)
+  //   { colar3d: { arquivo } }                                       (o pingente com a corrente, pra girar — colar3d.js)
   //   { corte3d: { arquivo, arma } }                                 (as peças do corte pra impressão, com a barra que separa — corte3d.js)
   //   { garotas3d: { pasta, quantas } }                              (personagem 3D com a cor de profundidade e uma rampa de cores — garotas3d.js)
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
@@ -724,10 +724,13 @@ function abrirProjeto(projetoId) {
     if (m.comparar) return `<div class="comparar-lugar" data-comparar></div>`;
     if (m.garotas3d) return `<div class="garotas3d-lugar" data-garotas3d></div>`;
     if (m.corte3d) return `<div class="modelo3d-lugar" data-corte3d></div>`;
+    if (m.colar3d) return `<div class="modelo3d-lugar" data-colar3d></div>`;
     // post do Instagram (o próprio post, com o crédito de quem postou); o endereço vem do link "copiar link"
     if (m.instagram) {
       const id = (/instagram\.com\/(?:reel|p)\/([\w-]+)/.exec(m.instagram) || [])[1];
-      return id ? `<div class="instagram"><iframe src="https://www.instagram.com/${m.instagram.includes('/reel/') ? 'reel' : 'p'}/${id}/embed/" title="post do Instagram" loading="lazy" allow="autoplay; encrypted-media; fullscreen" allowfullscreen scrolling="no"></iframe></div>` : '';
+      // proporcao (altura/largura da foto do post): corta o rodapé do post, com curtidas e comentário
+      const corte = m.proporcao ? ` style="height:calc(93px + ${m.proporcao * 100}cqw); overflow:hidden"` : '';
+      return id ? `<div class="instagram"><div${corte}><iframe src="https://www.instagram.com/${m.instagram.includes('/reel/') ? 'reel' : 'p'}/${id}/embed/" title="post do Instagram" loading="lazy" allow="autoplay; encrypted-media; fullscreen" allowfullscreen scrolling="no"></iframe></div></div>` : '';
     }
     if (m.revista3d) return `<div class="revista3d-lugar" data-revista3d></div>`;
     if (m.gradeLetras) return `<div class="cynth-interativo" data-grade-letras></div>`;
@@ -743,7 +746,7 @@ function abrirProjeto(projetoId) {
 
   // as imagens de baixo, uma embaixo da outra (as "meia" ficam de duas em duas)
   const imagensHTML = lista.map((m) => (m.secao ? `<h3 class="detalhe-secao">${escapar(m.secao)}</h3>` : `
-    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.parCelular ? ' par-celular' : ''}${m.inteiroCelular ? ' inteiro-celular' : ''}${m.centro ? ' centro' : ''}${m.medio ? ' medio' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d || m.corte3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
+    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.parCelular ? ' par-celular' : ''}${m.inteiroCelular ? ' inteiro-celular' : ''}${m.centro ? ' centro' : ''}${m.medio ? ' medio' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d || m.corte3d || m.colar3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
       ${midiaHTML(m)}
       ${m.ampliar ? `<button type="button" class="pilula ampliar-botao" data-ampliar="${escapar(m.grande || m.video || m.src)}" data-tipo="${m.video ? 'video' : 'img'}" data-legenda="${escapar(m.legenda || '')}" aria-label="ver de perto">⤢ ver de perto</button>` : ''}
       ${m.legenda ? `<figcaption>${escapar(m.legenda)}</figcaption>` : ''}
@@ -829,6 +832,7 @@ function abrirProjeto(projetoId) {
   montar('[data-comparar]', 'comparar', './comparar.js', 'montarComparar', (v) => { compararAtual = v; });
   montar('[data-garotas3d]', 'garotas3d', './garotas3d.js', 'montarGarotas3d', (v) => { garotasAtual = v; });
   montar('[data-corte3d]', 'corte3d', './corte3d.js', 'montarCorte3d', (v) => { corteAtual = v; });
+  montar('[data-colar3d]', 'colar3d', './colar3d.js', 'montarColar3d', (v) => { colarAtual = v; });
   agendarPesado();
   montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
 

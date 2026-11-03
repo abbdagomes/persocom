@@ -1600,6 +1600,7 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
 /* post do Instagram dentro da página (item { instagram } no projetos.js) */
 .instagram { width: 100%; border-radius: 20px; overflow: hidden; background: #fff;
   box-shadow: 0 12px 30px rgba(60,70,90,.12), 0 0 0 1px rgba(255,255,255,.9); }
+.instagram { container-type: inline-size; }
 .instagram iframe { display: block; width: 100%; height: 780px; border: 0; }
 @media (max-width: 720px) { .instagram iframe { height: 640px; } }
 
@@ -1818,3 +1819,10 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
   background: radial-gradient(ellipse 60% 55% at 50% 45%, #f7f8fa, #e4e7ec);
 }
 @media (max-width: 720px) { .modelo-palco.corte3d { height: 600px; } }
+
+/* o colar em 3D (colar3d.js): fundo branco, igual às fotos da peça */
+.modelo-palco.colar3d { height: clamp(560px, 70vw, 720px); background: #fff; box-shadow: none; }
+.colar-cores { position: absolute; right: 14px; bottom: 14px; display: flex; gap: 6px; }
+.colar-cores .pilula { padding: 7px 13px; font-size: 11px; cursor: pointer; border: none; }
+.colar-cores .pilula.ativo { color: #111827; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #6b7280; }
+@media (max-width: 720px) { .modelo-palco.colar3d { height: 540px; } }
