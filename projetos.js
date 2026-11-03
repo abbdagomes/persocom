@@ -33,6 +33,7 @@ const DESENHOS = [];
 //   videoTopo   → (opcional) outro vídeo só pro topo do detalhe, se o do hover for diferente
 //   topoComSom  → true = o vídeo do topo toca com som e o player do site
 //   imagemTopo  → (opcional) uma foto no topo do detalhe, se não for a capa
+//   creditoTopo → (opcional) o crédito escrito em cima da foto do topo
 //   imagens     → as imagens que aparecem rolando pra baixo no detalhe, em ordem:
 //                 ['projetos/game-jam/1.jpg', 'projetos/game-jam/2.jpg', ...]
 //                 ou com opções: { src: '...jpg', legenda: 'texto', meia: true }  (meia = duas lado a lado)
@@ -182,12 +183,12 @@ const PROJETOS = [
     texto: 'Pingente-apito "Immortan", criado para a marca UMS 458, com caveiras nas laterais e carregado de pontas. Modelei a '
       + 'peça do zero em 3D, imprimi e fiz o acabamento à mão. Ela foi lançada em dois tamanhos, em preto e prata.',
     // fotos enviadas pela Ana (fundo branco, por isso o bloco branco); as fotos com gente ficam nos próprios posts da marca
-    capa: 'projetos/immortan/caveiras.webp', link: '', blocoBranco: true,
+    capa: 'projetos/immortan/caveiras.webp', creditoTopo: 'foto: UMS 458', link: '', blocoBranco: true,
     etiquetas: ['impressão 3d', 'modelagem', 'acabamento', 'ums 458'],
     imagens: [
-      { colar3d: { arquivo: 'projetos/immortan/apito.glb?v=11' } },
-      { src: 'projetos/immortan/quatro.webp', meia: true, ampliar: true },
-      { src: 'projetos/immortan/angulo.webp', meia: true, ampliar: true },
+      { colar3d: { arquivo: 'projetos/immortan/apito.glb?v=12' } },
+      { src: 'projetos/immortan/quatro.webp', legenda: 'foto: UMS 458', meia: true, ampliar: true },
+      { src: 'projetos/immortan/angulo.webp', legenda: 'foto: UMS 458', meia: true, ampliar: true },
       { secao: 'em uso' },
       // o próprio post do Instagram da marca, com os créditos dela
       { instagram: 'https://www.instagram.com/p/DdeT8qHDrkE/', proporcao: 1, meia: true, inteiroCelular: true },
@@ -209,6 +210,24 @@ const PROJETOS = [
       { video: 'projetos/cyber-dance/giro.mp4?v=2', terco: true, parCelular: true },
       { video: 'projetos/cyber-dance/giro-preta.mp4?v=2', terco: true, parCelular: true },
       { src: 'projetos/cyber-dance/render.webp', ampliar: true },   // o render puro, sem a pós
+    ],
+  },
+  {
+    id: 'rocca', categoria: '3d', titulo: 'Rocca', resumo: 'estudo de personagem e textura',
+    texto: 'Estudo de personagem e textura. Modelei e texturizei a Rocca em 3D com base na ilustração de Akihito Tsukushi para '
+      + 'Gears Maiden, tentando levar para o volume os detalhes e as cores do desenho.',
+    // capa = o render final dela (rocca pesos 3.blend, quadro 132) em fundo branco; o .blend nunca é salvo por mim
+    capa: 'projetos/rocca/capa.webp?v=2', capaInteira: true, link: '', blocoBranco: true,
+    // no topo, a volta com ela parada na rest pose do rig (recorte quadrado, como a capa)
+    videoTopo: 'projetos/rocca/giro.mp4?v=4',
+    etiquetas: ['personagem', 'modelagem', 'textura', 'estudo'],
+    imagens: [
+      // o render e o desenho no mesmo quadro e na mesma escala, com olhos e pés na mesma altura, pra comparar
+      { src: 'projetos/rocca/pose.webp', meia: true, ampliar: true },
+      { src: 'projetos/rocca/referencia.webp?v=2', legenda: 'a referência: ilustração de Akihito Tsukushi, Gears Maiden', meia: true, ampliar: true },
+      { video: 'projetos/rocca/rosto.mp4', poster: 'projetos/rocca/rosto.webp', meia: true },   // pisca com a shape key pisca_r, no tempo da animação dela
+      { src: 'projetos/rocca/rosto-feliz.webp', meia: true, ampliar: true },   // o render dela de olhinho fechado, com o fundo cinza trocado por branco
+      { peca3d: { arquivo: 'projetos/rocca/capacete.glb?v=3', nome: 'o capacete' } },
     ],
   },
   {
@@ -592,6 +611,7 @@ let compararAtual = null;  // o antes / depois com a barrinha (se tiver)
 let garotasAtual = null;   // a personagem 3D com a cor de profundidade (se tiver)
 let corteAtual = null;     // as peças da escultura em 3D (se tiver)
 let colarAtual = null;     // o colar em 3D (se tiver)
+let pecaAtual = null;      // uma peça solta em 3D (se tiver)
 let papelAtual = null;     // o papel gigante dos desenhos (se estiver aberto)
 let somAtual = null;       // o observador que dá play no vídeo com som quando ele aparece
 let playersAtuais = [];    // os players do vídeo com som (player.js)
@@ -634,7 +654,7 @@ function agendarPesado() {
   esperaPesado = setTimeout(escolherPesado, 160);
 }
 painel.addEventListener('scroll', agendarPesado, { passive: true });
-const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d', 'corte3d', 'colar3d']);
+const PESADOS = new Set(['vitrine', 'cenario', 'modelo3d', 'mosaico', 'gradeLetras', 'revista3d', 'garotas3d', 'corte3d', 'colar3d', 'peca3d']);
 function desligarVitrine() {
   observadoresMontar.forEach((o) => o.disconnect()); observadoresMontar = [];
   clearTimeout(esperaPesado); pesados = [];
@@ -652,6 +672,7 @@ function desligarVitrine() {
   garotasAtual?.destruir(); garotasAtual = null;
   corteAtual?.destruir(); corteAtual = null;
   colarAtual?.destruir(); colarAtual = null;
+  pecaAtual?.destruir(); pecaAtual = null;
   papelAtual?.destruir(); papelAtual = null;
   somAtual?.disconnect(); somAtual = null;
   playersAtuais.forEach((p) => p.destruir()); playersAtuais = [];
@@ -702,6 +723,7 @@ function abrirProjeto(projetoId) {
   //   { instagram: 'https://www.instagram.com/reel/...' }            (o post inteiro, dentro da página)
   //   { comparar: { antes, depois, rotuloAntes, rotuloDepois } }     (duas imagens com uma barrinha pra arrastar — comparar.js)
   //   { secao: 'processo' }                                          (um título no meio das imagens)
+  //   { peca3d: { arquivo, nome } }                                  (uma peça solta com as texturas do .glb, pra girar — peca3d.js)
   //   { colar3d: { arquivo } }                                       (o pingente com a corrente, pra girar — colar3d.js)
   //   { corte3d: { arquivo, arma } }                                 (as peças do corte pra impressão, com a barra que separa — corte3d.js)
   //   { garotas3d: { pasta, quantas } }                              (personagem 3D com a cor de profundidade e uma rampa de cores — garotas3d.js)
@@ -725,6 +747,7 @@ function abrirProjeto(projetoId) {
     if (m.garotas3d) return `<div class="garotas3d-lugar" data-garotas3d></div>`;
     if (m.corte3d) return `<div class="modelo3d-lugar" data-corte3d></div>`;
     if (m.colar3d) return `<div class="modelo3d-lugar" data-colar3d></div>`;
+    if (m.peca3d) return `<div class="modelo3d-lugar" data-peca3d></div>`;
     // post do Instagram (o próprio post, com o crédito de quem postou); o endereço vem do link "copiar link"
     if (m.instagram) {
       const id = (/instagram\.com\/(?:reel|p)\/([\w-]+)/.exec(m.instagram) || [])[1];
@@ -746,7 +769,7 @@ function abrirProjeto(projetoId) {
 
   // as imagens de baixo, uma embaixo da outra (as "meia" ficam de duas em duas)
   const imagensHTML = lista.map((m) => (m.secao ? `<h3 class="detalhe-secao">${escapar(m.secao)}</h3>` : `
-    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.parCelular ? ' par-celular' : ''}${m.inteiroCelular ? ' inteiro-celular' : ''}${m.centro ? ' centro' : ''}${m.medio ? ' medio' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d || m.corte3d || m.colar3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
+    <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.parCelular ? ' par-celular' : ''}${m.inteiroCelular ? ' inteiro-celular' : ''}${m.centro ? ' centro' : ''}${m.medio ? ' medio' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d || m.corte3d || m.colar3d || m.peca3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
       ${midiaHTML(m)}
       ${m.ampliar ? `<button type="button" class="pilula ampliar-botao" data-ampliar="${escapar(m.grande || m.video || m.src)}" data-tipo="${m.video ? 'video' : 'img'}" data-legenda="${escapar(m.legenda || '')}" aria-label="ver de perto">⤢ ver de perto</button>` : ''}
       ${m.legenda ? `<figcaption>${escapar(m.legenda)}</figcaption>` : ''}
@@ -758,7 +781,7 @@ function abrirProjeto(projetoId) {
       <button class="pilula fechar-projeto" data-fechar-projeto aria-label="fechar">✕</button>
     </div>
     <div class="detalhe-corpo">
-      <div class="detalhe-midia">${midiaHTML(destaque)}</div>
+      <div class="detalhe-midia">${midiaHTML(destaque)}${p.creditoTopo ? `<span class="detalhe-credito">${escapar(p.creditoTopo)}</span>` : ''}</div>
       <div class="detalhe-info">
         <h2 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h2>
         <div class="etiquetas">
@@ -833,6 +856,7 @@ function abrirProjeto(projetoId) {
   montar('[data-garotas3d]', 'garotas3d', './garotas3d.js', 'montarGarotas3d', (v) => { garotasAtual = v; });
   montar('[data-corte3d]', 'corte3d', './corte3d.js', 'montarCorte3d', (v) => { corteAtual = v; });
   montar('[data-colar3d]', 'colar3d', './colar3d.js', 'montarColar3d', (v) => { colarAtual = v; });
+  montar('[data-peca3d]', 'peca3d', './peca3d.js', 'montarPeca3d', (v) => { pecaAtual = v; });
   agendarPesado();
   montar('[data-revista3d]', 'revista3d', './revista3d.js', 'montarRevista3d', (v) => { revistaAtual = v; });
 

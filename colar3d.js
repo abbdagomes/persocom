@@ -23,7 +23,7 @@ const CONFIG_COLAR = {
 };
 
 // o estúdio que a peça reflete: branco como o das fotos, com painéis escuros que dão o contraste do metal
-function estudio() {
+export function estudio() {
   const c = new THREE.Scene();
   const parede = (cor) => new THREE.MeshBasicMaterial({ color: cor, side: THREE.DoubleSide });
   c.add(new THREE.Mesh(new THREE.SphereGeometry(10, 24, 16), new THREE.MeshBasicMaterial({ color: '#dcdee2', side: THREE.BackSide })));

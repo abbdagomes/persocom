@@ -1826,3 +1826,7 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
 .colar-cores .pilula { padding: 7px 13px; font-size: 11px; cursor: pointer; border: none; }
 .colar-cores .pilula.ativo { color: #111827; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #6b7280; }
 @media (max-width: 720px) { .modelo-palco.colar3d { height: 540px; } }
+
+/* crédito na foto do topo do projeto (creditoTopo no projetos.js) */
+.detalhe-midia:has(.detalhe-credito) { position: relative; }
+.detalhe-credito { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 11px; color: #9aa0a8; letter-spacing: .02em; pointer-events: none; }
