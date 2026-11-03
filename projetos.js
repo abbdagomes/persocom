@@ -206,9 +206,9 @@ const PROJETOS = [
     etiquetas: ['personagem', 'animação', 'shader', 'after effects'],
     imagens: [
       // a personagem renderizada em memória a partir do .blend dela (sem salvar): o rosto piscando (shape key Key 1 de CORPO) e as duas versões girando
-      { video: 'projetos/cyber-dance/rosto.mp4?v=3', terco: true, inteiroCelular: true },
-      { video: 'projetos/cyber-dance/giro.mp4?v=2', terco: true, parCelular: true },
-      { video: 'projetos/cyber-dance/giro-preta.mp4?v=2', terco: true, parCelular: true },
+      { video: 'projetos/cyber-dance/rosto.mp4?v=3', terco: true, inteiroCelular: true, ampliar: true },
+      { video: 'projetos/cyber-dance/giro.mp4?v=2', terco: true, parCelular: true, ampliar: true },
+      { video: 'projetos/cyber-dance/giro-preta.mp4?v=2', terco: true, parCelular: true, ampliar: true },
       { src: 'projetos/cyber-dance/render.webp', ampliar: true },   // o render puro, sem a pós
     ],
   },
