@@ -31,6 +31,7 @@ const DESENHOS = [];
 //                 (pros recortes/adesivos parecerem parte da página, não fotos — pedido da Ana no Sinapse)
 //   video       → vídeo curtinho (turntable 360, animação...). Toca no hover e no detalhe
 //   videoTopo   → (opcional) outro vídeo só pro topo do detalhe, se o do hover for diferente
+//   topoComSom  → true = o vídeo do topo toca com som e o player do site
 //   imagemTopo  → (opcional) uma foto no topo do detalhe, se não for a capa
 //   imagens     → as imagens que aparecem rolando pra baixo no detalhe, em ordem:
 //                 ['projetos/game-jam/1.jpg', 'projetos/game-jam/2.jpg', ...]
@@ -174,6 +175,23 @@ const PROJETOS = [
       { modelo3d: { arquivo: 'projetos/menina-polvo/menina-polvo.glb', arquivoCelular: 'projetos/menina-polvo/menina-polvo-leve.glb', versao: 3 },
         legenda: 'o modelo em 3D com o shader — gire, arraste o sol pra mudar a luz, veja cada camada do shader e desça a barra pra ver a topologia' },
       { video: 'projetos/menina-polvo/sentada.mp4', legenda: 'animação: ela sentando', centro: true },
+    ],
+  },
+  {
+    id: 'cyber-dance', categoria: '3d', titulo: 'Cyber Dance', resumo: 'estudo de shader e animação',
+    texto: 'Personagem autoral modelada e animada em 3D, num estudo de shader e movimento. A dança foi animada com base na '
+      + 'coreografia de "Cyber Dance", e os materiais próprios acompanham cenários que trocam de padrão e de cor. Na '
+      + 'pós-produção, feita no After Effects, o vídeo ganhou a moldura barroca e os efeitos finais.',
+    // no topo, o vídeo inteiro com som (Desktop/projetos/nsei.avi); passando o mouse no card, um trecho mudo
+    capa: 'projetos/cyber-dance/capa.webp?v=4', video: 'projetos/cyber-dance/trecho.mp4?v=3', posterTopo: 'projetos/cyber-dance/poster.webp',
+    videoTopo: 'projetos/cyber-dance/video.mp4?v=3', topoComSom: true, link: '',
+    etiquetas: ['personagem', 'animação', 'shader', 'after effects'],
+    imagens: [
+      // a personagem renderizada em memória a partir do .blend dela (sem salvar): o rosto piscando (shape key Key 1 de CORPO) e as duas versões girando
+      { video: 'projetos/cyber-dance/rosto.mp4?v=3', terco: true, inteiroCelular: true },
+      { video: 'projetos/cyber-dance/giro.mp4?v=2', terco: true, parCelular: true },
+      { video: 'projetos/cyber-dance/giro-preta.mp4?v=2', terco: true, parCelular: true },
+      { src: 'projetos/cyber-dance/render.webp', ampliar: true },   // o render puro, sem a pós
     ],
   },
   {
@@ -690,7 +708,7 @@ function abrirProjeto(projetoId) {
   const normalizar = (m) => (typeof m === 'string' ? (/\.(mp4|webm)$/i.test(m) ? { video: m } : { src: m }) : m);
   // o destaque do topo: o vídeo, senão a capa, senão a 1ª imagem
   const lista = (p.imagens || []).map(normalizar);
-  const destaque = p.imagemTopo ? { src: p.imagemTopo } : p.videoTopo || p.video ? { video: p.videoTopo || p.video } : p.capa ? { src: p.capa } : lista.shift();
+  const destaque = p.imagemTopo ? { src: p.imagemTopo } : p.videoTopo || p.video ? { video: p.videoTopo || p.video, som: p.topoComSom, poster: p.topoComSom ? (p.posterTopo || p.capa) : undefined } : p.capa ? { src: p.capa } : lista.shift();
 
   const midiaHTML = (m, classe = '') => {
     if (!m || m.exemplo) {
