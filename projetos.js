@@ -39,7 +39,7 @@ const DESENHOS = [];
 //                 ou com opções: { src: '...jpg', legenda: 'texto', meia: true }  (meia = duas lado a lado)
 //                 vídeo no meio também vale: 'projetos/game-jam/giro.mp4'
 //   link        → botão "ver projeto" (itch.io, Behance...). Vazio = sem botão
-//   etiquetas   → palavrinhas que aparecem no detalhe
+//   ano         → o ano do trabalho, que aparece no detalhe (sem ano, não aparece nada)
 // ---------- vitrine 3D do Tony Matrimony (vitrine.js) ----------
 // personagens: id = nome dos arquivos em projetos/game-jam/3d/ (id.glb, icone-id.webp, rostos/id-expressao.webp)
 //   nome e frase aparecem em cima; "expressoes" = quais rostos esse personagem tem (os outros botões só tocam a animação)
@@ -75,13 +75,12 @@ const VITRINE_GAME_JAM = {
 const PROJETOS = [
   // ---------------- 3D ----------------
   {
-    id: 'boneca-lovecore', categoria: '3d', destaque: true, titulo: 'Boneca 1,80 m', resumo: 'escultura 3D impressa · Lovecore 7',
+    id: 'boneca-lovecore', categoria: '3d', ano: '2026', destaque: true, titulo: 'Boneca 1,80 m', resumo: 'escultura 3D impressa · Lovecore 7',
     texto: 'Escultura de 1,80 m modelada em 3D e impressa em grande escala para a cenografia da Lovecore 7, festa do '
       + 'coletivo REBU DIGITAL que reúne mais de 500 pessoas por edição. O trabalho foi da modelagem e da divisão da peça em '
       + 'partes para impressão até a montagem, o reforço interno e o acabamento. A cena também foi recriada em 3D, com luz e '
       + 'material ajustados para o render imitar a foto real da peça.',
     capa: 'projetos/boneca-lovecore/capa.webp?v=3', imagemTopo: 'projetos/boneca-lovecore/parede-inteira.webp', link: '',
-    etiquetas: ['impressão 3d', 'escultura', 'cenografia', 'lovecore 7', 'rebu digital'],
     imagens: [
       // a foto real e o render na mesma parede (arrastando, um vira o outro), ao lado das costas
       { comparar: { antes: 'projetos/boneca-lovecore/comparar-foto.webp', depois: 'projetos/boneca-lovecore/comparar-render.webp',
@@ -106,7 +105,7 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'shader-glsl', categoria: '3d', destaque: true, titulo: 'Shader GLSL', resumo: 'instalação interativa · TouchDesigner',
+    id: 'shader-glsl', categoria: '3d', ano: '2026', destaque: true, titulo: 'Shader GLSL', resumo: 'instalação interativa · TouchDesigner',
     texto: 'Instalação interativa feita em TouchDesigner com shaders GLSL próprios para a cenografia da Lovecore 6, festa do '
       + 'coletivo REBU DIGITAL. A imagem da câmera vira, em tempo real, um mosaico de pequenas imagens, e o público muda '
       + 'o tamanho dos quadrados com o gesto de pinça da mão. A noite teve como atrações internacionais Dinamarca '
@@ -114,7 +113,6 @@ const PROJETOS = [
     capa: 'projetos/shader-glsl/capa.webp',
     video: 'projetos/shader-glsl/instalacao.mp4?v=2',   // 480 px, 1,8 MB
     link: '',
-    etiquetas: ['touchdesigner', 'glsl', 'mediapipe', 'interativo', 'lovecore 6'],
     imagens: [
       { mosaico: {
           // cada conjunto = uma pasta de fotos (feito com .claude/ferramentas/atlas_mosaico.py)
@@ -143,7 +141,7 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'game-jam', categoria: '3d', destaque: true, titulo: 'Tony Matrimony', resumo: 'personagens 3D · GMTK Game Jam 2026',
+    id: 'game-jam', categoria: '3d', ano: '2026', destaque: true, titulo: 'Tony Matrimony', resumo: 'personagens 3D · GMTK Game Jam 2026',
     texto: '8 personagens 3D criados em 4 dias para Tony Matrimony, jogo feito na GMTK Game Jam 2026, uma das maiores '
       + 'maratonas de jogos independentes do mundo, com mais de 10.000 projetos. Para dar conta do prazo, o processo '
       + 'começou pela blocagem rápida dos volumes, sem perder a unidade visual do elenco, e os modelos foram otimizados '
@@ -151,7 +149,6 @@ const PROJETOS = [
     capa: 'projetos/game-jam/tony-camera.webp?v=5', capaInteira: true,   // quadrada e o card é largo: não corta a cabeça nem os pés
     video: 'projetos/game-jam/turntable.mp4?v=9',
     link: 'https://ayayun.itch.io/tony-matrimony',
-    etiquetas: ['gmtk game jam 2026', '94º em arte', 'personagens', 'low poly', 'blender'],
     imagens: [
       { src: 'projetos/game-jam/lineup.webp?v=7', legenda: 'o elenco completo do casamento' },
       { vitrine: VITRINE_GAME_JAM, legenda: 'o elenco em 3D — arraste pra girar, troque de personagem e estoure as bolhas de expressão' },
@@ -163,14 +160,13 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'menina-polvo', categoria: '3d', titulo: 'Menina Polvo', resumo: 'estudo de personagem · shader e animação',
+    id: 'menina-polvo', categoria: '3d', ano: '2025', titulo: 'Menina Polvo', resumo: 'estudo de personagem · shader e animação',
     texto: 'Personagem 3D autoral modelada e animada com shaders toon que imitam o traço e o volume do desenho 2D. Um '
       + 'projeto pessoal para levar a expressividade da ilustração tradicional para o 3D, terminando numa animação com a '
       + 'fluidez e o charme de desenho animado.',
     capa: 'projetos/menina-polvo/capa.webp',
     video: 'projetos/menina-polvo/turntable.mp4',
     link: '',
-    etiquetas: ['estudo de personagem', 'shader toon', 'animação', 'rig', 'blender'],
     imagens: [
       { src: 'projetos/menina-polvo/sentada.webp', legenda: 'render final' },
       { modelo3d: { arquivo: 'projetos/menina-polvo/menina-polvo.glb', arquivoCelular: 'projetos/menina-polvo/menina-polvo-leve.glb', versao: 3 },
@@ -179,12 +175,11 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'immortan', categoria: '3d', titulo: 'Pingente Immortan', resumo: 'pingente-apito impresso em 3D · UMS 458',
+    id: 'immortan', categoria: '3d', ano: '2026', titulo: 'Pingente Immortan', resumo: 'pingente-apito impresso em 3D · UMS 458',
     texto: 'Pingente-apito "Immortan", criado para a marca UMS 458, com caveiras nas laterais e carregado de pontas. Modelei a '
       + 'peça do zero em 3D, imprimi e fiz o acabamento à mão. Ela foi lançada em dois tamanhos, em preto e prata.',
     // fotos enviadas pela Ana (fundo branco, por isso o bloco branco); as fotos com gente ficam nos próprios posts da marca
     capa: 'projetos/immortan/caveiras.webp', creditoTopo: 'foto: UMS 458', link: '', blocoBranco: true,
-    etiquetas: ['impressão 3d', 'modelagem', 'acabamento', 'ums 458'],
     imagens: [
       { colar3d: { arquivo: 'projetos/immortan/apito.glb?v=12' } },
       { src: 'projetos/immortan/quatro.webp', legenda: 'foto: UMS 458', meia: true, ampliar: true },
@@ -196,14 +191,13 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'cyber-dance', categoria: '3d', titulo: 'Cyber Dance', resumo: 'estudo de shader e animação',
+    id: 'cyber-dance', categoria: '3d', ano: '2025', titulo: 'Cyber Dance', resumo: 'estudo de shader e animação',
     texto: 'Personagem autoral modelada e animada em 3D, num estudo de shader e movimento. A dança foi animada com base na '
       + 'coreografia de "Cyber Dance", e os materiais próprios acompanham cenários que trocam de padrão e de cor. Na '
       + 'pós-produção, feita no After Effects, o vídeo ganhou a moldura barroca e os efeitos finais.',
     // no topo, o vídeo inteiro com som (Desktop/projetos/nsei.avi); passando o mouse no card, um trecho mudo
     capa: 'projetos/cyber-dance/capa.webp?v=4', video: 'projetos/cyber-dance/trecho.mp4?v=3', posterTopo: 'projetos/cyber-dance/poster.webp',
     videoTopo: 'projetos/cyber-dance/video.mp4?v=3', topoComSom: true, link: '',
-    etiquetas: ['personagem', 'animação', 'shader', 'after effects'],
     imagens: [
       // a personagem renderizada em memória a partir do .blend dela (sem salvar): o rosto piscando (shape key Key 1 de CORPO) e as duas versões girando
       { video: 'projetos/cyber-dance/rosto.mp4?v=3', terco: true, inteiroCelular: true, ampliar: true },
@@ -213,14 +207,13 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'rocca', categoria: '3d', titulo: 'Rocca', resumo: 'estudo de personagem e textura',
+    id: 'rocca', categoria: '3d', ano: '2025', titulo: 'Rocca', resumo: 'estudo de personagem e textura',
     texto: 'Estudo de personagem e textura. Modelei e texturizei a Rocca em 3D com base na ilustração de Akihito Tsukushi para '
       + 'Gears Maiden, tentando levar para o volume os detalhes e as cores do desenho.',
     // capa = o render final dela (rocca pesos 3.blend, quadro 132) em fundo branco; o .blend nunca é salvo por mim
     capa: 'projetos/rocca/capa.webp?v=2', capaInteira: true, link: '', blocoBranco: true,
     // no topo, a volta com ela parada na rest pose do rig (recorte quadrado, como a capa)
     videoTopo: 'projetos/rocca/giro.mp4?v=4',
-    etiquetas: ['personagem', 'modelagem', 'textura', 'estudo'],
     imagens: [
       // o render e o desenho no mesmo quadro e na mesma escala, com olhos e pés na mesma altura, pra comparar
       { src: 'projetos/rocca/pose.webp', meia: true, ampliar: true },
@@ -231,14 +224,13 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'garotas-3d', categoria: '3d', titulo: 'Garotas 3D', resumo: 'composições e animações · depth maps',
+    id: 'garotas-3d', categoria: '3d', ano: '2026', titulo: 'Garotas 3D', resumo: 'composições e animações · depth maps',
     texto: 'Série de composições e animações com 4 personagens 3D autorais. O ponto de partida era a estética anime; no processo, '
       + 'as texturas deram lugar a mapas de profundidade, e a cor passou a dizer o que está perto e o que está longe. O resultado '
       + 'é uma série gráfica, colorida e lúdica.',
     // capa parada (o grupo rosa); passando o mouse e no topo, o vídeo roxo
     capa: 'projetos/garotas-3d/capa.webp', video: 'projetos/garotas-3d/capa-troca.mp4', videoTopo: 'projetos/garotas-3d/roxo.mp4',
     link: '', blocoBranco: true,
-    etiquetas: ['personagens', 'animação', 'depth maps', 'experimental'],
     imagens: [
       // o processo: a mesma cena com as texturas (anime) e com a cor de profundidade (render de uma cópia do garota.blend)
       { comparar: { antes: 'projetos/garotas-3d/antes.webp?v=8', depois: 'projetos/garotas-3d/depois.webp?v=4', rotuloAntes: 'anime', rotuloDepois: 'profundidade' }, sangria: true },
@@ -255,7 +247,7 @@ const PROJETOS = [
 
   // ---------------- DESIGN GRÁFICO ----------------
   {
-    id: 'sinapse', categoria: 'design', titulo: 'Sinapse', resumo: 'web · identidade',
+    id: 'sinapse', categoria: 'design', ano: '2026', titulo: 'Sinapse', resumo: 'web · identidade',
     texto: 'Site colaborativo que propõe experimentar São Paulo pelos cinco sentidos. O nome vem da sinapse, a conexão entre '
       + 'neurônios por onde passam os impulsos nervosos: é assim que toda experiência sensorial acontece no corpo. Com imagens '
       + 'sobrepostas, um filtro visual para cada sentido e jogos interativos, a plataforma convida a misturar os estímulos como '
@@ -265,7 +257,6 @@ const PROJETOS = [
     // no topo, por enquanto, o mesmo do hover. Material da pasta "Motion" do grupo e do Behance
     capa: 'projetos/sinapse/capa.webp', video: 'projetos/sinapse/capa-troca.mp4',   // (o topo vai ser o motion novo da Ana — trocar aqui com videoTopo)
     link: 'https://sinapse-5s3w.vercel.app/', blocoBranco: true,
-    etiquetas: ['web', 'identidade', 'cartazes', 'motion'],
     imagens: [
       { video: 'projetos/sinapse/logo-objetos.mp4', legenda: 'o logo trocando letras por objetos da cidade (Juliana Nakashima)' },
       { src: 'projetos/sinapse/adesivos.webp?v=2', sangria: true },
@@ -276,14 +267,13 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'cynth', categoria: 'design', titulo: 'Cynth', resumo: 'tipografia · fonte display',
+    id: 'cynth', categoria: 'design', ano: '2025', titulo: 'Cynth', resumo: 'tipografia · fonte display',
     texto: 'Cynth é uma fonte display criada em dupla, com proporções expandidas, contraste forte de peso e contraformas em '
       + 'formato de gota (simples e alongadas). É uma família completa: caixa alta e baixa, numerais, acentos, pontuação '
       + 'e um conjunto grande de símbolos. A apresentação da fonte ganhou motion e peças interativas feitas no '
       + 'TouchDesigner.',
     // capa parada (a 1ª aba); passando o mouse, as abas da marca trocam 4 por segundo (como o switch do Touch)
     capa: 'projetos/cynth/capa.webp?v=2', video: 'projetos/cynth/capa-troca.mp4', link: '',
-    etiquetas: ['tipografia', 'fonte display'],
     imagens: [
       // as abas (da capa) foram recoloridas nas cores da marca por .claude/ferramentas/recolorir_abas_cynth.py
       // vídeos da Ana (540 px, sem som), três lado a lado: as abas no TouchDesigner e os motions
@@ -302,14 +292,13 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'revista-espm', categoria: 'design', titulo: 'Boca Boca', resumo: 'revista · identidade',
+    id: 'revista-espm', categoria: 'design', ano: '2025', titulo: 'Boca Boca', resumo: 'revista · identidade',
     texto: 'Boca Boca é uma revista sobre restaurantes de imigrantes em São Paulo. Em equipe, criamos o conceito editorial, '
       + 'a identidade visual e o projeto gráfico da primeira edição, dedicada à América Latina, além do vídeo de '
       + 'apresentação da marca.',
     // capa parada (o logo da capa do manual); passando o mouse, as bocas trocando do fim do vídeo (quadrado, igual ao card);
     // no topo da página, as bocas animadas
     capa: 'projetos/boca-boca/capa.webp', video: 'projetos/boca-boca/bocas-trocando.mp4', videoTopo: 'projetos/boca-boca/bocas.mp4?v=2', link: '',
-    etiquetas: ['editorial', 'diagramação', 'identidade'],
     imagens: [
       // a revista inteira em 3D: flutua girando, clicando abre e dá pra folhear (revista3d.js; páginas tiradas do Issuu)
       { revista3d: { pasta: 'projetos/boca-boca/revista/', paginas: 100 },
@@ -373,13 +362,12 @@ const PROJETOS = [
     ] },
   },
   {
-    id: 'emoji-lab', categoria: 'ilustracao', titulo: 'Emoji Lab', resumo: 'colagem digital · vetor + 3D',
+    id: 'emoji-lab', categoria: 'ilustracao', ano: '2026', titulo: 'Emoji Lab', resumo: 'colagem digital · vetor + 3D',
     texto: 'Série de 8 emojis autorais que desmontam a silhueta clássica do emoji. Cada peça é uma colagem digital entre '
       + 'vetor e render 3D, com reflexo de globo de festa, brilho, metal e texturas líquidas; algumas ganharam animação '
       + 'em loop.',
     // capa parada (o palhaço); passando o mouse, os 8 emojis trocam
     capa: 'projetos/emoji-lab/capa.webp?v=2', video: 'projetos/emoji-lab/capa-troca.mp4', link: '',
-    etiquetas: ['ilustração', 'vetor', '3d', 'animação em loop'],
     imagens: [
       // a série inteira numa cartela; os animados tocam o loop no quadradinho (cartela.js)
       { cartela: { semNome: true, emojis: [
@@ -785,8 +773,7 @@ function abrirProjeto(projetoId) {
       <div class="detalhe-info">
         <h2 data-texto="${escapar(p.titulo)}">${escapar(p.titulo)}</h2>
         <div class="etiquetas">
-          <span class="etiqueta forte">${escapar(c.nome)}</span>
-          ${(p.etiquetas || []).map((e) => `<span class="etiqueta">${escapar(e)}</span>`).join('')}
+          ${p.ano ? `<span class="etiqueta">${escapar(p.ano)}</span>` : ''}
         </div>
         <p class="detalhe-texto">${escapar(p.texto)}</p>
         ${p.link ? `<a class="pilula ver-projeto" href="${escapar(p.link)}" target="_blank" rel="noopener">ver projeto ↗</a>` : ''}
