@@ -4,22 +4,23 @@
 //  Cada letra digitada troca a carinha da barra; o ✕ "fecha" a janela e ela volta em outra cor.
 //  Embaixo: cores da marca, tamanho e atalhos (alfabeto, números, acentos).
 // =====================================================================
+import { tr } from './idioma.js';
 
 const CONFIG_TESTADOR = {
   textoInicial: 'Cynth',
   // cores da marca (medidas nos vídeos da Ana)
   cores: [
-    { nome: 'verde-limão', cor: '#b6fa60' },
-    { nome: 'rosa', cor: '#ef4b91' },
-    { nome: 'azul', cor: '#1aecca' },
-    { nome: 'cinza', cor: '#8385a0' },
+    { nome: tr('verde-limão'), cor: '#b6fa60' },
+    { nome: tr('rosa'), cor: '#ef4b91' },
+    { nome: tr('azul'), cor: '#1aecca' },
+    { nome: tr('cinza'), cor: '#8385a0' },
   ],
   // carinhas das abas da Ana (só com caracteres que a Cynth tem)
   carinhas: ['(=øwø=)', '(*o*)!', '\\(^-^)/', '~(>∆<)~', '(@°-°@)', 'O(owo)O', 'q(ø-_-ø)p', 'm(∆w∆)m', 'w(Û v Û)w', '\\(^_<)/', '(ˆ* = *ˆ)!', 'o(>< )o', '(=^-^=)'],
   atalhos: [
     { nome: 'Aa', texto: 'abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ' },
     { nome: '0–9', texto: '0123456789\n!?@#$%&*+=<>()[]{}' },
-    { nome: 'acentos', texto: 'ÀÁÂÃÄÅÆÇÈÉÊË\nàáâãäæçèéêëñõöøœÿ' },
+    { nome: tr('acentos'), texto: 'ÀÁÂÃÄÅÆÇÈÉÊË\nàáâãäæçèéêëñõöøœÿ' },
   ],
   tamanho: { min: 24, max: 180, inicial: 96 },   // px (no celular diminui um pouco)
 };
@@ -39,21 +40,21 @@ export function montarTestador(raiz, cfg = {}) {
     <div class="testador-palco">
       <div class="testador-janela" style="--cor:${C.cores[0].cor}">
         <div class="testador-barra">
-          <button type="button" class="testador-x" data-fechar aria-label="fechar a janela (ela volta em outra cor)">✕</button>
+          <button type="button" class="testador-x" data-fechar aria-label="${tr('fechar a janela (ela volta em outra cor)')}">✕</button>
           <span class="testador-carinha">CYNTH</span>
         </div>
         <textarea class="testador-texto" spellcheck="false" autocapitalize="off" autocomplete="off"
-          aria-label="digite pra testar a fonte Cynth">${C.textoInicial}</textarea>
+          aria-label="${tr('digite pra testar a fonte Cynth')}">${C.textoInicial}</textarea>
       </div>
     </div>
     <div class="testador-controles">
-      <div class="testador-cores" role="radiogroup" aria-label="cor da janela">
+      <div class="testador-cores" role="radiogroup" aria-label="${tr('cor da janela')}">
         ${C.cores.map((c, i) => `<button type="button" class="testador-cor${i ? '' : ' ativa'}" role="radio" aria-checked="${!i}"
           aria-label="${c.nome}" title="${c.nome}" style="--cor:${c.cor}" data-cor="${i}"></button>`).join('')}
       </div>
-      <label class="testador-tamanho" title="tamanho">
+      <label class="testador-tamanho" title="${tr('tamanho')}">
         <span aria-hidden="true">a</span>
-        <input type="range" min="${C.tamanho.min}" max="${C.tamanho.max}" value="${C.tamanho.inicial}" aria-label="tamanho da letra">
+        <input type="range" min="${C.tamanho.min}" max="${C.tamanho.max}" value="${C.tamanho.inicial}" aria-label="${tr('tamanho da letra')}">
         <span aria-hidden="true" class="grande">A</span>
       </label>
       <div class="testador-atalhos">

@@ -6,6 +6,7 @@
 //  vai pro <body> e cobre a janela. Esc sai (sem fechar o projeto). Clicar no vídeo toca/pausa,
 //  2 cliques = tela cheia. A barra some sozinha enquanto toca, e volta mexendo o mouse.
 // =====================================================================
+import { tr } from './idioma.js';
 const CONFIG_PLAYER = {
   pulo: 5,             // segundos que as setas pulam
   esconderBarra: 2.2,  // segundos parado (tocando) até a barra sumir
@@ -30,15 +31,15 @@ export function montarPlayer(caixa) {
   const video = caixa.querySelector('video');
   video.controls = false;
   caixa.insertAdjacentHTML('beforeend', `
-    <button type="button" class="player-grande" data-play aria-label="tocar">${ICONES.tocar}</button>
+    <button type="button" class="player-grande" data-play aria-label="${tr('tocar')}">${ICONES.tocar}</button>
     <div class="player-barra">
-      <button type="button" class="pilula player-botao" data-play aria-label="tocar">${ICONES.tocar}</button>
+      <button type="button" class="pilula player-botao" data-play aria-label="${tr('tocar')}">${ICONES.tocar}</button>
       <span class="player-tempo">0:00 / 0:00</span>
-      <div class="player-linha" role="slider" tabindex="0" aria-label="posição do vídeo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="player-linha" role="slider" tabindex="0" aria-label="${tr('posição do vídeo')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="player-carregado"></div><div class="player-feito"></div><div class="player-bolinha"></div>
       </div>
-      <button type="button" class="pilula player-botao" data-som aria-label="tirar o som">${ICONES.som}</button>
-      <button type="button" class="pilula player-botao" data-cheia aria-label="tela cheia">${ICONES.cheia}</button>
+      <button type="button" class="pilula player-botao" data-som aria-label="${tr('tirar o som')}">${ICONES.som}</button>
+      <button type="button" class="pilula player-botao" data-cheia aria-label="${tr('tela cheia')}">${ICONES.cheia}</button>
     </div>`);
   const botoesPlay = caixa.querySelectorAll('[data-play]');
   const botaoSom = caixa.querySelector('[data-som]');
@@ -57,7 +58,7 @@ export function montarPlayer(caixa) {
     caixa.classList.toggle('tocando', !parado);
     for (const b of botoesPlay) {
       b.innerHTML = parado ? ICONES.tocar : ICONES.pausar;
-      b.setAttribute('aria-label', parado ? 'tocar' : 'pausar');
+      b.setAttribute('aria-label', parado ? tr('tocar') : tr('pausar'));
     }
     acordar();
   }
@@ -116,7 +117,7 @@ export function montarPlayer(caixa) {
   function mostrarSom() {
     const mudo = video.muted || video.volume === 0;
     botaoSom.innerHTML = mudo ? ICONES.mudo : ICONES.som;
-    botaoSom.setAttribute('aria-label', mudo ? 'ligar o som' : 'tirar o som');
+    botaoSom.setAttribute('aria-label', mudo ? tr('ligar o som') : tr('tirar o som'));
     caixa.classList.toggle('mudo', mudo);
   }
   botaoSom.addEventListener('click', (e) => { e.stopPropagation(); video.muted = !video.muted; });
@@ -130,7 +131,7 @@ export function montarPlayer(caixa) {
   function mostrarCheia() {
     const c = estaCheia();
     botaoCheia.innerHTML = c ? ICONES.sair : ICONES.cheia;
-    botaoCheia.setAttribute('aria-label', c ? 'sair da tela cheia' : 'tela cheia');
+    botaoCheia.setAttribute('aria-label', c ? tr('sair da tela cheia') : tr('tela cheia'));
     caixa.classList.toggle('em-tela-cheia', c);
   }
   function ligarFalsa() {

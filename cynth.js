@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { carregarFonte } from './testador.js';
+import { tr } from './idioma.js';
 
 // o texto do Touch (text2), letra por letra; a quebra de linha vira peça vazia
 const TEXTO = 'abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPGRSTUVWXYZ!@?^~*%$#';
@@ -20,13 +21,13 @@ const CORES_MARCA = ['#8488a4', '#ef4b91', '#1aecca', '#bcfc54'];   // cinza-lil
 
 const FORMATOS = {
   bolinhas: {          // medido nos frames gravados do "cynth gridizin.toe"
-    nome: 'bolinhas', forma: 0, aspecto: 4 / 5, colunas: 17,
+    nome: tr('bolinhas'), forma: 0, aspecto: 4 / 5, colunas: 17,
     fundo: '#bcbcbc', cor: '#8488a4', corLetra: '#f1f1f1',
     base: 0.62, cresce: 0.62,                 // bolinha = 62% da célula; no campo cresce até encostar nas vizinhas
     alvo: 'bloco', bloco: 0.47,               // pointgen "rectangle": bloco irregular com 47% da largura
   },
   quadrados: {         // medido nos frames gravados do "quadrados letras cynth.toe"
-    nome: 'quadradinhos', forma: 1, aspecto: 16 / 9, colunas: 20,
+    nome: tr('quadradinhos'), forma: 1, aspecto: 16 / 9, colunas: 20,
     fundo: '#e4e4e4', cor: '#bcfc54', corLetra: '#000000',
     base: 0.65, cresce: 0.5,
     alvo: 'esfera', esfera: 0.36,             // pointgen esfera: raio = 36% da altura da grade
@@ -116,13 +117,13 @@ export function montarGrade(raiz, cfg) {
   raiz.innerHTML = `
     <div class="cynth-palco cynth-grade">
       <canvas></canvas>
-      <div class="cynth-formatos" role="group" aria-label="formato do grid">
+      <div class="cynth-formatos" role="group" aria-label="${tr('formato do grid')}">
         ${Object.entries(FORMATOS).map(([id, f], i) => `<button type="button" class="pilula${i ? '' : ' ativo'}" data-formato="${id}">${f.nome}</button>`).join('')}
       </div>
-      <div class="cynth-cores" role="group" aria-label="cor das peças">
-        ${CORES_MARCA.map((c) => `<button type="button" class="testador-cor" style="--cor:${c}" data-cor="${c}" aria-label="cor ${c}"></button>`).join('')}
+      <div class="cynth-cores" role="group" aria-label="${tr('cor das peças')}">
+        ${CORES_MARCA.map((c) => `<button type="button" class="testador-cor" style="--cor:${c}" data-cor="${c}" aria-label="${tr('cor')} ${c}"></button>`).join('')}
       </div>
-      <p class="cynth-dica">passe o mouse pelas letras · arraste pra girar em 3D · 2 cliques volta</p>
+      <p class="cynth-dica">${tr('passe o mouse pelas letras · arraste pra girar em 3D · 2 cliques volta')}</p>
     </div>`;
   const palco = raiz.querySelector('.cynth-palco');
   const canvas = palco.querySelector('canvas');

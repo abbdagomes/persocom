@@ -3,6 +3,7 @@
 //  Duas imagens do mesmo tamanho, uma por cima da outra: arrastar a barrinha mostra mais de uma ou de outra.
 //  Quando aparece na tela, a barrinha dá uma passeada sozinha pra pessoa entender que dá pra mexer.
 // =====================================================================
+import { tr } from './idioma.js';
 const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const CONFIG_COMPARAR = {
@@ -19,7 +20,7 @@ export function montarComparar(raiz, cfg) {
       <img class="comparar-antes" src="${escapar(cfg.antes)}" alt="${escapar(cfg.rotuloAntes)}" draggable="false">
       <span class="comparar-rotulo esquerda">${escapar(cfg.rotuloAntes)}</span>
       <span class="comparar-rotulo direita">${escapar(cfg.rotuloDepois)}</span>
-      <div class="comparar-barra" role="slider" tabindex="0" aria-label="comparar as duas imagens"
+      <div class="comparar-barra" role="slider" tabindex="0" aria-label="${tr('comparar as duas imagens')}"
         aria-valuemin="0" aria-valuemax="100" aria-valuenow="${C.inicio}"><span></span></div>
     </div>`;
   const caixa = raiz.querySelector('.comparar');

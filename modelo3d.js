@@ -4,6 +4,7 @@
 // Quem monta é o projetos.js, quando o projeto tem um item { modelo3d: {...} } na lista de imagens.
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
+import { tr } from './idioma.js';
 
 const CELULAR = matchMedia('(pointer: coarse)').matches;
 const TELA_ESTREITA = matchMedia('(max-width: 720px)');
@@ -196,24 +197,24 @@ function materialArame(u) {
 export function montarModelo3d(raiz, cfg) {
   raiz.innerHTML = `
     <div class="modelo-palco">
-      <canvas class="modelo-cena" aria-label="modelo 3D — arraste pra girar"></canvas>
-      <div class="modelo-carregando">carregando o modelo…</div>
-      <div class="modelo-dica">↔ arraste pra girar</div>
-      <div class="modelo-zoom"><button type="button" data-zoom="-1" aria-label="aproximar">+</button><button type="button" data-zoom="1" aria-label="afastar">−</button></div>
-      <div class="modelo-camadas" role="group" aria-label="camadas do shader">
-        <button type="button" data-modo="0" class="ativo">completo</button>
-        <button type="button" data-modo="1">luz e sombra</button>
-        <button type="button" data-modo="2">só textura</button>
-        <button type="button" data-contorno class="ativo" aria-pressed="true">contorno</button>
+      <canvas class="modelo-cena" aria-label="${tr('modelo 3D — arraste pra girar')}"></canvas>
+      <div class="modelo-carregando">${tr('carregando o modelo…')}</div>
+      <div class="modelo-dica">${tr('↔ arraste pra girar')}</div>
+      <div class="modelo-zoom"><button type="button" data-zoom="-1" aria-label="${tr('aproximar')}">+</button><button type="button" data-zoom="1" aria-label="${tr('afastar')}">−</button></div>
+      <div class="modelo-camadas" role="group" aria-label="${tr('camadas do shader')}">
+        <button type="button" data-modo="0" class="ativo">${tr('completo')}</button>
+        <button type="button" data-modo="1">${tr('luz e sombra')}</button>
+        <button type="button" data-modo="2">${tr('só textura')}</button>
+        <button type="button" data-contorno class="ativo" aria-pressed="true">${tr('contorno')}</button>
       </div>
-      <div class="modelo-luz" title="arraste o sol pra mudar a luz (duplo clique volta)">
+      <div class="modelo-luz" title="${tr('arraste o sol pra mudar a luz (duplo clique volta)')}">
         <div class="modelo-luz-disco"><div class="modelo-sol" aria-hidden="true">☀</div></div>
-        <span>luz</span>
+        <span>${tr('luz')}</span>
       </div>
-      <div class="modelo-barra" role="slider" tabindex="0" aria-label="material ou topologia" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="modelo-barra" role="slider" tabindex="0" aria-label="${tr('material ou topologia')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <span class="modelo-barra-rotulo cima">material</span>
         <div class="modelo-trilho"><div class="modelo-preenchido"></div><div class="modelo-pegador"></div></div>
-        <span class="modelo-barra-rotulo baixo">topologia</span>
+        <span class="modelo-barra-rotulo baixo">${tr('topologia')}</span>
       </div>
     </div>`;
   const palco = raiz.querySelector('.modelo-palco');
@@ -388,7 +389,7 @@ export function montarModelo3d(raiz, cfg) {
   const io = new IntersectionObserver(([en]) => {
     visivel = en.isIntersecting;
     if (visivel) relogio.getDelta();
-    if (visivel && !comecou) { comecou = true; carregar().catch(() => { aviso.textContent = 'não deu pra carregar o modelo 😢'; }); }
+    if (visivel && !comecou) { comecou = true; carregar().catch(() => { aviso.textContent = tr('não deu pra carregar o modelo 😢'); }); }
   }, { rootMargin: '300px 0px' });
   io.observe(palco);
 

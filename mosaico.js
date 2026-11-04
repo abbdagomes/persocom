@@ -7,6 +7,7 @@
 // As cartelas de fotos (atlas .webp + .json com as cores médias) saem do .claude/ferramentas/atlas_mosaico.py
 import * as THREE from 'three';
 import { criarCarregamento } from './carregamento.js';
+import { tr } from './idioma.js';
 
 const CONFIG_MOSAICO = {
   tamanhoMin: 3,          // px: menor quadradinho (pinça fechada) — quase vira a imagem de volta
@@ -110,7 +111,7 @@ async function salvarFoto(blob) {
   const nome = `mosaico-persocom-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
   const arquivo = new File([blob], nome, { type: 'image/png' });
   if (matchMedia('(pointer: coarse)').matches && navigator.canShare?.({ files: [arquivo] })) {
-    try { await navigator.share({ files: [arquivo], title: 'meu mosaico' }); return; } catch (e) {
+    try { await navigator.share({ files: [arquivo], title: tr('meu mosaico') }); return; } catch (e) {
       if (e.name === 'AbortError') return;             // a pessoa fechou o compartilhar
     }
   }
@@ -124,21 +125,21 @@ export function montarMosaico(raiz, cfg) {
   const conjuntos = cfg.conjuntos;
   raiz.innerHTML = `
     <div class="mosaico-palco">
-      <canvas class="mosaico-tela" aria-label="mosaico de fotos ao vivo"></canvas>
+      <canvas class="mosaico-tela" aria-label="${tr('mosaico de fotos ao vivo')}"></canvas>
       <canvas class="mosaico-mao" aria-hidden="true"></canvas>
-      ${conjuntos.length > 1 ? `<div class="mosaico-bolhas" role="group" aria-label="escolher o shader">
+      ${conjuntos.length > 1 ? `<div class="mosaico-bolhas" role="group" aria-label="${tr('escolher o shader')}">
         ${conjuntos.map((c, i) => `<button type="button" class="mosaico-redondo mosaico-bolha${i === 0 ? ' ativo' : ''}" data-conjunto="${i}" data-nome="${c.nome}"
           aria-label="${c.nome}" aria-pressed="${i === 0}"><img src="${c.icone}" alt="" draggable="false"></button>`).join('')}
       </div>` : ''}
       <div class="mosaico-camera">
-        <button type="button" class="pilula ver-projeto" data-camera>▶ ligar câmera</button>
-        <span>faça pinça com a mão pra mudar o tamanho dos quadrados · a imagem fica só no seu aparelho</span>
+        <button type="button" class="pilula ver-projeto" data-camera>${tr('▶ ligar câmera')}</button>
+        <span>${tr('faça pinça com a mão pra mudar o tamanho dos quadrados · a imagem fica só no seu aparelho')}</span>
       </div>
       <div class="mosaico-aviso" hidden></div>
-      <label class="mosaico-tamanho"><span>quadrados</span><input type="range" min="0" max="1" step="0.001" value="${CONFIG_MOSAICO.tamanhoInicial}"></label>
-      <button type="button" class="mosaico-redondo mosaico-foto" data-foto title="tirar foto do mosaico" aria-label="tirar foto do mosaico" hidden>${ICONE_FOTO}</button>
-      <button type="button" class="pilula mosaico-sair" data-sair hidden>✕ sair da câmera</button>
-      <button type="button" class="mosaico-redondo mosaico-virar" data-virar title="trocar câmera (frontal / traseira)" aria-label="trocar entre câmera frontal e traseira" hidden>${ICONE_VIRAR}</button>
+      <label class="mosaico-tamanho"><span>${tr('quadrados')}</span><input type="range" min="0" max="1" step="0.001" value="${CONFIG_MOSAICO.tamanhoInicial}"></label>
+      <button type="button" class="mosaico-redondo mosaico-foto" data-foto title="${tr('tirar foto do mosaico')}" aria-label="${tr('tirar foto do mosaico')}" hidden>${ICONE_FOTO}</button>
+      <button type="button" class="pilula mosaico-sair" data-sair hidden>${tr('✕ sair da câmera')}</button>
+      <button type="button" class="mosaico-redondo mosaico-virar" data-virar title="${tr('trocar câmera (frontal / traseira)')}" aria-label="${tr('trocar entre câmera frontal e traseira')}" hidden>${ICONE_VIRAR}</button>
       <div class="mosaico-flash" aria-hidden="true"></div>
     </div>`;
   const palco = raiz.querySelector('.mosaico-palco');
@@ -307,7 +308,7 @@ export function montarMosaico(raiz, cfg) {
     } catch {
       lado = antes;                                     // não deu: volta pra câmera de antes
       try { usarStream(await abrirCamera(lado)); await video.play(); } catch { desligarCamera(); }
-      mostrarAviso('não deu pra trocar de câmera', 3000);
+      mostrarAviso(tr('não deu pra trocar de câmera'), 3000);
     }
     pontos = null;
     botaoVirar.disabled = false;
@@ -327,7 +328,7 @@ export function montarMosaico(raiz, cfg) {
 
   async function ligarCamera() {
     botaoCamera.disabled = true;
-    botaoCamera.textContent = 'ligando…';
+    botaoCamera.textContent = tr('ligando…');
     entrarTelaCheia();
     cobrirComPixels();
     pixels.progresso(0.08);
@@ -353,14 +354,14 @@ export function montarMosaico(raiz, cfg) {
         if (!vivo) { maos.close(); return; }
       }
       pixels?.pronto();
-      if (stream) mostrarAviso('✋ mostre a mão e faça pinça', 3500);
+      if (stream) mostrarAviso(tr('✋ mostre a mão e faça pinça'), 3500);
     } catch (e) {
       pixels?.pronto();
       if (!stream) {
         desligarCamera();
-        mostrarAviso('não deu pra ligar a câmera — o mosaico continua nas listras arco-íris', 5000);
+        mostrarAviso(tr('não deu pra ligar a câmera — o mosaico continua nas listras arco-íris'), 5000);
       } else {
-        mostrarAviso('o rastreio da mão não carregou — use a barrinha pra mudar o tamanho', 5000);
+        mostrarAviso(tr('o rastreio da mão não carregou — use a barrinha pra mudar o tamanho'), 5000);
       }
     }
   }
@@ -374,7 +375,7 @@ export function montarMosaico(raiz, cfg) {
     ctxMao.clearRect(0, 0, W, H);
     aviso.hidden = true;
     botaoCamera.disabled = false;
-    botaoCamera.textContent = '▶ ligar câmera';
+    botaoCamera.textContent = tr('▶ ligar câmera');
     tirarPixels();
     sairTelaCheia();
   }
@@ -489,7 +490,7 @@ export function montarMosaico(raiz, cfg) {
   let comecou = false;
   const io = new IntersectionObserver(([en]) => {
     visivel = en.isIntersecting;
-    if (visivel && !comecou) { comecou = true; usarConjunto(pedido).catch(() => mostrarAviso('não deu pra carregar as fotos 😢')); }
+    if (visivel && !comecou) { comecou = true; usarConjunto(pedido).catch(() => mostrarAviso(tr('não deu pra carregar as fotos 😢'))); }
   }, { rootMargin: '300px 0px' });
   io.observe(palco);
   medir();

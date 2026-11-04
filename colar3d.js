@@ -3,6 +3,7 @@
 // Modelo: .claude/ferramentas/pecas_3mf.py + pecas_glb.py, a partir de "UMS apito 2.3mf".
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
+import { tr } from './idioma.js';
 
 const CELULAR = matchMedia('(pointer: coarse)').matches;
 const CONFIG_COLAR = {
@@ -81,13 +82,13 @@ export function montarColar3d(raiz, cfg) {
   const C = CONFIG_COLAR;
   raiz.innerHTML = `
     <div class="modelo-palco colar3d">
-      <canvas class="modelo-cena" aria-label="o colar em 3D — arraste pra girar"></canvas>
-      <div class="modelo-carregando">carregando o modelo…</div>
-      <div class="modelo-dica">↔ arraste pra girar</div>
-      <div class="modelo-zoom"><button type="button" data-zoom="-1" aria-label="aproximar">+</button><button type="button" data-zoom="1" aria-label="afastar">−</button></div>
-      <div class="colar-cores" role="group" aria-label="cor da peça">
-        <button type="button" class="pilula ativo" data-cor="preto">preto</button>
-        <button type="button" class="pilula" data-cor="prata">prata</button>
+      <canvas class="modelo-cena" aria-label="${tr('o colar em 3D — arraste pra girar')}"></canvas>
+      <div class="modelo-carregando">${tr('carregando o modelo…')}</div>
+      <div class="modelo-dica">${tr('↔ arraste pra girar')}</div>
+      <div class="modelo-zoom"><button type="button" data-zoom="-1" aria-label="${tr('aproximar')}">+</button><button type="button" data-zoom="1" aria-label="${tr('afastar')}">−</button></div>
+      <div class="colar-cores" role="group" aria-label="${tr('cor da peça')}">
+        <button type="button" class="pilula ativo" data-cor="preto">${tr('preto')}</button>
+        <button type="button" class="pilula" data-cor="prata">${tr('prata')}</button>
       </div>
     </div>`;
   const palco = raiz.querySelector('.modelo-palco');
@@ -215,7 +216,7 @@ export function montarColar3d(raiz, cfg) {
     if (visivel) relogio.getDelta();
     if (visivel && !comecou) {
       comecou = true;
-      carregar().catch(() => { aviso.textContent = 'não deu pra carregar o modelo'; });
+      carregar().catch(() => { aviso.textContent = tr('não deu pra carregar o modelo'); });
     }
   }, { rootMargin: '300px 0px' });
   io.observe(palco);

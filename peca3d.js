@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
 import { estudio } from './colar3d.js';
+import { tr } from './idioma.js';
 
 const CELULAR = matchMedia('(pointer: coarse)').matches;
 const CONFIG_PECA = {
@@ -20,13 +21,13 @@ const CONFIG_PECA = {
 
 export function montarPeca3d(raiz, cfg) {
   const C = CONFIG_PECA;
-  const nome = cfg.nome || 'a peça';
+  const nome = cfg.nome || tr('a peça');
   raiz.innerHTML = `
     <div class="modelo-palco colar3d">
-      <canvas class="modelo-cena" aria-label="${nome} em 3D — arraste pra girar"></canvas>
-      <div class="modelo-carregando">carregando o modelo…</div>
-      <div class="modelo-dica">↔ arraste pra girar</div>
-      <div class="modelo-zoom"><button type="button" data-zoom="-1" aria-label="aproximar">+</button><button type="button" data-zoom="1" aria-label="afastar">−</button></div>
+      <canvas class="modelo-cena" aria-label="${tr('{x} em 3D — arraste pra girar', { x: nome })}"></canvas>
+      <div class="modelo-carregando">${tr('carregando o modelo…')}</div>
+      <div class="modelo-dica">${tr('↔ arraste pra girar')}</div>
+      <div class="modelo-zoom"><button type="button" data-zoom="-1" aria-label="${tr('aproximar')}">+</button><button type="button" data-zoom="1" aria-label="${tr('afastar')}">−</button></div>
     </div>`;
   const palco = raiz.querySelector('.modelo-palco');
   const canvas = raiz.querySelector('.modelo-cena');
@@ -116,7 +117,7 @@ export function montarPeca3d(raiz, cfg) {
     if (visivel) relogio.getDelta();
     if (visivel && !comecou) {
       comecou = true;
-      carregar().catch(() => { aviso.textContent = 'não deu pra carregar o modelo'; });
+      carregar().catch(() => { aviso.textContent = tr('não deu pra carregar o modelo'); });
     }
   }, { rootMargin: '300px 0px' });
   io.observe(palco);

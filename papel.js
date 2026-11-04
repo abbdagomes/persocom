@@ -2,6 +2,7 @@
 // Os de lápis ficam direto no papel; os coloridos, como folhas coladas com fita. Clicando, a câmera vai até o desenho.
 // A imagem grande só carrega no desenho que está de perto; no celular, o que fica longe da tela sai da memória.
 // Celular: tudo em cópias menores (-p) e o que é pesado espera. Abrir o caderno estourava a memória do iPhone (tela branca e recarregava).
+import { tr } from './idioma.js';
 const NITIDEZ = 1;        // a imagem pequena aguenta até essa ampliação; passou disso, entra a grande
 const LARGURA_PEQUENA = 1100;
 const LARGURA_PEQUENA_CELULAR = 700;
@@ -59,20 +60,20 @@ export function montarPapel(cfg) {
   const largura = cfg.largura + MARGEM * 2, altura = cfg.altura + MARGEM * 2;
   const raiz = document.createElement('section');
   raiz.className = 'papel';
-  raiz.setAttribute('aria-label', 'desenhos');
+  raiz.setAttribute('aria-label', tr('desenhos'));
   const toque = matchMedia('(pointer: coarse)').matches;
   raiz.innerHTML = `
     <div class="papel-tela"><div class="papel-mundo" style="width:${largura}px; height:${altura}px">
       <img class="papel-marcas" src="${cfg.pasta}marcas${toque ? '-p' : ''}.webp" alt="" draggable="false">
     </div></div>
-    <button type="button" class="pilula papel-fechar" aria-label="fechar">✕</button>
-    <button type="button" class="pilula papel-passo anterior" data-passo="-1" aria-label="desenho anterior">‹</button>
-    <button type="button" class="pilula papel-passo proximo" data-passo="1" aria-label="próximo desenho">›</button>
+    <button type="button" class="pilula papel-fechar" aria-label="${tr('fechar')}">✕</button>
+    <button type="button" class="pilula papel-passo anterior" data-passo="-1" aria-label="${tr('desenho anterior')}">‹</button>
+    <button type="button" class="pilula papel-passo proximo" data-passo="1" aria-label="${tr('próximo desenho')}">›</button>
     <div class="papel-zoom">
-      <button type="button" class="pilula" data-zoom="1.4" aria-label="aproximar">+</button>
-      <button type="button" class="pilula" data-zoom="0.7" aria-label="afastar">−</button>
+      <button type="button" class="pilula" data-zoom="1.4" aria-label="${tr('aproximar')}">+</button>
+      <button type="button" class="pilula" data-zoom="0.7" aria-label="${tr('afastar')}">−</button>
     </div>
-    <div class="papel-dica">${toque ? 'arraste pra explorar · toque num desenho' : 'arraste pra explorar · clique num desenho'}</div>`;
+    <div class="papel-dica">${toque ? tr('arraste pra explorar · toque num desenho') : tr('arraste pra explorar · clique num desenho')}</div>`;
   document.body.appendChild(raiz);
   const tela = raiz.querySelector('.papel-tela');
   const mundo = raiz.querySelector('.papel-mundo');

@@ -5,6 +5,7 @@
 //  cada emoji: { nome, src: 'imagem.webp', video: 'loop.mp4' (opcional), nota: 'texto curto' (opcional),
 //               videoInteiro: 'loop sem cortar.mp4' (opcional: aberto grande toca o vídeo no tamanho original) }
 // =====================================================================
+import { tr } from './idioma.js';
 const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // (na cartela os vídeos só tocam na tela — ver obsTela; aberto grande, toca direto)
 const midia = (e, classe = '') => (e.video
@@ -16,9 +17,9 @@ export function montarCartela(raiz, cfg) {
   const formato = cfg.formato ? ` ${cfg.formato}` : '';   // 'paginas' = páginas deitadas do manual (Boca Boca)
   const comNome = !cfg.semNome;                             // semNome: os emojis não têm nome (pedido da Ana) — o nome fica só pro leitor de tela
   raiz.innerHTML = `<div class="cartela${formato}">${lista.map((e, i) => `
-    <button type="button" class="cartela-item" data-i="${i}" aria-label="ver ${escapar(e.nome)} grande">
+    <button type="button" class="cartela-item" data-i="${i}" aria-label="${tr('ver {x} grande', { x: escapar(e.nome) })}">
       ${midia(e)}
-      ${e.video ? '<span class="cartela-selo">animado</span>' : ''}
+      ${e.video ? `<span class="cartela-selo">${tr('animado')}</span>` : ''}
       ${comNome ? `<span class="cartela-nome">${escapar(e.nome)}</span>` : ''}
     </button>`).join('')}</div>`;
 
@@ -35,10 +36,10 @@ export function montarCartela(raiz, cfg) {
   zoom.className = `mural-zoom cartela-zoom${formato}`;
   zoom.hidden = true;
   zoom.innerHTML = `
-    <button class="pilula zoom-fechar" data-fechar aria-label="fechar">✕</button>
-    <button class="pilula zoom-seta" data-passo="-1" aria-label="anterior">‹</button>
+    <button class="pilula zoom-fechar" data-fechar aria-label="${tr('fechar')}">✕</button>
+    <button class="pilula zoom-seta" data-passo="-1" aria-label="${tr('anterior')}">‹</button>
     <figure class="zoom-quadro"><div class="zoom-midia"></div><figcaption></figcaption></figure>
-    <button class="pilula zoom-seta" data-passo="1" aria-label="próximo">›</button>`;
+    <button class="pilula zoom-seta" data-passo="1" aria-label="${tr('próximo')}">›</button>`;
   document.body.appendChild(zoom);
   let atual = -1;
   function abrir(i) {

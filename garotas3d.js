@@ -9,6 +9,7 @@
 // =====================================================================
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
+import { tr } from './idioma.js';
 
 const CONFIG_GAROTAS = {
   aspecto: 5 / 4,
@@ -59,24 +60,24 @@ export function montarGarotas3d(raiz, cfg) {
   const G = CONFIG_GAROTAS;
   raiz.innerHTML = `
     <div class="garotas3d" style="--aspecto:${G.aspecto}">
-      <canvas aria-label="personagem 3D colorida pela profundidade"></canvas>
-      <div class="garotas3d-quem" role="group" aria-label="escolher a personagem">
-        ${Array.from({ length: cfg.quantas }, (_, i) => `<button type="button" class="pilula${i ? '' : ' ativo'}" data-garota="${i + 1}" aria-label="personagem ${i + 1}">${i + 1}</button>`).join('')}
+      <canvas aria-label="${tr('personagem 3D colorida pela profundidade')}"></canvas>
+      <div class="garotas3d-quem" role="group" aria-label="${tr('escolher a personagem')}">
+        ${Array.from({ length: cfg.quantas }, (_, i) => `<button type="button" class="pilula${i ? '' : ' ativo'}" data-garota="${i + 1}" aria-label="${tr('personagem')} ${i + 1}">${i + 1}</button>`).join('')}
       </div>
       <div class="rampa-painel">
         <div class="rampa-linha">
-          <label class="rampa-cor" title="cor do ponto escolhido"><input type="color" aria-label="cor do ponto escolhido"></label>
+          <label class="rampa-cor" title="${tr('cor do ponto escolhido')}"><input type="color" aria-label="${tr('cor do ponto escolhido')}"></label>
           <div class="rampa-faixa">
             <canvas class="rampa-barra" width="256" height="1" aria-hidden="true"></canvas>
             <div class="rampa-pontos"></div>
           </div>
-          <button type="button" class="pilula rampa-botao" data-rampa="mais" aria-label="adicionar um ponto" title="adicionar um ponto">+</button>
-          <button type="button" class="pilula rampa-botao" data-rampa="menos" aria-label="tirar o ponto escolhido" title="tirar o ponto escolhido">−</button>
+          <button type="button" class="pilula rampa-botao" data-rampa="mais" aria-label="${tr('adicionar um ponto')}" title="${tr('adicionar um ponto')}">+</button>
+          <button type="button" class="pilula rampa-botao" data-rampa="menos" aria-label="${tr('tirar o ponto escolhido')}" title="${tr('tirar o ponto escolhido')}">−</button>
         </div>
-        <label class="garotas3d-aperto"><span>profundidade</span>
+        <label class="garotas3d-aperto"><span>${tr('profundidade')}</span>
           <input class="aperto-barra" type="range" min="0" max="100" value="${Math.round((1 - (G.aperto.inicial - G.aperto.min) / (G.aperto.max - G.aperto.min)) * 100)}"></label>
       </div>
-      <p class="garotas3d-dica">arraste pra girar: o que chega perto clareia</p>
+      <p class="garotas3d-dica">${tr('arraste pra girar: o que chega perto clareia')}</p>
     </div>`;
   const palco = raiz.querySelector('.garotas3d');
   const canvas = palco.querySelector('canvas');
@@ -198,7 +199,7 @@ export function montarGarotas3d(raiz, cfg) {
   }
   function desenharPontos() {
     pontosEl.innerHTML = pontos.map((p, i) => `<button type="button" class="rampa-ponto${p === escolhido ? ' ativo' : ''}" data-i="${i}"
-      role="slider" aria-label="ponto da rampa" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.p * 100)}"
+      role="slider" aria-label="${tr('ponto da rampa')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.p * 100)}"
       style="left:${p.p * 100}%; --cor:${p.cor}"></button>`).join('');
     corEl.value = escolhido.cor;
     quadradoCor.style.setProperty('--cor', escolhido.cor);

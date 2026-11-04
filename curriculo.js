@@ -3,6 +3,7 @@
 // A animação fica num arquivo separado (curriculo/animacao.glb, 150 KB): só o movimento e o papel, sem a personagem.
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
+import { tr } from './idioma.js';
 
 const CONFIG_CURRICULO = {
   animacao: 'curriculo/animacao.glb?v=1',
@@ -39,11 +40,11 @@ export function montarCurriculo({ camera, personagem }) {
   ui.innerHTML = `
     <div class="curriculo-fundo"></div>
     <div class="curriculo-rolagem">
-      <img class="curriculo-folha" alt="Currículo de Ana Beatriz Gomes Bueno" draggable="false">
+      <img class="curriculo-folha" alt="${tr('Currículo de Ana Beatriz Gomes Bueno')}" draggable="false">
     </div>
     <div class="curriculo-barra">
-      <a class="pilula" href="${C.pdf}" download="${C.nomeDoArquivo}">↓ baixar</a>
-      <button type="button" class="pilula curriculo-fechar" aria-label="fechar">✕</button>
+      <a class="pilula" href="${C.pdf}" download="${C.nomeDoArquivo}">${tr('↓ baixar')}</a>
+      <button type="button" class="pilula curriculo-fechar" aria-label="${tr('fechar')}">✕</button>
     </div>`;
   document.body.appendChild(ui);
   const folha = ui.querySelector('.curriculo-folha');

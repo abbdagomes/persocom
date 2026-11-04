@@ -7,6 +7,7 @@
 //  PRA EDITAR O CONTEÚDO: mexa só nas listas CATEGORIAS, DESENHOS e PROJETOS abaixo.
 // =====================================================================
 import { carregamento } from './carregamento.js';
+import { tr, traduzirDados } from './idioma.js';
 
 
 const CATEGORIAS = {
@@ -75,7 +76,7 @@ const VITRINE_GAME_JAM = {
 const PROJETOS = [
   // ---------------- 3D ----------------
   {
-    id: 'boneca-lovecore', categoria: '3d', ano: '2026', destaque: true, titulo: 'Boneca 1,80 m', resumo: 'escultura 3D impressa · Lovecore 7',
+    id: 'boneca-lovecore', categoria: '3d', ano: '2026', destaque: true, titulo: 'Armed and Adorable', resumo: 'escultura 3D impressa · Lovecore 7',
     texto: 'Escultura de 1,80 m modelada em 3D e impressa em grande escala para a cenografia da Lovecore 7, festa do '
       + 'coletivo REBU DIGITAL que reúne mais de 500 pessoas por edição. O trabalho foi da modelagem e da divisão da peça em '
       + 'partes para impressão até a montagem, o reforço interno e o acabamento. A cena também foi recriada em 3D, com luz e '
@@ -224,7 +225,7 @@ const PROJETOS = [
     ],
   },
   {
-    id: 'garotas-3d', categoria: '3d', ano: '2026', titulo: 'Garotas 3D', resumo: 'composições e animações · depth maps',
+    id: 'garotas-3d', categoria: '3d', ano: '2026', titulo: 'Mist Dolls', resumo: 'composições e animações · depth maps',
     texto: 'Série de composições e animações com 4 personagens 3D autorais. O ponto de partida era a estética anime; no processo, '
       + 'as texturas deram lugar a mapas de profundidade, e a cor passou a dizer o que está perto e o que está longe. O resultado '
       + 'é uma série gráfica, colorida e lúdica.',
@@ -386,6 +387,11 @@ const PROJETOS = [
 ];
 
 
+// site em inglês: troca os textos das listas acima (o inglês fica no traducoes.js)
+traduzirDados(CATEGORIAS);
+traduzirDados(DESENHOS);
+traduzirDados(PROJETOS);
+
 const CONFIG_GALERIA = {
   simbolos: '#$%&@01/*?+=<>[]{}', // símbolos do título embaralhando
   velocidadeEmbaralho: 40,
@@ -488,7 +494,7 @@ itensDaGrade().forEach((item) => {
   } else {
     // desenho: quadradinho recortado; clicando abre grande, inteiro
     const d = item.desenho;
-    const titulo = d.titulo || d.exemplo || 'desenho';
+    const titulo = d.titulo || d.exemplo || tr('desenho');
     q = document.createElement('button');
     q.type = 'button';
     q.className = 'card quadradinho desenho';
@@ -549,7 +555,7 @@ document.addEventListener('click', async (e) => {
     await navigator.clipboard.writeText(botao.dataset.email);
     copiou = true;
   } catch { /* sem permissão: cai no aviso com o e-mail */ }
-  botao.textContent = copiou ? '✓ e-mail copiado' : botao.dataset.email;
+  botao.textContent = copiou ? tr('✓ e-mail copiado') : botao.dataset.email;
   botao.classList.add('avisando');
   if (!copiou) location.href = botao.href;
   clearTimeout(botao._aviso);
@@ -566,10 +572,10 @@ const zoom = document.createElement('div');
 zoom.className = 'mural-zoom';
 zoom.hidden = true;
 zoom.innerHTML = `
-  <button class="pilula zoom-fechar" data-zoom-fechar aria-label="fechar">✕</button>
-  <button class="pilula zoom-seta" data-passo="-1" aria-label="desenho anterior">‹</button>
+  <button class="pilula zoom-fechar" data-zoom-fechar aria-label="${tr('fechar')}">✕</button>
+  <button class="pilula zoom-seta" data-passo="-1" aria-label="${tr('desenho anterior')}">‹</button>
   <figure class="zoom-quadro"><div class="zoom-midia"></div><figcaption></figcaption></figure>
-  <button class="pilula zoom-seta" data-passo="1" aria-label="próximo desenho">›</button>`;
+  <button class="pilula zoom-seta" data-passo="1" aria-label="${tr('próximo desenho')}">›</button>`;
 document.body.appendChild(zoom);
 let zoomAtual = -1;
 
@@ -763,7 +769,7 @@ function abrirProjeto(projetoId) {
       const id = (/instagram\.com\/(?:reel|p)\/([\w-]+)/.exec(m.instagram) || [])[1];
       // proporcao (altura/largura da foto do post): corta o rodapé do post, com curtidas e comentário
       const corte = m.proporcao ? ` style="height:calc(93px + ${m.proporcao * 100}cqw); overflow:hidden"` : '';
-      return id ? `<div class="instagram"><div${corte}><iframe src="https://www.instagram.com/${m.instagram.includes('/reel/') ? 'reel' : 'p'}/${id}/embed/" title="post do Instagram" loading="lazy" allow="autoplay; encrypted-media; fullscreen" allowfullscreen scrolling="no"></iframe></div></div>` : '';
+      return id ? `<div class="instagram"><div${corte}><iframe src="https://www.instagram.com/${m.instagram.includes('/reel/') ? 'reel' : 'p'}/${id}/embed/" title="${tr('post do Instagram')}" loading="lazy" allow="autoplay; encrypted-media; fullscreen" allowfullscreen scrolling="no"></iframe></div></div>` : '';
     }
     if (m.revista3d) return `<div class="revista3d-lugar" data-revista3d></div>`;
     if (m.gradeLetras) return `<div class="cynth-interativo" data-grade-letras></div>`;
@@ -781,14 +787,14 @@ function abrirProjeto(projetoId) {
   const imagensHTML = lista.map((m) => (m.secao ? `<h3 class="detalhe-secao">${escapar(m.secao)}</h3>` : `
     <figure class="detalhe-imagem${m.ampliar ? ' ampliavel' : ''}${m.sangria ? ' sangria' : ''}${m.meia ? ' meia' : ''}${m.terco ? ' terco' : ''}${m.parCelular ? ' par-celular' : ''}${m.inteiroCelular ? ' inteiro-celular' : ''}${m.centro ? ' centro' : ''}${m.medio ? ' medio' : ''}${m.vitrine ? ' com-vitrine' : ''}${m.cenario ? ' com-cenario' : ''}${m.modelo3d || m.corte3d || m.colar3d || m.peca3d ? ' com-modelo3d' : ''}${m.mosaico ? ' com-mosaico' : ''}${m.testador ? ' com-testador' : ''}${m.gradeLetras ? ' com-cynth' : ''}">
       ${midiaHTML(m)}
-      ${m.ampliar ? `<button type="button" class="pilula ampliar-botao" data-ampliar="${escapar(m.grande || m.video || m.src)}" data-tipo="${m.video ? 'video' : 'img'}" data-legenda="${escapar(m.legenda || '')}" aria-label="ver de perto">⤢ ver de perto</button>` : ''}
+      ${m.ampliar ? `<button type="button" class="pilula ampliar-botao" data-ampliar="${escapar(m.grande || m.video || m.src)}" data-tipo="${m.video ? 'video' : 'img'}" data-legenda="${escapar(m.legenda || '')}" aria-label="${tr('ver de perto')}">${tr('⤢ ver de perto')}</button>` : ''}
       ${m.legenda ? `<figcaption>${escapar(m.legenda)}</figcaption>` : ''}
     </figure>`)).join('');
 
   det.innerHTML = `
     <div class="detalhe-barra">
-      <button class="pilula voltar-grade" data-fechar-projeto>‹ todos os projetos</button>
-      <button class="pilula fechar-projeto" data-fechar-projeto aria-label="fechar">✕</button>
+      <button class="pilula voltar-grade" data-fechar-projeto>${tr('‹ todos os projetos')}</button>
+      <button class="pilula fechar-projeto" data-fechar-projeto aria-label="${tr('fechar')}">✕</button>
     </div>
     <div class="detalhe-corpo">
       <div class="detalhe-midia">${midiaHTML(destaque)}${p.creditoTopo ? `<span class="detalhe-credito">${escapar(p.creditoTopo)}</span>` : ''}</div>
@@ -798,14 +804,14 @@ function abrirProjeto(projetoId) {
           ${p.ano ? `<span class="etiqueta">${escapar(p.ano)}</span>` : ''}
         </div>
         <p class="detalhe-texto">${escapar(p.texto)}</p>
-        ${p.link ? `<a class="pilula ver-projeto" href="${escapar(p.link)}" target="_blank" rel="noopener">ver projeto ↗</a>` : ''}
-        ${lista.length ? `<button class="pilula rolar" data-rolar>⌄ ver mais imagens (${lista.filter((m) => !m.secao).length})</button>` : ''}
+        ${p.link ? `<a class="pilula ver-projeto" href="${escapar(p.link)}" target="_blank" rel="noopener">${tr('ver projeto ↗')}</a>` : ''}
+        ${lista.length ? `<button class="pilula rolar" data-rolar>⌄ ${tr('ver mais imagens')} (${lista.filter((m) => !m.secao).length})</button>` : ''}
       </div>
     </div>
     ${lista.length ? `<div class="detalhe-imagens${p.blocoBranco ? ' bloco-branco' : ''}">${imagensHTML}</div>` : ''}
     <div class="detalhe-fim"${lista.length ? '' : ' hidden'}>
-      <button class="pilula" data-topo>⌃ voltar pro topo</button>
-      <button class="pilula" data-fechar-projeto>‹ todos os projetos</button>
+      <button class="pilula" data-topo>${tr('⌃ voltar pro topo')}</button>
+      <button class="pilula" data-fechar-projeto>${tr('‹ todos os projetos')}</button>
     </div>`;
 
   // os visualizadores 3D / câmera só carregam quando o projeto abre
@@ -931,9 +937,9 @@ const ampliado = document.createElement('div');
 ampliado.className = 'ampliado';
 ampliado.hidden = true;
 ampliado.innerHTML = `
-  <button class="pilula zoom-fechar" data-fechar-ampliado aria-label="fechar">✕</button>
+  <button class="pilula zoom-fechar" data-fechar-ampliado aria-label="${tr('fechar')}">✕</button>
   <figure class="ampliado-quadro"><div class="ampliado-midia"></div><figcaption></figcaption></figure>
-  <p class="ampliado-dica">clique pra aproximar · clique de novo pra voltar</p>`;
+  <p class="ampliado-dica">${tr('clique pra aproximar · clique de novo pra voltar')}</p>`;
 document.body.appendChild(ampliado);
 const ampliadoMidia = ampliado.querySelector('.ampliado-midia');
 let playerAmpliado = null;   // vídeo com som aberto grande (usa o player.js)

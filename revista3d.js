@@ -9,6 +9,7 @@
 //  Pra ler: 2 cliques (ou a lupa) amplia onde clicou, arrastar passeia, rodinha/pinça ajusta; e tem tela cheia.
 // =====================================================================
 import * as THREE from 'three';
+import { tr } from './idioma.js';
 
 const CONFIG_REVISTA = {
   proporcao: 2996 / 2300,        // altura / largura de uma página (as imagens do Issuu)
@@ -37,15 +38,15 @@ export function montarRevista3d(raiz, cfg) {
 
   raiz.innerHTML = `
     <div class="revista3d" data-modo="fechada">
-      <canvas aria-label="revista Boca Boca em 3D"></canvas>
-      <p class="revista-dica">clique pra abrir e folhear</p>
+      <canvas aria-label="${tr('revista Boca Boca em 3D')}"></canvas>
+      <p class="revista-dica">${tr('clique pra abrir e folhear')}</p>
       <div class="revista-controles">
-        <button type="button" class="pilula" data-passo="-1" aria-label="página anterior">‹</button>
-        <span class="revista-contador">capa</span>
-        <button type="button" class="pilula" data-passo="1" aria-label="próxima página">›</button>
-        <button type="button" class="pilula revista-icone" data-zoom aria-label="ampliar pra ler" title="ampliar pra ler (ou 2 cliques na página)">${ICONE_LUPA}</button>
-        <button type="button" class="pilula revista-icone" data-cheia aria-label="tela cheia" title="tela cheia">${ICONE_CHEIA}</button>
-        <button type="button" class="pilula revista-fechar" data-fechar>fechar ✕</button>
+        <button type="button" class="pilula" data-passo="-1" aria-label="${tr('página anterior')}">‹</button>
+        <span class="revista-contador">${tr('capa')}</span>
+        <button type="button" class="pilula" data-passo="1" aria-label="${tr('próxima página')}">›</button>
+        <button type="button" class="pilula revista-icone" data-zoom aria-label="${tr('ampliar pra ler')}" title="${tr('ampliar pra ler (ou 2 cliques na página)')}">${ICONE_LUPA}</button>
+        <button type="button" class="pilula revista-icone" data-cheia aria-label="${tr('tela cheia')}" title="${tr('tela cheia')}">${ICONE_CHEIA}</button>
+        <button type="button" class="pilula revista-fechar" data-fechar>${tr('fechar ✕')}</button>
       </div>
     </div>`;
   const palco = raiz.querySelector('.revista3d');
@@ -227,7 +228,7 @@ export function montarRevista3d(raiz, cfg) {
   }
 
   function atualizarContador() {
-    contador.textContent = s === 0 ? 'capa' : s >= FOLHAS ? 'contracapa' : `${s * 2}–${s * 2 + 1} / ${PAGINAS}`;
+    contador.textContent = s === 0 ? tr('capa') : s >= FOLHAS ? tr('contracapa') : `${s * 2}–${s * 2 + 1} / ${PAGINAS}`;
     palco.querySelector('[data-passo="-1"]').disabled = s === 0;
     palco.querySelector('[data-passo="1"]').disabled = s >= FOLHAS;
   }

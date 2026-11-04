@@ -1510,6 +1510,13 @@ body.rolou .nuvem-balao, body.pintando .nuvem-balao, body.sobre-aberto .nuvem-ba
 .ampliado figcaption { font-size: 11px; color: #6b7280; letter-spacing: .02em; }
 .ampliado-dica { position: absolute; bottom: 14px; margin: 0; font: 700 10px 'Geist Mono', monospace; color: #8a919b; }
 
+/* ---------- o botão PT / EN (idioma.js) ---------- */
+.pilula.idioma-botao { position: fixed; top: 18px; right: 18px; z-index: 10; padding: 7px 13px; font-size: 11px; gap: 5px; cursor: pointer; }
+.idioma-botao span { opacity: .45; }
+.idioma-botao span.ativo { opacity: 1; color: #1f2937; }
+.idioma-botao .idioma-barra { opacity: .3; font-weight: 400; }
+body.projeto-aberto .idioma-botao, body.sobre-aberto .idioma-botao, body.pintando .idioma-botao { opacity: 0; pointer-events: none; }
+
 /* ---------- o currículo (curriculo.js): o papel que ela mostra cresce e vem pra frente ---------- */
 .curriculo { position: fixed; inset: 0; z-index: 25; }
 .curriculo[hidden] { display: none; }

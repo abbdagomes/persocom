@@ -6,13 +6,14 @@
 //  O mesmo efeito é reaproveitado no modo câmera do mosaico (mosaico.js),
 //  com criarCarregamento(canvas) — aí ele cobre só o quadro da câmera.
 // =====================================================================
+import { tr } from './idioma.js';
 
 const CONFIG_CARREGAMENTO = {
   tamanhoPixel: 22,          // tamanho de cada "pixel" (px). No celular usa 70% disso
   cores: ['#ffffff', '#fbfbfb', '#f5f5f5', '#efefef', '#e9e9e9'], // tons dos pixels
   tempoMinimo: 1600,         // ms: mesmo se carregar rápido, o efeito dura pelo menos isso
   suavidade: 0.06,           // quão rápido o número "alcança" o carregamento real (0 a 1, por quadro a 60 fps)
-  texto: 'carregando',
+  texto: tr('carregando'),
   fonteTexto: "'Silkscreen', 'VT323', monospace",
   corTexto: '#a8a8a8',
   tamanhoTexto: 24,

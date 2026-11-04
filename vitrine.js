@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { tr } from './idioma.js';
 
 const CONFIG_VITRINE = {
   giroSozinho: 0.35,          // velocidade do giro automático (rad/s) quando ninguém está mexendo
@@ -46,12 +47,12 @@ export function montarVitrine(raiz, cfg) {
 
   raiz.innerHTML = `
     <div class="vitrine-palco">
-      <canvas class="vitrine-cena" aria-label="personagem em 3D — arraste pra girar"></canvas>
-      <div class="vitrine-carregando">carregando…</div>
-      <button class="vitrine-seta esq" data-passo="-1" aria-label="personagem anterior">‹</button>
-      <button class="vitrine-seta dir" data-passo="1" aria-label="próximo personagem">›</button>
+      <canvas class="vitrine-cena" aria-label="${tr('personagem em 3D — arraste pra girar')}"></canvas>
+      <div class="vitrine-carregando">${tr('carregando…')}</div>
+      <button class="vitrine-seta esq" data-passo="-1" aria-label="${tr('personagem anterior')}">‹</button>
+      <button class="vitrine-seta dir" data-passo="1" aria-label="${tr('próximo personagem')}">›</button>
       <div class="vitrine-info"><h3></h3><p></p></div>
-      <div class="vitrine-dica">↔ arraste pra girar</div>
+      <div class="vitrine-dica">${tr('↔ arraste pra girar')}</div>
       <div class="vitrine-expressoes">
         ${expressoes.map((e, i) => `<button class="vitrine-expr" data-expr="${esc(e.id)}" title="${esc(e.nome)}" aria-label="${esc(e.nome)}" style="--cor:${esc(e.cor || '#94d3ec')}; --atraso:${(i * -0.37).toFixed(2)}s"><span>${esc(e.rosto)}</span></button>`).join('')}
       </div>
@@ -176,7 +177,7 @@ export function montarVitrine(raiz, cfg) {
     if (atual) transicao = { tipo: 'sai', t0: relogio.elapsedTime };
     aviso.hidden = cacheModelos.has(url(p.id + '.glb'));
     let gltf;
-    try { gltf = await carregarModelo(url(p.id + '.glb')); } catch (e) { aviso.textContent = 'não deu pra carregar 😢'; return; }
+    try { gltf = await carregarModelo(url(p.id + '.glb')); } catch (e) { aviso.textContent = tr('não deu pra carregar 😢'); return; }
     if (meu !== pedido || !vivo) return;
     aviso.hidden = true;
     // espera a saída do anterior terminar

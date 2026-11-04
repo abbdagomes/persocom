@@ -9,6 +9,7 @@
 //    x, y = deslocamento do centro (em % da largura / da altura da mesa) · r = giro (graus) · w = largura (% da mesa)
 //    celular: { x, y, w } = o lugar e o tamanho no celular, onde a mesa é em pé
 // =====================================================================
+import { tr } from './idioma.js';
 const escapar = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function montarPasta(raiz, cfg) {
@@ -16,18 +17,18 @@ export function montarPasta(raiz, cfg) {
   raiz.innerHTML = `
     <div class="pasta-mesa">
       ${itens.map((it, i) => `
-        <button type="button" class="pasta-item" tabindex="-1" data-i="${i}" aria-label="ver grande"
+        <button type="button" class="pasta-item" tabindex="-1" data-i="${i}" aria-label="${tr('ver grande')}"
           style="--x:${it.x}; --y:${it.y}; --r:${it.r}; --w:${it.w}; --i:${i}${it.celular ? `; --cx:${it.celular.x}; --cy:${it.celular.y}; --cw:${it.celular.w}` : ''}">
           ${it.video
             ? `<video src="${escapar(it.video)}"${it.poster ? ` poster="${escapar(it.poster)}"` : ''} muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback></video>`
             : `<img src="${escapar(it.src)}" alt="" loading="lazy" draggable="false">`}
         </button>`).join('')}
-      <button type="button" class="pasta" aria-expanded="false" aria-label="abrir a pasta ${escapar(cfg.nome)}">
+      <button type="button" class="pasta" aria-expanded="false" aria-label="${tr('abrir a pasta {x}', { x: escapar(cfg.nome) })}">
         <span class="pasta-tras"></span>
         ${itens.slice(0, 3).map((it, k) => `<span class="pasta-papel papel-${k + 1}${it.emPe ? ' em-pe' : ''}" style="background-image:url('${escapar(it.poster || it.src)}')"></span>`).join('')}
         <span class="pasta-frente"><span class="pasta-nome">${escapar(cfg.nome)}</span></span>
       </button>
-      <p class="pasta-dica">clique na pasta</p>
+      <p class="pasta-dica">${tr('clique na pasta')}</p>
     </div>`;
   const mesa = raiz.querySelector('.pasta-mesa');
   const pasta = mesa.querySelector('.pasta');
@@ -38,8 +39,8 @@ export function montarPasta(raiz, cfg) {
   function abrir(sim) {
     mesa.classList.toggle('aberta', sim);
     pasta.setAttribute('aria-expanded', sim);
-    pasta.setAttribute('aria-label', `${sim ? 'guardar' : 'abrir'} a pasta ${cfg.nome}`);
-    dica.textContent = sim ? 'clique pra ver grande · na pasta pra guardar' : 'clique na pasta';
+    pasta.setAttribute('aria-label', tr(sim ? 'guardar a pasta {x}' : 'abrir a pasta {x}', { x: cfg.nome }));
+    dica.textContent = sim ? tr('clique pra ver grande · na pasta pra guardar') : tr('clique na pasta');
     botoes.forEach((b) => { b.tabIndex = sim ? 0 : -1; });
     videos.forEach((v) => (sim ? v.play().catch(() => {}) : v.pause()));
   }

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { tr } from './idioma.js';
 
 const CONFIG_CENARIO = {
   escalaPersonagem: 0.25,      // o mesmo tamanho que o Tony tem no jogo
@@ -25,11 +26,11 @@ export function montarCenario(raiz, cfg) {
 
   raiz.innerHTML = `
     <div class="cenario-palco">
-      <canvas class="cenario-cena" aria-label="cenário do jogo em 3D"></canvas>
-      <div class="cenario-carregando">carregando o casamento…</div>
-      <button class="cenario-ativar" type="button">▶ explorar a cena</button>
-      <div class="cenario-dica">arraste pra girar · botão direito ou dois dedos pra mover · roda/pinça pra zoom</div>
-      <button class="cenario-sair" type="button" hidden>✕ sair</button>
+      <canvas class="cenario-cena" aria-label="${tr('cenário do jogo em 3D')}"></canvas>
+      <div class="cenario-carregando">${tr('carregando o casamento…')}</div>
+      <button class="cenario-ativar" type="button">${tr('▶ explorar a cena')}</button>
+      <div class="cenario-dica">${tr('arraste pra girar · botão direito ou dois dedos pra mover · roda/pinça pra zoom')}</div>
+      <button class="cenario-sair" type="button" hidden>${tr('✕ sair')}</button>
     </div>`;
   const palco = raiz.querySelector('.cenario-palco');
   const canvas = raiz.querySelector('.cenario-cena');
@@ -214,7 +215,7 @@ export function montarCenario(raiz, cfg) {
     visivel = en.isIntersecting;
     if (visivel) relogio.getDelta();
     // só baixa o cenário quando a pessoa chega perto dele na página
-    if (visivel && !comecou) { comecou = true; carregar().catch(() => { aviso.textContent = 'não deu pra carregar o cenário 😢'; }); }
+    if (visivel && !comecou) { comecou = true; carregar().catch(() => { aviso.textContent = tr('não deu pra carregar o cenário 😢'); }); }
   }, { rootMargin: '300px 0px' });
   io.observe(palco);
 

@@ -3,6 +3,7 @@
 // Modelo: .claude/ferramentas/pecas_3mf.py + pecas_glb.py, a partir do .3mf dela.
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
+import { tr } from './idioma.js';
 
 const CELULAR = matchMedia('(pointer: coarse)').matches;
 const CONFIG_CORTE = {
@@ -20,13 +21,13 @@ export function montarCorte3d(raiz, cfg) {
   const C = CONFIG_CORTE;
   raiz.innerHTML = `
     <div class="modelo-palco corte3d">
-      <canvas class="modelo-cena" aria-label="as peças da escultura em 3D — arraste pra girar"></canvas>
-      <div class="modelo-carregando">carregando o modelo…</div>
-      <div class="modelo-dica">↔ arraste pra girar</div>
-      <div class="modelo-barra" role="slider" tabindex="0" aria-label="montada ou em peças" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <span class="modelo-barra-rotulo cima">montada</span>
+      <canvas class="modelo-cena" aria-label="${tr('as peças da escultura em 3D — arraste pra girar')}"></canvas>
+      <div class="modelo-carregando">${tr('carregando o modelo…')}</div>
+      <div class="modelo-dica">${tr('↔ arraste pra girar')}</div>
+      <div class="modelo-barra" role="slider" tabindex="0" aria-label="${tr('montada ou em peças')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span class="modelo-barra-rotulo cima">${tr('montada')}</span>
         <div class="modelo-trilho"><div class="modelo-preenchido"></div><div class="modelo-pegador"></div></div>
-        <span class="modelo-barra-rotulo baixo">peças</span>
+        <span class="modelo-barra-rotulo baixo">${tr('peças')}</span>
       </div>
     </div>`;
   const palco = raiz.querySelector('.modelo-palco');
@@ -183,7 +184,7 @@ export function montarCorte3d(raiz, cfg) {
     if (visivel) relogio.getDelta();
     if (visivel && !comecou) {
       comecou = true;
-      carregar().catch(() => { aviso.textContent = 'não deu pra carregar o modelo'; });
+      carregar().catch(() => { aviso.textContent = tr('não deu pra carregar o modelo'); });
     }
   }, { rootMargin: '300px 0px' });
   io.observe(palco);

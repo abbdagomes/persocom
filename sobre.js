@@ -6,6 +6,8 @@
 //  O main.js chama montarSobre(...) quando ela termina de carregar.
 // =====================================================================
 import * as THREE from 'three';
+import { tr, idioma } from './idioma.js';
+import { SOBRE_EN } from './traducoes.js';
 
 const CONFIG_SOBRE = {
   nome: 'persocom',
@@ -25,6 +27,7 @@ const CONFIG_SOBRE = {
   som: 0.035,              // volume do "blip" da fala (0 = sem som)
 };
 const C = CONFIG_SOBRE;
+if (idioma === 'en') C.partes = SOBRE_EN;
 
 export function montarSobre({ camera, cameraChao, personagem }) {
   const botao = document.querySelector('.botao-sobre');
@@ -39,13 +42,13 @@ export function montarSobre({ camera, cameraChao, personagem }) {
     <div class="sobre-escuro"></div>
     <div class="sobre-feixe"></div>
     <div class="sobre-chao"></div>
-    <div class="sobre-caixa" role="dialog" aria-label="sobre a Ana Beatriz">
+    <div class="sobre-caixa" role="dialog" aria-label="${tr('sobre a Ana Beatriz')}">
       <span class="sobre-nome">${C.nome}</span>
-      <button type="button" class="sobre-fechar" data-fechar aria-label="fechar">✕</button>
+      <button type="button" class="sobre-fechar" data-fechar aria-label="${tr('fechar')}">✕</button>
       <p class="sobre-texto" aria-live="polite"></p>
       <div class="sobre-links" hidden>${links}</div>
       <div class="sobre-rodape">
-        <button type="button" class="sobre-ler" data-ler>ler tudo</button>
+        <button type="button" class="sobre-ler" data-ler>${tr('ler tudo')}</button>
         <span class="sobre-pagina"></span>
         <span class="sobre-seta" aria-hidden="true">▸</span>
       </div>

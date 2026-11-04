@@ -12,25 +12,26 @@
 //  O main.js chama montarPintura(...) quando ela termina de carregar.
 // =====================================================================
 import * as THREE from 'three';
+import { tr } from './idioma.js';
 
 const CONFIG_PINTURA = {
   dicaBotao: 'customize persocom',     // aparece ao passar o mouse no botão
-  dica: 'pinte ela ✦  arraste fora dela pra girar · rodinha do mouse = zoom',
+  dica: tr('pinte ela ✦  arraste fora dela pra girar · rodinha do mouse = zoom'),
   zoom: { maximo: 4, passoBotao: 1.5 },   // até quantas vezes aproxima · quanto cada clique no + / − aproxima
   tamanhoTextura: 2048,                // resolução da "pele" de tinta (px)
   // raio do lápis nas medidas dela (ela tem ~9 de altura, da sola ao topo da cabeça)
   espessura: { min: 0.035, max: 0.42, inicial: 0.35 },   // inicial = posição da barra (0 a 1)
   // as tintas do godê: posição do centro de cada uma na imagem (0 a 1) e a cor que pinta
   cores: [
-    { nome: 'menta', cor: '#8ff0d4', x: 0.2965, y: 0.1911 },
-    { nome: 'verde', cor: '#7fe07a', x: 0.1686, y: 0.3418 },
-    { nome: 'amarelo', cor: '#f2e64f', x: 0.0900, y: 0.5100 },
-    { nome: 'branco', cor: '#ffffff', x: 0.2695, y: 0.5075 },
-    { nome: 'preto', cor: '#2b2b2b', x: 0.4106, y: 0.6668 },
-    { nome: 'laranja', cor: '#ff8360', x: 0.0950, y: 0.7000 },
-    { nome: 'vermelho', cor: '#ff5c6c', x: 0.2099, y: 0.8415 },
-    { nome: 'rosa', cor: '#f47aa8', x: 0.4165, y: 0.8659 },
-    { nome: 'roxo', cor: '#8b6ee0', x: 0.5881, y: 0.7676 },
+    { nome: tr('menta'), cor: '#8ff0d4', x: 0.2965, y: 0.1911 },
+    { nome: tr('verde'), cor: '#7fe07a', x: 0.1686, y: 0.3418 },
+    { nome: tr('amarelo'), cor: '#f2e64f', x: 0.0900, y: 0.5100 },
+    { nome: tr('branco'), cor: '#ffffff', x: 0.2695, y: 0.5075 },
+    { nome: tr('preto'), cor: '#2b2b2b', x: 0.4106, y: 0.6668 },
+    { nome: tr('laranja'), cor: '#ff8360', x: 0.0950, y: 0.7000 },
+    { nome: tr('vermelho'), cor: '#ff5c6c', x: 0.2099, y: 0.8415 },
+    { nome: tr('rosa'), cor: '#f47aa8', x: 0.4165, y: 0.8659 },
+    { nome: tr('roxo'), cor: '#8b6ee0', x: 0.5881, y: 0.7676 },
   ],
   corInicial: 6,                       // começa no vermelho
   raioTinta: 0.064,                    // tamanho de cada tinta no godê (fração da largura da imagem)
@@ -282,20 +283,20 @@ export function montarPintura({ renderer, camera, cameraChao, personagem, unifor
   ui.innerHTML = `
     <p class="pintura-dica">${P.dica}</p>
     <div class="pintura-botoes">
-      <button type="button" class="bola pintura-confirmar" data-confirmar title="pronto!" aria-label="confirmar a pintura">${ICONE_CONFIRMAR}</button>
-      <button type="button" class="bola pintura-voltar" data-voltar title="voltar o último traço" aria-label="voltar o último traço">${ICONE_VOLTAR}</button>
-      <button type="button" class="bola pintura-lixeira" data-lixeira title="apagar tudo" aria-label="apagar toda a pintura">${ICONE_LIXEIRA}</button>
+      <button type="button" class="bola pintura-confirmar" data-confirmar title="${tr('pronto!')}" aria-label="${tr('confirmar a pintura')}">${ICONE_CONFIRMAR}</button>
+      <button type="button" class="bola pintura-voltar" data-voltar title="${tr('voltar o último traço')}" aria-label="${tr('voltar o último traço')}">${ICONE_VOLTAR}</button>
+      <button type="button" class="bola pintura-lixeira" data-lixeira title="${tr('apagar tudo')}" aria-label="${tr('apagar toda a pintura')}">${ICONE_LIXEIRA}</button>
     </div>
     <div class="pintura-zoom">
-      <button type="button" class="bola" data-zoom="1" title="aproximar" aria-label="aproximar">${ICONE_LUPA(true)}</button>
-      <button type="button" class="bola" data-zoom="-1" title="afastar" aria-label="afastar">${ICONE_LUPA(false)}</button>
+      <button type="button" class="bola" data-zoom="1" title="${tr('aproximar')}" aria-label="${tr('aproximar')}">${ICONE_LUPA(true)}</button>
+      <button type="button" class="bola" data-zoom="-1" title="${tr('afastar')}" aria-label="${tr('afastar')}">${ICONE_LUPA(false)}</button>
     </div>
-    <label class="pintura-espessura" title="espessura do lápis">
+    <label class="pintura-espessura" title="${tr('espessura do lápis')}">
       <span class="ponto-fino" aria-hidden="true"></span>
-      <input type="range" min="0" max="1" step="0.01" value="${P.espessura.inicial}" aria-label="espessura do lápis">
+      <input type="range" min="0" max="1" step="0.01" value="${P.espessura.inicial}" aria-label="${tr('espessura do lápis')}">
       <span class="ponto-grosso" aria-hidden="true"></span>
     </label>
-    <div class="pintura-gode" role="radiogroup" aria-label="cores">
+    <div class="pintura-gode" role="radiogroup" aria-label="${tr('cores')}">
       <img src="pintura/gode.webp" alt="" draggable="false">
       ${P.cores.map((c, i) => `<button type="button" class="tinta" role="radio" aria-checked="false" aria-label="${c.nome}"
         style="left:${c.x * 100}%; top:${c.y * 100}%; --cor:${c.cor}" data-tinta="${i}"></button>`).join('')}
