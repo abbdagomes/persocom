@@ -537,6 +537,28 @@ const irPraGrade = () => scrollTo({ top: secaoProjetos.offsetTop + 30, behavior:
 document.querySelectorAll('[data-descer]').forEach((b) => b.addEventListener('click', irPraGrade));
 document.querySelector('[data-subir]')?.addEventListener('click', () => scrollTo({ top: 0, behavior: rolarSuave }));
 
+// botão "contato" (no rodapé e no fim da fala dela): copia o e-mail e o próprio botão avisa.
+// Se o navegador não deixar copiar, mostra o e-mail no botão e abre o programa de e-mail.
+document.addEventListener('click', async (e) => {
+  const botao = e.target.closest?.('[data-email]');
+  if (!botao || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  e.preventDefault();
+  botao.dataset.textoOriginal ??= botao.textContent;
+  let copiou = false;
+  try {
+    await navigator.clipboard.writeText(botao.dataset.email);
+    copiou = true;
+  } catch { /* sem permissão: cai no aviso com o e-mail */ }
+  botao.textContent = copiou ? '✓ e-mail copiado' : botao.dataset.email;
+  botao.classList.add('avisando');
+  if (!copiou) location.href = botao.href;
+  clearTimeout(botao._aviso);
+  botao._aviso = setTimeout(() => {
+    botao.textContent = botao.dataset.textoOriginal;
+    botao.classList.remove('avisando');
+  }, copiou ? 2200 : 6000);
+});
+
 // =====================================================================
 //  DESENHO aberto em tamanho grande, por cima de tudo (setas / ← → passam, Esc ou clicar fora fecha)
 // =====================================================================

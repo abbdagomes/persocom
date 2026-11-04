@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { carregamento } from './carregamento.js';
 import { montarPintura } from './pintura.js';
 import { montarSobre } from './sobre.js';
+import { montarCurriculo } from './curriculo.js';
 
 // no celular a página não aproxima (2 toques ou pinça davam zoom e bagunçavam a pintura e os botões);
 // o iPhone ignora o "user-scalable=no" do index.html, então a pinça é barrada aqui também.
@@ -283,6 +284,10 @@ const personagem = {
   acaoGiro: null,
   girando: null,           // { aoTrocar, aoTerminar, trocou } enquanto gira
   pesoGiro: 0,
+  acaoCurriculo: null,     // ela mostrando o currículo (curriculo.js)
+  curriculoTocando: false,
+  curriculoRosto: null,
+  pesoCurriculo: 0,
   materiaisToon: [],       // materiais que usam a textura
   malhasPintaveis: [],     // malhas onde dá pra pintar (pintura.js)
   pintando: false,         // modo pintura ligado: ela fica parada de frente
@@ -679,7 +684,7 @@ function atualizarPersonagem(dt) {
   // o "oi" (começo do "sobre mim") toca a animação dela inteira uma vez, mesmo sem o mouse perto
   if (p.oiRestante > 0) p.oiRestante -= dt;
   const perto = p.oiRestante > 0
-    || (rolagem.valor < 0.3 && !rolagem.projetoAberto && !p.pintando && !p.falando && mouse.dentro && distancia < limite);
+    || (rolagem.valor < 0.3 && !rolagem.projetoAberto && !p.pintando && !p.falando && !p.curriculoTocando && mouse.dentro && distancia < limite);
 
   // perto → toca a animação | longe → para e volta a olhar o mouse
   // mistura suave entre a pose parada e a animação (sem saltos, mesmo se o mouse entra e sai rápido)
@@ -699,8 +704,15 @@ function atualizarPersonagem(dt) {
       if (!p.girando && p.pesoGiro < 0.01) { p.pesoGiro = 0; if (p.acaoGiro.isScheduled()) p.acaoGiro.stop(); }
       p.acaoGiro.setEffectiveWeight(p.pesoGiro);
     }
-    p.acao.setEffectiveWeight(p.pesoAnim * (1 - p.pesoGiro));
-    p.acaoParada.setEffectiveWeight((1 - p.pesoAnim) * (1 - p.pesoGiro));
+    // o currículo também manda em tudo enquanto ela mostra o papel
+    if (p.acaoCurriculo) {
+      p.pesoCurriculo = THREE.MathUtils.damp(p.pesoCurriculo, p.curriculoTocando ? 1 : 0, p.curriculoTocando ? 18 : 7, dt);
+      if (!p.curriculoTocando && p.pesoCurriculo < 0.01) { p.pesoCurriculo = 0; if (p.acaoCurriculo.isScheduled()) p.acaoCurriculo.stop(); }
+      p.acaoCurriculo.setEffectiveWeight(p.pesoCurriculo);
+    }
+    const semOutras = (1 - p.pesoGiro) * (1 - p.pesoCurriculo);
+    p.acao.setEffectiveWeight(p.pesoAnim * semOutras);
+    p.acaoParada.setEffectiveWeight((1 - p.pesoAnim) * semOutras);
   }
   if (p.mixer) p.mixer.update(dt);
   atualizarGiro(dt);
@@ -714,9 +726,10 @@ function atualizarPersonagem(dt) {
   }
 
   // olha o mouse (e respira) na mesma medida em que NÃO está animando
-  p.pesoOlhar = (p.acao ? 1 - p.pesoAnim : 1) * (1 - p.pesoGiro);
+  p.pesoOlhar = (p.acao ? 1 - p.pesoAnim : 1) * (1 - p.pesoGiro) * (1 - p.pesoCurriculo);
   piscar(dt);
   falar(dt);
+  p.curriculoRosto?.();
   respirar(dt);
 
   if (!p.cabeca) return;
@@ -1381,10 +1394,12 @@ personagem.dizerOi = () => {
 // modo pintura (o botão "customize persocom"), quando ela termina de carregar
 let pintura = null;
 let sobre = null;        // o "sobre mim" (sobre.js): holofote + ela contando quem é a Ana
+let curriculo = null;    // ela mostrando o currículo (curriculo.js)
 personagemPronto.then(() => {
   if (bonecoTeste) return;
   pintura = montarPintura({ renderer, camera, cameraChao, personagem, uniformePintura: UNI_PINTURA.uPintura, girar: girarPersonagem });
   sobre = montarSobre({ camera, cameraChao, personagem });
+  if (personagem.mixer) curriculo = montarCurriculo({ camera, personagem });
 });
 
 const _centroGiro = new THREE.Vector3(0, 0, 0);
@@ -1481,6 +1496,7 @@ renderer.setAnimationLoop(() => {
   atualizarPersonagem(dt);
   pintura?.atualizar(dt);
   sobre?.atualizar(dt);
+  curriculo?.atualizar();
   atualizarBolhas(dt, t);
   // 1) chão em perspectiva  2) personagem e bolhas em ortográfica, por cima
   renderer.clear();
