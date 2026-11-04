@@ -17,6 +17,7 @@ const CONFIG_GAROTAS = {
   inclinacao: { inicial: 0.42, min: 0.08, max: 0.95 },   // a câmera olha de cima, como nas imagens (radianos)
   giroSozinho: 0.45,             // rad/s até a pessoa mexer
   sensibilidade: 0.009,
+  zoom: { max: 3.5, passo: 1.4, foco: 0.7 },   // foco = a altura que fica no meio da tela com o zoom todo (0 = pés, 1 = topo da cabeça)
   // a rampa de começo, nas posições da Color Ramp do Blender dela (0 = mais perto, 1 = mais longe)
   rampa: [{ p: 0, cor: '#ffffff' }, { p: 0.309, cor: '#ff2d6f' }, { p: 1, cor: '#4d0f26' }],
   // a rampa vai do ponto mais perto (branco) até esta fração do caminho pro ponto mais longe: menos = mais contraste
@@ -63,6 +64,10 @@ export function montarGarotas3d(raiz, cfg) {
       <canvas aria-label="${tr('personagem 3D colorida pela profundidade')}"></canvas>
       <div class="garotas3d-quem" role="group" aria-label="${tr('escolher a personagem')}">
         ${Array.from({ length: cfg.quantas }, (_, i) => `<button type="button" class="pilula${i ? '' : ' ativo'}" data-garota="${i + 1}" aria-label="${tr('personagem')} ${i + 1}">${i + 1}</button>`).join('')}
+      </div>
+      <div class="garotas3d-zoom">
+        <button type="button" class="pilula" data-zoom="1" aria-label="${tr('aproximar')}" title="${tr('aproximar')}">+</button>
+        <button type="button" class="pilula" data-zoom="-1" aria-label="${tr('afastar')}" title="${tr('afastar')}" disabled>−</button>
       </div>
       <div class="rampa-painel">
         <div class="rampa-linha">
@@ -272,17 +277,32 @@ export function montarGarotas3d(raiz, cfg) {
   atualizarRampa();
   desenharPontos();
 
+  // ---------- zoom: + e − aproximam; com zoom, arrastar pra cima e pra baixo passeia pelo corpo dela ----------
+  let zoom = 1, zoomAtual = 1, passeio = 0;
+  const botaoMais = palco.querySelector('[data-zoom="1"]'), botaoMenos = palco.querySelector('[data-zoom="-1"]');
+  palco.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-zoom]');
+    if (!b) return;
+    zoom = THREE.MathUtils.clamp(zoom * (b.dataset.zoom === '1' ? G.zoom.passo : 1 / G.zoom.passo), 1, G.zoom.max);
+    if (zoom < 1.01) { zoom = 1; passeio = 0; }
+    botaoMais.disabled = zoom >= G.zoom.max;
+    botaoMenos.disabled = zoom === 1;
+    // com zoom o dedo passeia por ela em vez de rolar a página (longe dela, a página rola normal)
+    canvas.style.touchAction = zoom > 1 ? 'none' : '';
+  });
+
   // ---------- arrastar gira ----------
   let yaw = 0.5, pitch = G.inclinacao.inicial, mexeu = false, toque = null;
   canvas.addEventListener('pointerdown', (e) => {
-    toque = { x: e.clientX, y: e.clientY, yaw, pitch };
+    toque = { x: e.clientX, y: e.clientY, yaw, pitch, passeio };
     canvas.setPointerCapture(e.pointerId);
     if (!mexeu) { mexeu = true; dica.classList.add('sumiu'); }
   });
   canvas.addEventListener('pointermove', (e) => {
     if (!toque) return;
     yaw = toque.yaw + (e.clientX - toque.x) * G.sensibilidade;
-    pitch = Math.min(G.inclinacao.max, Math.max(G.inclinacao.min, toque.pitch + (e.clientY - toque.y) * G.sensibilidade * 0.6));
+    if (zoom > 1) passeio = toque.passeio + (e.clientY - toque.y) * (camera.top - camera.bottom) / (zoomAtual * h);
+    else pitch = Math.min(G.inclinacao.max, Math.max(G.inclinacao.min, toque.pitch + (e.clientY - toque.y) * G.sensibilidade * 0.6));
   });
   const soltar = () => { toque = null; };
   canvas.addEventListener('pointerup', soltar);
@@ -290,7 +310,7 @@ export function montarGarotas3d(raiz, cfg) {
 
   // ---------- tamanho e laço (só roda enquanto aparece) ----------
   const _alvo = new THREE.Vector3(0, 0.34, 0);
-  let w = 1, h = 1;
+  let w = 1, h = 1, alturaBase = 0.34;
   function tamanho() {
     const r = palco.getBoundingClientRect();
     if (!r.width) return;
@@ -298,7 +318,7 @@ export function montarGarotas3d(raiz, cfg) {
     renderer.setSize(w, h, false);
     // tela em pé (celular): mais folga, ela fica entre os números (em cima) e a rampa (embaixo)
     const emPe = w / h < 1;
-    _alvo.y = emPe ? 0.42 : 0.34;
+    alturaBase = emPe ? 0.42 : 0.34;
     const alt = emPe ? 1.75 : G.alturaQuadro, larg = alt * (w / h);
     camera.left = -larg / 2; camera.right = larg / 2; camera.top = alt / 2; camera.bottom = -alt / 2;
     camera.updateProjectionMatrix();
@@ -311,6 +331,15 @@ export function montarGarotas3d(raiz, cfg) {
   function desenhar(dt) {
     if (!mexeu) yaw += G.giroSozinho * dt;
     giro.rotation.y = yaw;
+    zoomAtual += (zoom - zoomAtual) * (1 - Math.exp(-dt * 10));
+    camera.zoom = zoomAtual;
+    camera.updateProjectionMatrix();
+    // o zoom vai pro peito e pro rosto; o passeio vai até os pés e o topo da cabeça
+    const f = (zoomAtual - 1) / (G.zoom.max - 1);
+    passeio = THREE.MathUtils.clamp(passeio, -1, 1);
+    _alvo.y = THREE.MathUtils.clamp(
+      THREE.MathUtils.lerp(alturaBase, G.zoom.foco, f) + passeio,
+      THREE.MathUtils.lerp(alturaBase, 0.12, f), THREE.MathUtils.lerp(alturaBase, 0.92, f));
     camera.position.set(0, _alvo.y + Math.sin(pitch) * DIST, Math.cos(pitch) * DIST);
     camera.lookAt(_alvo);
     camera.updateMatrixWorld();

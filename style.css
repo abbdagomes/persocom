@@ -1674,6 +1674,9 @@ body.projeto-aberto .idioma-botao, body.sobre-aberto .idioma-botao, body.pintand
 .garotas3d-quem { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
 .garotas3d-quem .pilula { width: 36px; height: 36px; padding: 0; justify-content: center; cursor: pointer; border: none; }
 .garotas3d-quem .pilula.ativo { color: #111827; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #6b7280; }
+.garotas3d-zoom { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; }
+.garotas3d-zoom .pilula { width: 36px; height: 36px; padding: 0; justify-content: center; cursor: pointer; border: none; font-size: 16px; }
+.garotas3d-zoom .pilula:disabled { opacity: .35; cursor: default; }
 /* a rampa, igual à Color Ramp do compositor da Ana (garotas3d.js) */
 .rampa-painel {
   position: absolute; left: 50%; bottom: 10px; translate: -50% 0; width: min(92%, 520px); display: flex; flex-direction: column; gap: 8px;
@@ -1722,6 +1725,8 @@ body.projeto-aberto .idioma-botao, body.sobre-aberto .idioma-botao, body.pintand
   .comparar-barra span { width: 28px; height: 28px; }
   .comparar-barra span::before { font-size: 11px; }
   .garotas3d-quem { top: 6px; left: 6px; gap: 4px; }
+  .garotas3d-zoom { top: 6px; right: 6px; gap: 4px; }
+  .garotas3d-zoom .pilula { width: 28px; height: 28px; font-size: 14px; }
   .garotas3d-quem .pilula { width: 28px; height: 28px; font-size: 12px; }
   .ampliar-botao { padding: 4px 8px; font-size: 9px; top: 8px; right: 8px; }
 }
