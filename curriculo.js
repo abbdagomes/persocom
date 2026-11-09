@@ -3,14 +3,16 @@
 // A animação fica num arquivo separado (curriculo/animacao.glb, 150 KB): só o movimento e o papel, sem a personagem.
 import * as THREE from 'three';
 import { carregarGlb } from './carregarGlb.js';
-import { tr } from './idioma.js';
+import { tr, idioma } from './idioma.js';
 
+// cada idioma tem o seu currículo (o inglês sai de .claude/ferramentas/gerar_curriculo_en.py)
+const EM_INGLES = idioma === 'en';
 const CONFIG_CURRICULO = {
   animacao: 'curriculo/animacao.glb?v=1',
-  papel: 'curriculo/papel.webp',           // a folha pequena, que ela segura
-  folha: 'curriculo/folha.webp',           // a folha grande, pra ler
-  pdf: 'curriculo.pdf',
-  nomeDoArquivo: 'Curriculo Ana Beatriz Gomes Bueno.pdf',
+  papel: EM_INGLES ? 'curriculo/papel-en.webp' : 'curriculo/papel.webp',   // a folha pequena, que ela segura
+  folha: EM_INGLES ? 'curriculo/folha-en.webp' : 'curriculo/folha.webp',   // a folha grande, pra ler
+  pdf: EM_INGLES ? 'curriculo-en.pdf' : 'curriculo.pdf',
+  nomeDoArquivo: EM_INGLES ? 'Resume Ana Beatriz Gomes Bueno.pdf' : 'Curriculo Ana Beatriz Gomes Bueno.pdf',
   quadroInicial: 356,
   quadroDoPapel: 374,                      // antes disso o papel está escondido atrás dela
   fps: 24,

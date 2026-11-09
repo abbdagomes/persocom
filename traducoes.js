@@ -19,7 +19,7 @@ export const SOBRE_EN = [
 // o texto de cada projeto, pelo id dele no projetos.js
 export const PROJETOS_EN = {
   'boneca-lovecore': {
-    titulo: 'Armed and Adorable',
+    titulo: 'Love is Survival',
     texto: 'A 1.80 m sculpture modeled in 3D and printed at large scale for the set design of Lovecore 7, a party by the '
       + 'REBU DIGITAL collective that brings together over 500 people per edition. The work ran from modeling and splitting the '
       + 'piece into parts for printing to assembly, internal reinforcement and finishing. The scene was also recreated in 3D, '
@@ -39,9 +39,9 @@ export const PROJETOS_EN = {
   },
   'menina-polvo': {
     titulo: 'Octopus Girl',
-    texto: 'An original 3D character modeled and animated with toon shaders that imitate the line and volume of 2D drawing. A '
-      + 'personal project to bring the expressiveness of traditional illustration into 3D, ending in an animation with the '
-      + 'fluidity and charm of a cartoon.',
+    texto: 'A 3D character study, modeled and animated from a drawing, with toon shaders that imitate the line and volume of '
+      + '2D drawing. The idea was to bring the expressiveness of traditional illustration into 3D, ending in an animation '
+      + 'with the fluidity and charm of a cartoon.',
   },
   immortan: {
     titulo: 'Immortan Pendant',

@@ -44,6 +44,8 @@ if (idioma === 'en') {
   document.querySelectorAll('[data-tr]').forEach((el) => { el.textContent = tr(el.textContent.trim()); });
   document.querySelectorAll('[aria-label]').forEach((el) => el.setAttribute('aria-label', tr(el.getAttribute('aria-label'))));
   document.querySelectorAll('[data-dica]').forEach((el) => { el.dataset.dica = tr(el.dataset.dica); });
+  // o link do currículo (sem a animação, abre direto o PDF) aponta pra versão em inglês
+  document.querySelectorAll('[data-curriculo]').forEach((el) => el.setAttribute('href', 'curriculo-en.pdf'));
 }
 
 // ---------- o botão PT / EN ----------
@@ -60,4 +62,5 @@ botao.addEventListener('click', () => {
   // só o #projeto mudou? o navegador não recarrega sozinho
   if (url.href === location.href) location.reload();
 });
-document.body.appendChild(botao);
+// fica logo embaixo do logo (no canto direito ficava longe e pequeno demais em tela grande)
+(document.querySelector('.topo') || document.body).appendChild(botao);

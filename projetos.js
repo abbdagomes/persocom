@@ -76,7 +76,7 @@ const VITRINE_GAME_JAM = {
 const PROJETOS = [
   // ---------------- 3D ----------------
   {
-    id: 'boneca-lovecore', categoria: '3d', ano: '2026', destaque: true, titulo: 'Armed and Adorable', resumo: 'escultura 3D impressa · Lovecore 7',
+    id: 'boneca-lovecore', categoria: '3d', ano: '2026', destaque: true, titulo: 'Love is Survival', resumo: 'escultura 3D impressa · Lovecore 7',
     texto: 'Escultura de 1,80 m modelada em 3D e impressa em grande escala para a cenografia da Lovecore 7, festa do '
       + 'coletivo REBU DIGITAL que reúne mais de 500 pessoas por edição. O trabalho foi da modelagem e da divisão da peça em '
       + 'partes para impressão até a montagem, o reforço interno e o acabamento. A cena também foi recriada em 3D, com luz e '
@@ -162,9 +162,9 @@ const PROJETOS = [
   },
   {
     id: 'menina-polvo', categoria: '3d', ano: '2025', titulo: 'Menina Polvo', resumo: 'estudo de personagem · shader e animação',
-    texto: 'Personagem 3D autoral modelada e animada com shaders toon que imitam o traço e o volume do desenho 2D. Um '
-      + 'projeto pessoal para levar a expressividade da ilustração tradicional para o 3D, terminando numa animação com a '
-      + 'fluidez e o charme de desenho animado.',
+    texto: 'Estudo de personagem 3D, modelada e animada a partir de um desenho, com shaders toon que imitam o traço e o '
+      + 'volume do desenho 2D. A ideia foi levar a expressividade da ilustração tradicional para o 3D, terminando numa '
+      + 'animação com a fluidez e o charme de desenho animado.',
     capa: 'projetos/menina-polvo/capa.webp',
     video: 'projetos/menina-polvo/turntable.mp4',
     link: '',
